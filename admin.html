@@ -17,23 +17,15 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
-
-/* HEADER */
 .hdr{border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:100}
 .logo{font-weight:700;font-size:15px;color:var(--amber);letter-spacing:.04em}
 .back-btn{font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);color:var(--text3);background:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:.15s}
 .back-btn:hover{border-color:var(--accent);color:var(--accent)}
-
-/* SETUP BANNER */
 .setup-banner{background:var(--amber2);border:1px solid rgba(255,179,71,.3);border-radius:var(--r);padding:16px 20px;margin:20px 20px 0}
 .setup-title{font-size:13px;font-weight:600;color:var(--amber);margin-bottom:8px}
 .setup-desc{font-size:12px;color:var(--text2);line-height:1.8}
 .setup-desc code{font-family:'JetBrains Mono',monospace;background:var(--bg4);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--amber)}
-
-/* MAIN */
 .main{padding:20px;max-width:860px}
-
-/* CONFIG SECTION */
 .config-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:18px;margin-bottom:20px}
 .config-title{font-size:11px;font-weight:500;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:14px}
 .cfg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
@@ -46,15 +38,11 @@ label{display:block;font-size:11px;color:var(--text3);margin-bottom:4px}
 .save-cfg-btn{padding:7px 18px;border-radius:var(--rs);border:1px solid var(--amber);color:var(--amber);background:var(--amber2);font-size:12px;font-weight:500;cursor:pointer;transition:.12s;font-family:'Noto Sans KR',sans-serif}
 .save-cfg-btn:hover{background:rgba(255,179,71,.25)}
 .cfg-status{font-size:11px;margin-top:8px;min-height:18px}
-
-/* TABS */
 .tabs{display:flex;gap:5px;margin-bottom:20px;flex-wrap:wrap}
 .tab{padding:8px 18px;font-size:13px;font-weight:500;border-radius:20px;border:1px solid var(--border2);color:var(--text3);background:none;cursor:pointer;transition:.15s;font-family:'Noto Sans KR',sans-serif}
 .tab:hover{border-color:var(--accent);color:var(--accent)}
 .tab.on{background:var(--accent2);border-color:var(--accent);color:var(--accent)}
 .panel{display:none}.panel.on{display:block}
-
-/* AI PANEL */
 .ai-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:18px;margin-bottom:16px}
 .ai-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px}
 .ai-desc{font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.7}
@@ -69,14 +57,9 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 .ai-status.loading{color:var(--amber)}
 .ai-status.ok{color:var(--teal)}
 .ai-status.err{color:var(--red)}
-
-/* PREVIEW */
 .preview-wrap{margin-top:14px}
 .preview-title{font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
 .preview-box{background:var(--bg4);border:1px solid var(--border);border-radius:var(--rs);padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);max-height:260px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6}
-
-/* CURRENT DATA */
-.current-wrap{margin-top:14px}
 .cur-item{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);font-size:12px;margin-bottom:5px}
 .cur-item-text{flex:1;color:var(--text2)}
 .del-btn{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 2px;line-height:1;transition:.1s}
@@ -84,15 +67,8 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 .apply-btn{padding:8px 20px;border-radius:var(--rs);border:1px solid var(--teal);color:var(--teal);background:rgba(94,207,176,.1);font-size:13px;font-weight:600;cursor:pointer;transition:.12s;font-family:'Noto Sans KR',sans-serif;display:inline-flex;align-items:center;gap:6px}
 .apply-btn:hover{background:rgba(94,207,176,.2)}
 .apply-btn:disabled{opacity:.4;cursor:not-allowed}
-
-/* DIVIDER */
 .divider{height:1px;background:var(--border);margin:18px 0}
-
-/* TERM BADGE */
-.term-badge{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--accent2);border:1px solid rgba(200,240,96,.3);color:var(--accent);padding:1px 7px;border-radius:10px}
 .old-badge{font-size:10px;background:rgba(255,179,71,.12);color:var(--amber);border:1px solid rgba(255,179,71,.25);padding:1px 6px;border-radius:10px}
-
-/* SPINNER */
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 </style>
@@ -104,7 +80,6 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
   <a class="back-btn" href="index.html">← 사이트로</a>
 </div>
 
-<!-- SETUP GUIDE -->
 <div class="setup-banner" id="setupBanner" style="display:none">
   <div class="setup-title">⚡ 최초 설정 필요</div>
   <div class="setup-desc">
@@ -117,7 +92,6 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 
 <div class="main">
 
-  <!-- CONFIG -->
   <div class="config-box">
     <div class="config-title">⚙️ 설정</div>
     <div class="cfg-row">
@@ -125,14 +99,13 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div class="fgroup"><label>저장소 (유저명/저장소명)</label><input class="fi fi-mono" id="cfg-repo" placeholder="hong/imgo-study"></div>
     </div>
     <div class="cfg-row">
-      <div class="fgroup"><label>Gemini API Key <span style="color:var(--text3);font-weight:400">(AI 파싱 기능용, 무료)</span></label><input class="fi fi-mono" id="cfg-claude-key" type="password" placeholder="AIza..."></div>
+      <div class="fgroup"><label>Gemini API Key <span style="color:var(--text3);font-weight:400">(AI 파싱 기능용, 무료)</span></label><input class="fi fi-mono" id="cfg-gemini-key" type="password" placeholder="AIza..."></div>
       <div class="fgroup" style="display:flex;align-items:flex-end"><div style="font-size:11px;color:var(--text3);line-height:1.7">aistudio.google.com → Get API Key (무료)<br>로컬에만 저장, 서버 전송 없음</div></div>
     </div>
     <button class="save-cfg-btn" onclick="saveConfig()">저장</button>
     <div class="cfg-status" id="cfg-status"></div>
   </div>
 
-  <!-- TABS -->
   <div class="tabs">
     <button class="tab on" onclick="switchTab('schedule', this)">📅 스터디 일정</button>
     <button class="tab" onclick="switchTab('lectures', this)">📚 강의 목록</button>
@@ -140,9 +113,8 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
     <button class="tab" onclick="switchTab('raw', this)">🛠 전체 JSON</button>
   </div>
 
-  <!-- ===== SCHEDULE PANEL ===== -->
+  <!-- SCHEDULE -->
   <div class="panel on" id="panel-schedule">
-
     <div class="ai-box">
       <div class="ai-title">🤖 AI 일정 파싱</div>
       <div class="ai-desc">
@@ -150,21 +122,23 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
         AI가 자동으로 파싱해서 일정 데이터를 만들어줍니다.
       </div>
       <div class="example-box">
-        <span>예시 1 (줄바꿈 공지 붙여넣기)</span><br>
+        <span>예시 1 — 카톡 공지 붙여넣기</span><br>
         8/11 월 총창 전체<br>
         8/13 수 영어 전체 2:11<br>
         8/15 금 음악 전체 PASS<br><br>
-        <span>예시 2 (자연어로 변경 지시)</span><br>
-        9/3 수업이 결석으로 취소됐어. 이후 1텀 일정 전부 일주일씩 뒤로 밀어줘.<br><br>
-        <span>예시 3 (특정 일정 수정)</span><br>
+        <span>예시 2 — 자연어 변경 지시</span><br>
+        9/3 수업 취소. 이후 1텀 일정 전부 1주씩 뒤로 밀어줘.<br><br>
+        <span>예시 3 — 특정 항목 수정</span><br>
         2텀 10/8 수 사회각론 시간기록 2:51 추가해줘
       </div>
-      <div class="fgroup" style="margin-bottom:10px"><label>텀 선택</label>
+      <div class="fgroup" style="margin-bottom:10px">
+        <label>텀 선택</label>
         <select class="fi" id="sc-term" style="max-width:140px">
           <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option><option value="4">4텀</option>
         </select>
       </div>
-      <div class="fgroup" style="margin-bottom:12px"><label>공지 / 변경사항 입력</label>
+      <div class="fgroup" style="margin-bottom:12px">
+        <label>공지 / 변경사항 입력</label>
         <textarea class="fi" id="sc-input" placeholder="카톡 공지 복붙 또는 자연어로 입력..."></textarea>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -184,31 +158,30 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 
     <div class="ai-box">
       <div class="ai-title">📋 현재 일정 보기 / 삭제</div>
-      <div class="fgroup" style="margin-bottom:12px"><label>텀 선택</label>
+      <div class="fgroup" style="margin-bottom:12px">
+        <label>텀 선택</label>
         <select class="fi" id="sc-view-term" style="max-width:140px" onchange="renderCurrentSchedule()">
           <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option><option value="4">4텀</option>
         </select>
       </div>
       <div id="sc-current-list"></div>
-      <div style="margin-top:10px">
+      <div style="margin-top:12px">
         <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
         <div class="ai-status" id="sc-push-status" style="margin-top:6px"></div>
       </div>
     </div>
-
   </div>
 
-  <!-- ===== LECTURES PANEL ===== -->
+  <!-- LECTURES -->
   <div class="panel" id="panel-lectures">
-
     <div class="ai-box">
       <div class="ai-title">🤖 AI 강의 파싱</div>
       <div class="ai-desc">
         강의 목록을 <b>카톡 공지 그대로 붙여넣기</b>하세요. 형식이 들쑥날쑥해도 AI가 파싱합니다.<br>
-        <b>작년 강의</b>(올해 미업로드)는 텍스트에 "작년" 또는 "(구)" 표시하거나, 아래 체크 활용.
+        <b>작년 강의</b>(올해 미업로드)는 텍스트에 "(작년)" 또는 "(구)" 표시하거나, 아래 체크 활용.
       </div>
       <div class="example-box">
-        <span>예시 (카톡 공지 형태)</span><br>
+        <span>예시</span><br>
         국어<br>
         1강 2026학년도 국어 OT<br>
         2~9강 기초 문식성<br>
@@ -216,18 +189,17 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
         16~24강 읽기 영역 (작년)<br>
         25~32강 쓰기 영역 (작년)
       </div>
-      <div class="fgroup" style="margin-bottom:8px"><label>과목 선택 (파싱 결과에서 자동감지, 수동 지정 가능)</label>
-        <select class="fi" id="lc-subj" style="max-width:200px">
-          <option value="">AI가 자동 감지</option>
-        </select>
+      <div class="fgroup" style="margin-bottom:8px">
+        <label>과목 선택 (AI 자동 감지, 수동 지정 가능)</label>
+        <select class="fi" id="lc-subj" style="max-width:200px"></select>
       </div>
-      <div class="fgroup" style="margin-bottom:8px"><label>강의 목록 텍스트</label>
+      <div class="fgroup" style="margin-bottom:8px">
+        <label>강의 목록 텍스트</label>
         <textarea class="fi" id="lc-input" placeholder="강의 목록 붙여넣기..."></textarea>
       </div>
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
-        <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text2);margin-bottom:0">
-          <input type="checkbox" id="lc-all-old"> 전체를 작년 강의로 표시
-        </label>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;color:var(--text2)">
+        <input type="checkbox" id="lc-all-old">
+        <label for="lc-all-old" style="margin-bottom:0;font-size:13px;color:var(--text2);cursor:pointer">전체를 작년 강의로 표시</label>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="ai-btn" id="lc-parse-btn" onclick="parseLectures()">✨ AI 파싱</button>
@@ -247,33 +219,31 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 
     <div class="ai-box">
       <div class="ai-title">📋 현재 강의 목록</div>
-      <div class="fgroup" style="margin-bottom:12px"><label>과목 선택</label>
-        <select class="fi" id="lc-view-subj" style="max-width:200px" onchange="renderCurrentLectures()">
-        </select>
+      <div class="fgroup" style="margin-bottom:12px">
+        <label>과목 선택</label>
+        <select class="fi" id="lc-view-subj" style="max-width:200px" onchange="renderCurrentLectures()"></select>
       </div>
       <div id="lc-current-list"></div>
-      <div style="margin-top:10px">
+      <div style="margin-top:12px">
         <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
         <div class="ai-status" id="lc-push-status" style="margin-top:6px"></div>
       </div>
     </div>
-
   </div>
 
-  <!-- ===== NOTICE PANEL ===== -->
+  <!-- NOTICE -->
   <div class="panel" id="panel-notice">
     <div class="ai-box">
       <div class="ai-title">🤖 AI 공지 파싱</div>
-      <div class="ai-desc">
-        공지사항 내용을 자연어로 입력하면 AI가 파싱합니다.
-      </div>
+      <div class="ai-desc">공지사항 내용을 자연어로 입력하면 AI가 파싱합니다.</div>
       <div class="example-box">
         <span>예시</span><br>
         스터디 시간표: 월~금 12:00~13:30 모의고사, 토 10:00~11:30 교직논술<br>
         벌금: 미루기 30000원, 파토/노쇼 50000원<br>
         링크: 2026 자료 https://drive.google.com/...
       </div>
-      <div class="fgroup" style="margin-bottom:12px"><label>공지 내용</label>
+      <div class="fgroup" style="margin-bottom:12px">
+        <label>공지 내용</label>
         <textarea class="fi" id="nt-input" placeholder="공지사항 붙여넣기..."></textarea>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -291,14 +261,12 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       </div>
     </div>
     <div class="ai-box">
-      <div style="margin-top:4px">
-        <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
-        <div class="ai-status" id="nt-push-status" style="margin-top:6px"></div>
-      </div>
+      <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
+      <div class="ai-status" id="nt-push-status" style="margin-top:6px"></div>
     </div>
   </div>
 
-  <!-- ===== RAW JSON PANEL ===== -->
+  <!-- RAW JSON -->
   <div class="panel" id="panel-raw">
     <div class="ai-box">
       <div class="ai-title">🛠 전체 data.json 편집</div>
@@ -312,56 +280,55 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
     </div>
   </div>
 
-</div><!-- /main -->
+</div>
 
 <script>
-// ===================== CONFIG =====================
 const CFG_KEY = 'imgo_admin_cfg';
 let cfg = {};
-let DATA = null; // in-memory data.json
+let DATA = null;
 let parsedScheduleBuffer = null;
 let parsedLecturesBuffer = null;
 let parsedNoticeBuffer = null;
 
+// ── CONFIG ──
 function loadConfig(){
   try{ cfg = JSON.parse(localStorage.getItem(CFG_KEY)||'{}'); }catch(e){ cfg={}; }
-  if(cfg.token)     document.getElementById('cfg-token').value      = cfg.token;
-  if(cfg.repo)      document.getElementById('cfg-repo').value       = cfg.repo;
-  if(cfg.claudeKey) document.getElementById('cfg-claude-key').value = cfg.claudeKey;
+  if(cfg.token)     document.getElementById('cfg-token').value     = cfg.token;
+  if(cfg.repo)      document.getElementById('cfg-repo').value      = cfg.repo;
+  if(cfg.geminiKey) document.getElementById('cfg-gemini-key').value = cfg.geminiKey;
   if(!cfg.token || !cfg.repo) document.getElementById('setupBanner').style.display = 'block';
 }
 function saveConfig(){
   cfg.token     = document.getElementById('cfg-token').value.trim();
   cfg.repo      = document.getElementById('cfg-repo').value.trim();
-  cfg.claudeKey = document.getElementById('cfg-claude-key').value.trim();
+  cfg.geminiKey = document.getElementById('cfg-gemini-key').value.trim();
   localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
   const s = document.getElementById('cfg-status');
   s.style.color='var(--teal)'; s.textContent='✓ 저장되었습니다.';
-  document.getElementById('setupBanner').style.display = 'none';
+  document.getElementById('setupBanner').style.display='none';
   setTimeout(()=>s.textContent='', 2000);
   loadDataFromGithub();
 }
 
-// ===================== GITHUB API =====================
+// ── GITHUB ──
 async function loadDataFromGithub(){
   if(!cfg.token||!cfg.repo){ setStatus('cfg-status','GitHub 설정을 먼저 입력해주세요.','err'); return; }
   try{
     const res = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/data.json`,{
       headers:{'Authorization':`token ${cfg.token}`,'Accept':'application/vnd.github.v3+json'}
     });
-    if(!res.ok) throw new Error('파일을 찾을 수 없습니다. 저장소에 data.json이 있는지 확인하세요.');
+    if(!res.ok) throw new Error('data.json을 찾을 수 없습니다. 저장소를 확인하세요.');
     const json = await res.json();
-    cfg.sha = json.sha; // needed for update
+    cfg.sha = json.sha;
     const b64 = json.content.replace(/\n/g,'');
     DATA = JSON.parse(decodeURIComponent(escape(atob(b64))));
     renderAll();
     setStatus('cfg-status','✓ GitHub에서 데이터 로드 완료','ok');
-    setTimeout(()=>setStatus('cfg-status','',''),2500);
+    setTimeout(()=>setStatus('cfg-status','',''), 2500);
   } catch(e){
     setStatus('cfg-status','⚠ '+e.message,'err');
   }
 }
-
 async function pushToGithub(){
   if(!cfg.token||!cfg.repo){ alert('GitHub 설정을 먼저 저장해주세요.'); return; }
   if(!DATA){ alert('데이터가 없습니다.'); return; }
@@ -383,40 +350,34 @@ async function pushToGithub(){
   }
 }
 
-// ===================== GEMINI API =====================
-async function callGemini(systemPrompt, userContent) {
-  // 1. URL 주소 중간에 사용하고 싶은 모델명(gemini-2.0-flash)을 정확히 입력합니다.
-  const model = "gemini-2.5-flash"; 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cfg.claudeKey}`;
-
+// ── GEMINI API ── (단일 진입점, 이전 callClaude 오류 수정됨)
+async function callGemini(systemPrompt, userContent){
+  if(!cfg.geminiKey) throw new Error('Gemini API Key가 설정되지 않았습니다. 설정에서 입력해주세요.');
+  const model = 'gemini-2.5-flash';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cfg.geminiKey}`;
   const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
-      system_instruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: 'user', parts: [{ text: userContent }] }],
-      generationConfig: { 
-        maxOutputTokens: 4000, 
-        temperature: 0.2 
-      }
+      system_instruction:{ parts:[{ text: systemPrompt }] },
+      contents:[{ role:'user', parts:[{ text: userContent }] }],
+      generationConfig:{ maxOutputTokens:4000, temperature:0.2 }
     })
   });
-  
+  if(!res.ok){
+    const err = await res.json();
+    throw new Error(err.error?.message || 'Gemini API 오류');
+  }
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+  return data.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('') || '';
 }
 
-// ===================== SCHEDULE =====================
+// ── SCHEDULE ──
 const SC_SYSTEM = `당신은 임용고시 스터디 일정 파싱 전문가입니다.
 사용자가 카카오톡 공지 텍스트 또는 자연어 지시를 주면, 이를 파싱해서 JSON 형식으로 반환하세요.
 
 현재 데이터 구조:
-{
-  "week": "1주차",
-  "items": [
-    {"date":"8/11","day":"월","subject":"총창 전체","time":"1:25","note":"PASS"}
-  ]
-}
+[{"week":"1주차","items":[{"date":"8/11","day":"월","subject":"총창 전체","time":"1:25","note":"PASS"}]}]
 
 규칙:
 - date: "8/11" 형식 (M/D)
@@ -425,42 +386,33 @@ const SC_SYSTEM = `당신은 임용고시 스터디 일정 파싱 전문가입�
 - time: "2:30" 형식, 없으면 필드 생략
 - note: 비고, 없으면 필드 생략
 - week: 주차 라벨 (예: "1주차", "D-40 주차 (9/29)")
-- 여러 주차가 포함될 수 있음
 
-반드시 JSON만 출력하세요. 설명, 마크다운 백틱 없이 순수 JSON 배열만:
+반드시 JSON만 출력하세요. 마크다운 백틱 없이 순수 JSON 배열만:
 [{"week":"...", "items":[...]}, ...]`;
 
 const SC_MODIFY_SYSTEM = `당신은 임용고시 스터디 일정 수정 전문가입니다.
 사용자가 현재 일정 JSON과 변경 지시를 주면, 수정된 전체 일정을 JSON으로 반환하세요.
 
-규칙:
-- date: "8/11" 형식 (M/D)
-- day: 요일 한 글자
-- subject, time(선택), note(선택)
-- week: 주차 라벨
-- 변경 지시에 따라 날짜 이동, 항목 추가/삭제/수정 수행
+규칙: date "8/11" 형식, day 요일 한 글자, subject/time(선택)/note(선택), week 주차 라벨
 
 반드시 JSON만 출력하세요. 순수 JSON 배열만:
 [{"week":"...", "items":[...]}, ...]`;
 
 async function parseSchedule(){
   const input = document.getElementById('sc-input').value.trim();
-  const term = document.getElementById('sc-term').value;
+  const term  = document.getElementById('sc-term').value;
   if(!input){ setStatus('sc-status','내용을 입력해주세요.','err'); return; }
-
   setStatus('sc-status','AI 파싱 중...','loading');
   setBtnLoading('sc-parse-btn', true);
   document.getElementById('sc-preview-wrap').style.display='none';
-
   try{
-    // Determine if it's a modification or new parse
-    const isModify = input.includes('밀') || input.includes('취소') || input.includes('변경') || input.includes('추가') || input.includes('수정') || input.includes('삭제');
+    const isModify = /밀|취소|변경|추가|수정|삭제/.test(input);
     let result;
     if(isModify && DATA){
       const currentData = JSON.stringify(DATA.schedule[term]||[], null, 2);
-      result = await callClaude(SC_MODIFY_SYSTEM, `현재 ${term}텀 일정:\n${currentData}\n\n변경 지시:\n${input}`);
+      result = await callGemini(SC_MODIFY_SYSTEM, `현재 ${term}텀 일정:\n${currentData}\n\n변경 지시:\n${input}`);
     } else {
-      result = await callClaude(SC_SYSTEM, input);
+      result = await callGemini(SC_SYSTEM, input);
     }
     const clean = result.replace(/```json|```/g,'').trim();
     parsedScheduleBuffer = JSON.parse(clean);
@@ -471,42 +423,38 @@ async function parseSchedule(){
     setStatus('sc-status','⚠ '+e.message,'err');
   } finally { setBtnLoading('sc-parse-btn', false); }
 }
-
 function applySchedule(){
   if(!parsedScheduleBuffer||!DATA){ setStatus('sc-apply-status','먼저 파싱을 실행하세요.','err'); return; }
   const term = document.getElementById('sc-term').value;
   DATA.schedule[term] = parsedScheduleBuffer;
-  renderCurrentSchedule();
-  updateRawEditor();
+  renderCurrentSchedule(); updateRawEditor();
   setStatus('sc-apply-status','✓ 적용됨. GitHub 저장 버튼으로 반영하세요.','ok');
   document.getElementById('sc-preview-wrap').style.display='none';
-  setTimeout(()=>setStatus('sc-apply-status','',''),4000);
+  setTimeout(()=>setStatus('sc-apply-status','',''), 4000);
 }
-
 function renderCurrentSchedule(){
-  if(!DATA){ return; }
+  if(!DATA) return;
   const term = document.getElementById('sc-view-term').value;
   const weeks = DATA.schedule[term]||[];
-  let html = '';
+  let html='';
   weeks.forEach((w,wi)=>{
-    html += `<div style="font-size:11px;color:var(--text3);margin:8px 0 5px;font-family:'JetBrains Mono',monospace">${w.week}</div>`;
+    html+=`<div style="font-size:11px;color:var(--text3);margin:8px 0 5px;font-family:'JetBrains Mono',monospace">${w.week}</div>`;
     (w.items||[]).forEach((item,ii)=>{
-      html += `<div class="cur-item">
-        <div class="cur-item-text">${item.date} (${item.day}) · ${item.subject}${item.time?' <span style="color:var(--teal);font-family:monospace">'+item.time+'</span>':''}${item.note?' <span style="color:var(--amber)">'+item.note+'</span>':''}</div>
+      html+=`<div class="cur-item">
+        <div class="cur-item-text">${item.date}(${item.day}) · ${item.subject}${item.time?` <span style="color:var(--teal);font-family:monospace">${item.time}</span>`:''}${item.note?` <span style="color:var(--amber)">${item.note}</span>`:''}</div>
         <button class="del-btn" onclick="delScheduleItem(${term},${wi},${ii})">×</button>
       </div>`;
     });
   });
-  document.getElementById('sc-current-list').innerHTML = html || '<div style="color:var(--text3);font-size:12px;padding:8px">일정이 없습니다.</div>';
+  document.getElementById('sc-current-list').innerHTML = html||'<div style="color:var(--text3);font-size:12px;padding:8px">일정이 없습니다.</div>';
 }
-
 function delScheduleItem(term, wi, ii){
   DATA.schedule[term][wi].items.splice(ii,1);
   if(!DATA.schedule[term][wi].items.length) DATA.schedule[term].splice(wi,1);
   renderCurrentSchedule(); updateRawEditor();
 }
 
-// ===================== LECTURES =====================
+// ── LECTURES ──
 const LC_SYSTEM = `당신은 임용고시 강의 목록 파싱 전문가입니다.
 카카오톡 공지나 텍스트를 파싱해서 JSON으로 반환하세요.
 
@@ -526,17 +474,14 @@ async function parseLectures(){
   const input = document.getElementById('lc-input').value.trim();
   const allOld = document.getElementById('lc-all-old').checked;
   if(!input){ setStatus('lc-status','내용을 입력해주세요.','err'); return; }
-
   setStatus('lc-status','AI 파싱 중...','loading');
   setBtnLoading('lc-parse-btn', true);
   document.getElementById('lc-preview-wrap').style.display='none';
-
   try{
-    let result = await callClaude(LC_SYSTEM, input);
+    let result = await callGemini(LC_SYSTEM, input);
     const clean = result.replace(/```json|```/g,'').trim();
     parsedLecturesBuffer = JSON.parse(clean);
     if(allOld) parsedLecturesBuffer.lectures.forEach(l=>l.old=true);
-    // auto select subject
     const subjSel = document.getElementById('lc-subj');
     const match = Array.from(subjSel.options).find(o=>o.value===parsedLecturesBuffer.subject);
     if(match) subjSel.value = parsedLecturesBuffer.subject;
@@ -547,11 +492,9 @@ async function parseLectures(){
     setStatus('lc-status','⚠ '+e.message,'err');
   } finally { setBtnLoading('lc-parse-btn', false); }
 }
-
 function applyLectures(mode){
   if(!parsedLecturesBuffer||!DATA){ setStatus('lc-apply-status','먼저 파싱을 실행하세요.','err'); return; }
-  const subjSel = document.getElementById('lc-subj');
-  const subj = subjSel.value || parsedLecturesBuffer.subject;
+  const subj = document.getElementById('lc-subj').value || parsedLecturesBuffer.subject;
   if(!subj){ setStatus('lc-apply-status','과목을 선택해주세요.','err'); return; }
   if(!DATA.lectures[subj]) DATA.lectures[subj]=[];
   if(mode==='replace') DATA.lectures[subj] = parsedLecturesBuffer.lectures;
@@ -559,30 +502,24 @@ function applyLectures(mode){
   renderCurrentLectures(); updateRawEditor(); buildSubjectSelects();
   setStatus('lc-apply-status','✓ 적용됨. GitHub 저장 버튼으로 반영하세요.','ok');
   document.getElementById('lc-preview-wrap').style.display='none';
-  setTimeout(()=>setStatus('lc-apply-status','',''),4000);
+  setTimeout(()=>setStatus('lc-apply-status','',''), 4000);
 }
-
 function renderCurrentLectures(){
   if(!DATA) return;
   const subj = document.getElementById('lc-view-subj').value;
   const lecs = DATA.lectures[subj]||[];
-  let html = '';
-  lecs.forEach((l,i)=>{
-    const oldBadge = l.old ? '<span class="old-badge">작년</span>' : '';
-    html += `<div class="cur-item">
-      <div class="cur-item-text"><span style="font-family:monospace;font-size:11px;color:var(--text3);min-width:50px;display:inline-block">${l.num}</span> ${l.title} ${oldBadge}</div>
+  document.getElementById('lc-current-list').innerHTML = lecs.map((l,i)=>`
+    <div class="cur-item">
+      <div class="cur-item-text"><span style="font-family:monospace;font-size:11px;color:var(--text3);min-width:50px;display:inline-block">${l.num}</span> ${l.title} ${l.old?'<span class="old-badge">작년</span>':''}</div>
       <button class="del-btn" onclick="delLecture('${subj}',${i})">×</button>
-    </div>`;
-  });
-  document.getElementById('lc-current-list').innerHTML = html || '<div style="color:var(--text3);font-size:12px;padding:8px">강의가 없습니다.</div>';
+    </div>`).join('') || '<div style="color:var(--text3);font-size:12px;padding:8px">강의가 없습니다.</div>';
 }
-
 function delLecture(subj, i){
   DATA.lectures[subj].splice(i,1);
   renderCurrentLectures(); updateRawEditor();
 }
 
-// ===================== NOTICE =====================
+// ── NOTICE ──
 const NT_SYSTEM = `당신은 스터디 공지사항 파싱 전문가입니다.
 텍스트에서 스터디 관련 공지를 파싱하여 JSON으로 반환하세요.
 
@@ -603,7 +540,7 @@ async function parseNotice(){
   setBtnLoading('nt-parse-btn', true);
   document.getElementById('nt-preview-wrap').style.display='none';
   try{
-    let result = await callClaude(NT_SYSTEM, input);
+    let result = await callGemini(NT_SYSTEM, input);
     const clean = result.replace(/```json|```/g,'').trim();
     parsedNoticeBuffer = JSON.parse(clean);
     document.getElementById('nt-preview').textContent = JSON.stringify(parsedNoticeBuffer, null, 2);
@@ -613,34 +550,29 @@ async function parseNotice(){
     setStatus('nt-status','⚠ '+e.message,'err');
   } finally { setBtnLoading('nt-parse-btn', false); }
 }
-
 function applyNotice(){
   if(!parsedNoticeBuffer||!DATA){ setStatus('nt-apply-status','먼저 파싱을 실행하세요.','err'); return; }
-  // Merge: only overwrite non-empty arrays
   ['schedule','fines','links','unable'].forEach(k=>{
     if(parsedNoticeBuffer[k]&&parsedNoticeBuffer[k].length) DATA.notice[k]=parsedNoticeBuffer[k];
   });
   updateRawEditor();
   setStatus('nt-apply-status','✓ 적용됨. GitHub 저장 버튼으로 반영하세요.','ok');
   document.getElementById('nt-preview-wrap').style.display='none';
-  setTimeout(()=>setStatus('nt-apply-status','',''),4000);
+  setTimeout(()=>setStatus('nt-apply-status','',''), 4000);
 }
 
-// ===================== RAW EDITOR =====================
-function updateRawEditor(){
-  if(!DATA) return;
-  document.getElementById('raw-editor').value = JSON.stringify(DATA, null, 2);
-}
+// ── RAW EDITOR ──
+function updateRawEditor(){ if(DATA) document.getElementById('raw-editor').value = JSON.stringify(DATA,null,2); }
 function applyRaw(){
   try{
     DATA = JSON.parse(document.getElementById('raw-editor').value);
     renderAll();
     setStatus('raw-status','✓ 적용됨.','ok');
-    setTimeout(()=>setStatus('raw-status','',''),2000);
+    setTimeout(()=>setStatus('raw-status','',''), 2000);
   } catch(e){ setStatus('raw-status','⚠ JSON 형식 오류: '+e.message,'err'); }
 }
 
-// ===================== RENDER ALL =====================
+// ── RENDER ALL ──
 function renderAll(){
   if(!DATA) return;
   buildSubjectSelects();
@@ -648,7 +580,6 @@ function renderAll(){
   renderCurrentLectures();
   updateRawEditor();
 }
-
 function buildSubjectSelects(){
   if(!DATA) return;
   const subjects = Object.keys(DATA.lectures||{});
@@ -659,16 +590,14 @@ function buildSubjectSelects(){
   if(subjects.length) renderCurrentLectures();
 }
 
-// ===================== HELPERS =====================
+// ── HELPERS ──
 function setStatus(id, msg, type){
-  const el = document.getElementById(id);
-  if(!el) return;
+  const el = document.getElementById(id); if(!el) return;
   el.textContent = msg;
-  el.className = 'ai-status' + (type?' '+type:'');
+  el.className = 'ai-status'+(type?' '+type:'');
 }
 function setBtnLoading(id, loading){
-  const btn = document.getElementById(id);
-  if(!btn) return;
+  const btn = document.getElementById(id); if(!btn) return;
   if(loading){ btn.disabled=true; btn.innerHTML='<span class="spinner"></span> 처리 중...'; }
   else { btn.disabled=false; btn.innerHTML='✨ AI 파싱'; }
 }
@@ -679,10 +608,10 @@ function switchTab(name, btn){
   btn.classList.add('on');
 }
 
-// ===================== INIT =====================
+// ── INIT ──
 loadConfig();
 if(cfg.token && cfg.repo) loadDataFromGithub();
-else document.getElementById('setupBanner').style.display = 'block';
+else document.getElementById('setupBanner').style.display='block';
 </script>
 </body>
 </html>
