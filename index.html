@@ -3,17 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>임고 스터디</title>
+<title>📚 2027 IMGO TF</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0d0d0d;--bg2:#161616;--bg3:#1e1e1e;--bg4:#272727;--bg5:#2f2f2f;
-  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--border3:rgba(255,255,255,0.2);
-  --text:#e8e8e8;--text2:#aaa;--text3:#666;--text4:#444;
+  --bg:#1a1a1a;--bg2:#222222;--bg3:#2a2a2a;--bg4:#323232;--bg5:#3a3a3a;
+  --border:rgba(255,255,255,0.10);--border2:rgba(255,255,255,0.18);--border3:rgba(255,255,255,0.28);
+  --text:#f0f0f0;--text2:#c0c0c0;--text3:#888;--text4:#555;
   --accent:#c8f060;--accent2:rgba(200,240,96,0.15);--accent3:rgba(200,240,96,0.08);
   --red:#ff5f5f;--amber:#ffb347;--blue:#6eb5ff;--purple:#b8a5ff;--teal:#5ecfb0;--pink:#ff8fa3;
   --r:10px;--rs:6px;
 }
+body.light{
+  --bg:#f7f7f2;--bg2:#eeeee9;--bg3:#ffffff;--bg4:#f2f2ed;--bg5:#e8e8e3;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);--border3:rgba(0,0,0,0.22);
+  --text:#1a1a1a;--text2:#444;--text3:#888;--text4:#bbb;
+  --accent:#5a8a10;--accent2:rgba(90,138,16,0.1);--accent3:rgba(90,138,16,0.06);
+  --red:#d93025;--amber:#c87800;--blue:#1a6fc4;--purple:#6b4fc4;--teal:#1a8a6a;--pink:#c4204a;
+}
+.theme-btn{font-size:16px;padding:4px 8px;border-radius:20px;border:1px solid var(--border2);background:none;color:var(--text3);transition:.15s;line-height:1;cursor:pointer}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
 button{font-family:'Noto Sans KR',sans-serif;cursor:pointer}
@@ -183,9 +192,10 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 
 <!-- HEADER -->
 <div class="hdr">
-  <div class="logo">📚 임고 스터디</div>
+  <div class="logo">📚 2027 IMGO TF</div>
   <div class="hdr-right">
     <div class="dday" id="ddayBadge">D-?</div>
+    <button class="theme-btn" id="themeToggleBtn" onclick="toggleTheme()" title="라이트/다크 전환">🌙</button>
     <button class="edit-btn" id="editToggleBtn" onclick="onEditToggle()">편집 모드</button>
   </div>
 </div>
@@ -240,7 +250,7 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
     </div>
 
     <div class="ep-section" id="ep-settings">
-      <div class="fgroup"><label>D-DAY 날짜 (YYYY-MM-DD)</label><input class="fi" id="set-dday" placeholder="2026-11-08"></div>
+      <div class="fgroup"><label>D-DAY 날짜 (YYYY-MM-DD)</label><input class="fi" id="set-dday" placeholder="2027-11-14"></div>
       <div class="fgroup"><label>텀 기간 표시</label>
         <div class="fi-row">
           <input class="fi" id="set-period-t" placeholder="텀 번호 (1~4)">
@@ -362,13 +372,13 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
   <div class="nc"><div class="nc-stitle">스터디 시간표</div><div id="nt-sched-view"></div></div>
   <div class="nc"><div class="nc-stitle">스터디 벌금</div><div id="nt-fine-view"></div></div>
   <div class="nc"><div class="nc-stitle">자료 링크</div><div id="nt-link-view"></div></div>
-  <div style="margin-top:22px"><div class="sec-title">못 푸는 것들 <span id="unable-count-label" style="color:var(--text3)"></span></div><div class="unable-list" id="nt-unable-view"></div></div>
+  
 </div>
 
 <script>
 // ==================== DEFAULT DATA ====================
 const DEFAULT = {
-  dday: '2026-11-08',
+  dday: '2026-11-14',
   termPeriods: { 1:'2025.08.11 ~ 09.22', 2:'2025.09.24 ~ 10.19', 3:'2025.10.20 ~ 11.08', 4:'미정' },
   schedule: {
     1:[
@@ -545,14 +555,23 @@ let currentSubject = '';
 const PW_KEY = 'study_pw';
 const DATA_KEY = 'study_data';
 
-function loadData(){
+async function loadData(){
+  try{
+    // data.json 우선 로드 (GitHub Pages에서 서빙됨)
+    const res = await fetch('data.json?v='+Date.now());
+    if(res.ok){
+      S = await res.json();
+      return;
+    }
+  } catch(e){}
+  // 로컬 fallback (로컬에서 테스트하거나 data.json 없을 때)
   try{
     const raw = localStorage.getItem(DATA_KEY);
     if(raw) S = JSON.parse(raw);
     else S = JSON.parse(JSON.stringify(DEFAULT));
   } catch(e){ S = JSON.parse(JSON.stringify(DEFAULT)); }
 }
-function saveData(){ localStorage.setItem(DATA_KEY, JSON.stringify(S)); }
+function saveData(){ /* data.json 방식에서는 admin.html에서 GitHub API로 저장 */ }
 
 // ==================== PASSWORD ====================
 function onEditToggle(){
@@ -924,13 +943,29 @@ function goPage(name,btn){
   if(name==='lectures')buildSubjectTabs();
 }
 
+// ==================== THEME ====================
+function toggleTheme(){
+  const isLight = document.body.classList.toggle('light');
+  document.getElementById('themeToggleBtn').textContent = isLight ? '🌞' : '🌙';
+  localStorage.setItem('imgo_theme', isLight ? 'light' : 'dark');
+}
+(function initTheme(){
+  if(localStorage.getItem('imgo_theme')==='light'){
+    document.body.classList.add('light');
+    const btn = document.getElementById('themeToggleBtn');
+    if(btn) btn.textContent = '🌞';
+  }
+})();
+
 // ==================== INIT ====================
-loadData();
-updateDday();
-buildTermTabs();
-showTerm(1);
-renderNoticeView();
-buildSubjectTabs();
+(async()=>{
+  await loadData();
+  updateDday();
+  buildTermTabs();
+  showTerm(1);
+  renderNoticeView();
+  buildSubjectTabs();
+})();
 </script>
 </body>
 </html>
