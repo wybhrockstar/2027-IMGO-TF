@@ -124,6 +124,10 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div class="fgroup"><label>GitHub Token</label><input class="fi fi-mono" id="cfg-token" type="password" placeholder="ghp_xxxxxxxxxxxx"></div>
       <div class="fgroup"><label>저장소 (유저명/저장소명)</label><input class="fi fi-mono" id="cfg-repo" placeholder="hong/imgo-study"></div>
     </div>
+    <div class="cfg-row">
+      <div class="fgroup"><label>Gemini API Key <span style="color:var(--text3);font-weight:400">(AI 파싱 기능용, 무료)</span></label><input class="fi fi-mono" id="cfg-claude-key" type="password" placeholder="AIza..."></div>
+      <div class="fgroup" style="display:flex;align-items:flex-end"><div style="font-size:11px;color:var(--text3);line-height:1.7">aistudio.google.com → Get API Key (무료)<br>로컬에만 저장, 서버 전송 없음</div></div>
+    </div>
     <button class="save-cfg-btn" onclick="saveConfig()">저장</button>
     <div class="cfg-status" id="cfg-status"></div>
   </div>
@@ -321,13 +325,15 @@ let parsedNoticeBuffer = null;
 
 function loadConfig(){
   try{ cfg = JSON.parse(localStorage.getItem(CFG_KEY)||'{}'); }catch(e){ cfg={}; }
-  if(cfg.token) document.getElementById('cfg-token').value = cfg.token;
-  if(cfg.repo)  document.getElementById('cfg-repo').value  = cfg.repo;
+  if(cfg.token)     document.getElementById('cfg-token').value      = cfg.token;
+  if(cfg.repo)      document.getElementById('cfg-repo').value       = cfg.repo;
+  if(cfg.claudeKey) document.getElementById('cfg-claude-key').value = cfg.claudeKey;
   if(!cfg.token || !cfg.repo) document.getElementById('setupBanner').style.display = 'block';
 }
 function saveConfig(){
-  cfg.token = document.getElementById('cfg-token').value.trim();
-  cfg.repo  = document.getElementById('cfg-repo').value.trim();
+  cfg.token     = document.getElementById('cfg-token').value.trim();
+  cfg.repo      = document.getElementById('cfg-repo').value.trim();
+  cfg.claudeKey = document.getElementById('cfg-claude-key').value.trim();
   localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
   const s = document.getElementById('cfg-status');
   s.style.color='var(--teal)'; s.textContent='✓ 저장되었습니다.';
@@ -377,21 +383,21 @@ async function pushToGithub(){
   }
 }
 
-// ===================== CLAUDE API =====================
+// ===================== GEMINI API =====================
 async function callClaude(systemPrompt, userContent){
-  const res = await fetch('https://api.anthropic.com/v1/messages',{
+  if(!cfg.claudeKey){ throw new Error('Gemini API Key가 설정되지 않았습니다. 설정에서 입력해주세요.'); }
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${cfg.claudeKey}`,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
-      model:'claude-sonnet-4-20250514',
-      max_tokens:4000,
-      system: systemPrompt,
-      messages:[{role:'user', content: userContent}]
+      system_instruction:{ parts:[{ text: systemPrompt }] },
+      contents:[{ role:'user', parts:[{ text: userContent }] }],
+      generationConfig:{ maxOutputTokens:4000, temperature:0.2 }
     })
   });
-  if(!res.ok) throw new Error('Claude API 오류: '+res.status);
+  if(!res.ok){ const e=await res.json(); throw new Error('Gemini API 오류: '+(e.error?.message||res.status)); }
   const data = await res.json();
-  return data.content.map(b=>b.text||'').join('');
+  return data.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
 }
 
 // ===================== SCHEDULE =====================
