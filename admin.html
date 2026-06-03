@@ -311,57 +311,13 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 </div><!-- /main -->
 
 <script>
-보내준 마지막 캡처 화면(image_f42fc7.png)을 보니 왜 글자가 다 깨져서 나오는지 딱 파악했어! 걱정 마, 연동은 완벽하게 성공한 상태야!
-
-글자가 ì x x 같은 외계어로 깨지는 이유는 GitHub API가 텍스트를 처리할 때 쓰는 기본 인코딩(Base64)과 한국어(UTF-8)가 부딪혀서 그래. 기존 코드의 atob() 함수가 한글을 제대로 해독하지 못해서 발생하는 아주 흔한 현상이야.
-
-이 한글 깨짐 오류를 완벽하게 고치고, 코드 안정성까지 높인 최종 <script> 파트를 준비했어.
-
-🛠️ 해결 방법: 한글 깨짐 방지 코드로 교체하기
-admin.html 파일의 맨 아래에 있는 <script>부터 </script>까지를 전부 아래 코드로 싹 덮어씌워 줘. 한글 디코딩 로직을 완전히 새로 짜서 이제 깨끗하게 잘 보일 거야!
-
-JavaScript
-// ===================== CONFIG & MEMORY =====================
+// ===================== CONFIG =====================
 const CFG_KEY = 'imgo_admin_cfg';
 let cfg = {};
-let DATA = null; 
-
+let DATA = null; // in-memory data.json
 let parsedScheduleBuffer = null;
 let parsedLecturesBuffer = null;
 let parsedNoticeBuffer = null;
-
-// 과목명 매핑 테이블 (데이터 규칙 준수용)
-const SUBJECT_MAPPING = {
-  "음악": { short: "음악", full: "음악" },
-  "미술": { short: "미술", full: "미술" },
-  "실과": { short: "실과", full: "실과" },
-  "통합교과": { short: "통교", full: "통합교과" },
-  "통교": { short: "통교", full: "통합교과" },
-  "도덕": { short: "도덕", full: "도덕" },
-  "사회": { short: "사회", full: "사회" },
-  "체육": { short: "체육", full: "체육" },
-  "국어": { short: "국어", full: "국어" },
-  "수학": { short: "수학", full: "수학" },
-  "과학": { short: "과학", full: "과학" },
-  "총창": { short: "총창", full: "총창" },
-  "총론": { short: "총창", full: "총창" }
-};
-
-const SECTOR_1_SUBJECTS = ["총창", "영어", "음악", "통교", "도덕", "사회", "체육"];
-
-// 한글 깨짐 없는 완벽한 Base64 디코딩 함수 (핵심 수정)
-function decodeUTF8(str) {
-  return decodeURIComponent(atob(str.replace(/\s/g, '')).split('').map(function(c) {
-    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-  }).join(''));
-}
-
-// 한글 깨짐 없는 완벽한 Base64 인코딩 함수 (핵심 수정)
-function encodeUTF8(str) {
-  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
-    return String.fromCharCode('0x' + p1);
-  }));
-}
 
 function loadConfig(){
   try{ cfg = JSON.parse(localStorage.getItem(CFG_KEY)||'{}'); }catch(e){ cfg={}; }
@@ -369,7 +325,6 @@ function loadConfig(){
   if(cfg.repo)  document.getElementById('cfg-repo').value  = cfg.repo;
   if(!cfg.token || !cfg.repo) document.getElementById('setupBanner').style.display = 'block';
 }
-
 function saveConfig(){
   cfg.token = document.getElementById('cfg-token').value.trim();
   cfg.repo  = document.getElementById('cfg-repo').value.trim();
@@ -390,11 +345,9 @@ async function loadDataFromGithub(){
     });
     if(!res.ok) throw new Error('파일을 찾을 수 없습니다. 저장소에 data.json이 있는지 확인하세요.');
     const json = await res.json();
-    cfg.sha = json.sha; 
-    
-    // 외계어 해결을 위해 디코더 교체!
-    DATA = JSON.parse(decodeUTF8(json.content));
-    
+    cfg.sha = json.sha; // needed for update
+    const b64 = json.content.replace(/\n/g,'');
+    DATA = JSON.parse(decodeURIComponent(escape(atob(b64))));
     renderAll();
     setStatus('cfg-status','✓ GitHub에서 데이터 로드 완료','ok');
     setTimeout(()=>setStatus('cfg-status','',''),2500);
@@ -407,8 +360,7 @@ async function pushToGithub(){
   if(!cfg.token||!cfg.repo){ alert('GitHub 설정을 먼저 저장해주세요.'); return; }
   if(!DATA){ alert('데이터가 없습니다.'); return; }
   try{
-    // 인코더도 안전한 UTF-8로 전송
-    const content = encodeUTF8(JSON.stringify(DATA,null,2));
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(DATA,null,2))));
     const body = {message:'Update data.json via admin panel', content, sha: cfg.sha};
     const res = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/data.json`,{
       method:'PUT', headers:{'Authorization':`token ${cfg.token}`,'Content-Type':'application/json'},
@@ -425,85 +377,93 @@ async function pushToGithub(){
   }
 }
 
-// ===================== LOCAL PARSERS =====================
+// ===================== CLAUDE API =====================
+async function callClaude(systemPrompt, userContent){
+  const res = await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:4000,
+      system: systemPrompt,
+      messages:[{role:'user', content: userContent}]
+    })
+  });
+  if(!res.ok) throw new Error('Claude API 오류: '+res.status);
+  const data = await res.json();
+  return data.content.map(b=>b.text||'').join('');
+}
+
+// ===================== SCHEDULE =====================
+const SC_SYSTEM = `당신은 임용고시 스터디 일정 파싱 전문가입니다.
+사용자가 카카오톡 공지 텍스트 또는 자연어 지시를 주면, 이를 파싱해서 JSON 형식으로 반환하세요.
+
+현재 데이터 구조:
+{
+  "week": "1주차",
+  "items": [
+    {"date":"8/11","day":"월","subject":"총창 전체","time":"1:25","note":"PASS"}
+  ]
+}
+
+규칙:
+- date: "8/11" 형식 (M/D)
+- day: 요일 한 글자 (월화수목금토일)
+- subject: 과목/내용
+- time: "2:30" 형식, 없으면 필드 생략
+- note: 비고, 없으면 필드 생략
+- week: 주차 라벨 (예: "1주차", "D-40 주차 (9/29)")
+- 여러 주차가 포함될 수 있음
+
+반드시 JSON만 출력하세요. 설명, 마크다운 백틱 없이 순수 JSON 배열만:
+[{"week":"...", "items":[...]}, ...]`;
+
+const SC_MODIFY_SYSTEM = `당신은 임용고시 스터디 일정 수정 전문가입니다.
+사용자가 현재 일정 JSON과 변경 지시를 주면, 수정된 전체 일정을 JSON으로 반환하세요.
+
+규칙:
+- date: "8/11" 형식 (M/D)
+- day: 요일 한 글자
+- subject, time(선택), note(선택)
+- week: 주차 라벨
+- 변경 지시에 따라 날짜 이동, 항목 추가/삭제/수정 수행
+
+반드시 JSON만 출력하세요. 순수 JSON 배열만:
+[{"week":"...", "items":[...]}, ...]`;
+
 async function parseSchedule(){
   const input = document.getElementById('sc-input').value.trim();
+  const term = document.getElementById('sc-term').value;
   if(!input){ setStatus('sc-status','내용을 입력해주세요.','err'); return; }
 
-  setStatus('sc-status','로컬 엔진 파싱 중...','loading');
+  setStatus('sc-status','AI 파싱 중...','loading');
   setBtnLoading('sc-parse-btn', true);
   document.getElementById('sc-preview-wrap').style.display='none';
 
-  try {
-    const lines = input.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    let currentWeek = "1주차";
-    let items = [];
-    const datePattern = /(\d{1,2})\/(\d{1,2})\s*\(?([월화수목금토일])\)?/;
-
-    lines.forEach(line => {
-      if (line.includes('주차') && !datePattern.test(line)) {
-        currentWeek = line.replace(/[\[\]\-]/g, '').trim();
-        return;
-      }
-
-      const match = line.match(datePattern);
-      if (match) {
-        const dateStr = `${match[1]}/${match[2]}`;
-        const dayStr = match[3];
-        let remain = line.replace(match[0], '').replace(/[\[\]]/g, '').trim();
-        
-        let timeStr = "";
-        const timeMatch = remain.match(/(\d{1,2}):(\d{2})/);
-        if (timeMatch) {
-          timeStr = timeMatch[0];
-          remain = remain.replace(timeStr, '').trim();
-        }
-
-        let noteStr = "";
-        if (remain.toUpperCase().includes("PASS")) {
-          noteStr = "PASS";
-          remain = remain.replace(/PASS/i, '').trim();
-        } else if (remain.includes("중단")) {
-          noteStr = remain.substring(remain.indexOf("(")).replace(/[\(\)]/g, '');
-          remain = remain.substring(0, remain.indexOf("(")).trim();
-        }
-
-        let subjectStr = remain.trim();
-        for (const [key, val] of Object.entries(SUBJECT_MAPPING)) {
-          if (subjectStr.includes(key)) {
-            subjectStr = subjectStr.replace(key, val.short);
-            break;
-          }
-        }
-
-        items.push({
-          date: dateStr,
-          day: dayStr,
-          subject: subjectStr,
-          time: timeStr || undefined,
-          note: noteStr || undefined
-        });
-      }
-    });
-
-    if(items.length === 0) throw new Error("유효한 일정 형식을 찾지 못했습니다.");
-
-    parsedScheduleBuffer = [{ week: currentWeek, items: items }];
+  try{
+    // Determine if it's a modification or new parse
+    const isModify = input.includes('밀') || input.includes('취소') || input.includes('변경') || input.includes('추가') || input.includes('수정') || input.includes('삭제');
+    let result;
+    if(isModify && DATA){
+      const currentData = JSON.stringify(DATA.schedule[term]||[], null, 2);
+      result = await callClaude(SC_MODIFY_SYSTEM, `현재 ${term}텀 일정:\n${currentData}\n\n변경 지시:\n${input}`);
+    } else {
+      result = await callClaude(SC_SYSTEM, input);
+    }
+    const clean = result.replace(/```json|```/g,'').trim();
+    parsedScheduleBuffer = JSON.parse(clean);
     document.getElementById('sc-preview').textContent = JSON.stringify(parsedScheduleBuffer, null, 2);
     document.getElementById('sc-preview-wrap').style.display='block';
     setStatus('sc-status','✓ 파싱 완료! 결과를 확인하고 적용하세요.','ok');
-  } catch(e) {
-    setStatus('sc-status','⚠ 파싱 실패: '+e.message,'err');
+  } catch(e){
+    setStatus('sc-status','⚠ '+e.message,'err');
   } finally { setBtnLoading('sc-parse-btn', false); }
 }
 
 function applySchedule(){
   if(!parsedScheduleBuffer||!DATA){ setStatus('sc-apply-status','먼저 파싱을 실행하세요.','err'); return; }
   const term = document.getElementById('sc-term').value;
-  
-  if(!DATA.schedule) DATA.schedule = {};
   DATA.schedule[term] = parsedScheduleBuffer;
-  
   renderCurrentSchedule();
   updateRawEditor();
   setStatus('sc-apply-status','✓ 적용됨. GitHub 저장 버튼으로 반영하세요.','ok');
@@ -512,47 +472,19 @@ function applySchedule(){
 }
 
 function renderCurrentSchedule(){
-  if(!DATA) return;
+  if(!DATA){ return; }
   const term = document.getElementById('sc-view-term').value;
-  const weeks = DATA.schedule ? DATA.schedule[term] || [] : [];
+  const weeks = DATA.schedule[term]||[];
   let html = '';
-  
-  weeks.forEach((w, wi)=>{
-    html += `<div style="font-size:11px;color:var(--text3);margin:8px 0 5px;font-family:'JetBrains Mono',monospace;font-weight:700;">📌 ${w.week}</div>`;
-    
-    let sector1Items = [];
-    let sector2Items = [];
-
-    (w.items||[]).forEach(item => {
-      const isSector1 = SECTOR_1_SUBJECTS.some(sub => item.subject.includes(sub));
-      if (isSector1) sector1Items.push(item);
-      else sector2Items.push(item);
-    });
-
-    const renderItemRow = (item, actualIndex) => {
-      return `<div class="cur-item">
-        <div class="cur-item-text"><b>[${item.date}(${item.day})]</b> ${item.subject} ${item.time?`<span style="color:var(--teal)">[${item.time}]</span>`:''} ${item.note?`<span style="color:var(--amber)">(${item.note})</span>`:''}</div>
-        <button class="del-btn" onclick="delScheduleItem(${term},${wi},${actualIndex})">×</button>
+  weeks.forEach((w,wi)=>{
+    html += `<div style="font-size:11px;color:var(--text3);margin:8px 0 5px;font-family:'JetBrains Mono',monospace">${w.week}</div>`;
+    (w.items||[]).forEach((item,ii)=>{
+      html += `<div class="cur-item">
+        <div class="cur-item-text">${item.date} (${item.day}) · ${item.subject}${item.time?' <span style="color:var(--teal);font-family:monospace">'+item.time+'</span>':''}${item.note?' <span style="color:var(--amber)">'+item.note+'</span>':''}</div>
+        <button class="del-btn" onclick="delScheduleItem(${term},${wi},${ii})">×</button>
       </div>`;
-    };
-
-    w.items.forEach((item, ii) => {
-      if (SECTOR_1_SUBJECTS.some(sub => item.subject.includes(sub))) {
-        html += renderItemRow(item, ii);
-      }
-    });
-
-    if(sector1Items.length > 0 && sector2Items.length > 0) {
-      html += `<div style="height: 12px; border-left: 2px dashed var(--border2); margin: 6px 15px;"></div>`;
-    }
-
-    w.items.forEach((item, ii) => {
-      if (!SECTOR_1_SUBJECTS.some(sub => item.subject.includes(sub))) {
-        html += renderItemRow(item, ii);
-      }
     });
   });
-  
   document.getElementById('sc-current-list').innerHTML = html || '<div style="color:var(--text3);font-size:12px;padding:8px">일정이 없습니다.</div>';
 }
 
@@ -562,79 +494,45 @@ function delScheduleItem(term, wi, ii){
   renderCurrentSchedule(); updateRawEditor();
 }
 
+// ===================== LECTURES =====================
+const LC_SYSTEM = `당신은 임용고시 강의 목록 파싱 전문가입니다.
+카카오톡 공지나 텍스트를 파싱해서 JSON으로 반환하세요.
+
+결과 형식:
+{"subject":"과목명", "lectures":[{"num":"1강","title":"강의제목","old":false},...]}
+
+규칙:
+- num: "1강", "2~5강" 형식
+- title: 강의 제목
+- old: "(작년)", "(구)", "작년" 표시 있으면 true, 아니면 false
+- subject: 텍스트에서 과목명 추론 (없으면 "미분류")
+
+반드시 JSON만 출력하세요. 마크다운 없이 순수 JSON:
+{"subject":"...", "lectures":[...]}`;
+
 async function parseLectures(){
   const input = document.getElementById('lc-input').value.trim();
   const allOld = document.getElementById('lc-all-old').checked;
   if(!input){ setStatus('lc-status','내용을 입력해주세요.','err'); return; }
 
-  setStatus('lc-status','지스쿨 데이터 파싱 중...','loading');
+  setStatus('lc-status','AI 파싱 중...','loading');
   setBtnLoading('lc-parse-btn', true);
   document.getElementById('lc-preview-wrap').style.display='none';
 
   try{
-    let detectedSubject = "미분류";
-    for (const [key, val] of Object.entries(SUBJECT_MAPPING)) {
-      if (input.includes(`[${key}]`) || input.includes(key)) {
-        detectedSubject = val.full; 
-        break;
-      }
-    }
-
-    const lines = input.split('\n').map(l=>l.trim());
-    let lecturesList = [];
-    
-    const gschoolRegex = /(\d{4}-\d{2}-\d{2})\s*\(\d+분\)\d+강\s*(?:(?:0?\d+강):\s*\[(.*?)\]\s*(.*?)(?=\d+%|$))/g;
-    
-    let match;
-    let macroIdx = 0; 
-
-    const textAll = input.replace(/\s+/g, ' ');
-    while ((match = gschoolRegex.exec(textAll)) !== null) {
-      lecturesList.push({
-        num: `Macro ${macroIdx}`,
-        title: match[3].trim(),
-        old: allOld || match[3].includes("작년") || match[3].includes("(구)")
-      });
-      macroIdx++;
-    }
-
-    if(lecturesList.length === 0) {
-      macroIdx = 0;
-      lines.forEach(line => {
-        const fallbackMatch = line.match(/(\d+강|\d+~\d+강)\s*(.*)/);
-        if(fallbackMatch) {
-          lecturesList.push({
-            num: `Macro ${macroIdx}`,
-            title: fallbackMatch[2].replace("(작년)", "").replace("(구)", "").trim(),
-            old: allOld || line.includes("작년") || line.includes("(구)")
-          });
-          macroIdx++;
-        }
-      });
-    }
-
-    if(lecturesList.length === 0) throw new Error("강의 데이터를 검출하지 못했습니다.");
-
-    parsedLecturesBuffer = {
-      subject: detectedSubject,
-      lectures: lecturesList
-    };
-
+    let result = await callClaude(LC_SYSTEM, input);
+    const clean = result.replace(/```json|```/g,'').trim();
+    parsedLecturesBuffer = JSON.parse(clean);
+    if(allOld) parsedLecturesBuffer.lectures.forEach(l=>l.old=true);
+    // auto select subject
     const subjSel = document.getElementById('lc-subj');
-    if(subjSel) {
-      if(!Array.from(subjSel.options).some(o => o.value === detectedSubject)) {
-        const newOpt = document.createElement('option');
-        newOpt.value = detectedSubject; newOpt.textContent = detectedSubject;
-        subjSel.appendChild(newOpt);
-      }
-      subjSel.value = detectedSubject;
-    }
-
+    const match = Array.from(subjSel.options).find(o=>o.value===parsedLecturesBuffer.subject);
+    if(match) subjSel.value = parsedLecturesBuffer.subject;
     document.getElementById('lc-preview').textContent = JSON.stringify(parsedLecturesBuffer, null, 2);
     document.getElementById('lc-preview-wrap').style.display='block';
     setStatus('lc-status','✓ 파싱 완료!','ok');
   } catch(e){
-    setStatus('lc-status','⚠ 파싱 실패: '+e.message,'err');
+    setStatus('lc-status','⚠ '+e.message,'err');
   } finally { setBtnLoading('lc-parse-btn', false); }
 }
 
@@ -643,13 +541,9 @@ function applyLectures(mode){
   const subjSel = document.getElementById('lc-subj');
   const subj = subjSel.value || parsedLecturesBuffer.subject;
   if(!subj){ setStatus('lc-apply-status','과목을 선택해주세요.','err'); return; }
-  
-  if(!DATA.lectures) DATA.lectures = {};
   if(!DATA.lectures[subj]) DATA.lectures[subj]=[];
-  
   if(mode==='replace') DATA.lectures[subj] = parsedLecturesBuffer.lectures;
   else DATA.lectures[subj] = [...DATA.lectures[subj], ...parsedLecturesBuffer.lectures];
-  
   renderCurrentLectures(); updateRawEditor(); buildSubjectSelects();
   setStatus('lc-apply-status','✓ 적용됨. GitHub 저장 버튼으로 반영하세요.','ok');
   document.getElementById('lc-preview-wrap').style.display='none';
@@ -657,15 +551,14 @@ function applyLectures(mode){
 }
 
 function renderCurrentLectures(){
-  if(!DATA || !DATA.lectures) return;
+  if(!DATA) return;
   const subj = document.getElementById('lc-view-subj').value;
-  if(!subj) return;
   const lecs = DATA.lectures[subj]||[];
   let html = '';
   lecs.forEach((l,i)=>{
     const oldBadge = l.old ? '<span class="old-badge">작년</span>' : '';
     html += `<div class="cur-item">
-      <div class="cur-item-text"><span style="font-family:monospace;font-size:11px;color:var(--text3);min-width:60px;display:inline-block">${l.num}</span> ${l.title} ${oldBadge}</div>
+      <div class="cur-item-text"><span style="font-family:monospace;font-size:11px;color:var(--text3);min-width:50px;display:inline-block">${l.num}</span> ${l.title} ${oldBadge}</div>
       <button class="del-btn" onclick="delLecture('${subj}',${i})">×</button>
     </div>`;
   });
@@ -677,62 +570,43 @@ function delLecture(subj, i){
   renderCurrentLectures(); updateRawEditor();
 }
 
+// ===================== NOTICE =====================
+const NT_SYSTEM = `당신은 스터디 공지사항 파싱 전문가입니다.
+텍스트에서 스터디 관련 공지를 파싱하여 JSON으로 반환하세요.
+
+형식:
+{
+  "schedule": [{"day":"월~금","time":"12:00~13:30 모의고사"},...],
+  "fines": [{"name":"미루기","amount":30000},...],
+  "links": [{"title":"자료명","url":"https://..."},...],
+  "unable": [{"count":3,"name":"백구 전년도 1~3회"},...]
+}
+
+없는 항목은 빈 배열로. 반드시 JSON만 출력하세요.`;
+
 async function parseNotice(){
   const input = document.getElementById('nt-input').value.trim();
   if(!input){ setStatus('nt-status','내용을 입력해주세요.','err'); return; }
-  setStatus('nt-status','로컬 파싱 중...','loading');
+  setStatus('nt-status','AI 파싱 중...','loading');
   setBtnLoading('nt-parse-btn', true);
   document.getElementById('nt-preview-wrap').style.display='none';
-  
   try{
-    const lines = input.split('\n').map(l=>l.trim());
-    parsedNoticeBuffer = { schedule: [], fines: [], links: [], unable: [] };
-
-    lines.forEach(line => {
-      if(line.includes('벌금') || line.includes('원')) {
-        const fineMatch = line.match(/(.*?)\s*(\d+,?\d*)\s*원?/);
-        if(fineMatch) {
-          parsedNoticeBuffer.fines.push({
-            name: fineMatch[1].replace(/[-•<>\s]/g, '').trim(),
-            amount: parseInt(fineMatch[2].replace(/,/g, ''))
-          });
-        }
-      }
-      else if(line.includes('http')) {
-        const urlMatch = line.match(/(https?:\/\/[^\s]+)/);
-        if(urlMatch) {
-          const titlePart = line.replace(urlMatch[0], '').replace(/[-•<>\s\[\]]/g, '').trim();
-          parsedNoticeBuffer.links.push({
-            title: titlePart || "참조 링크",
-            url: urlMatch[0]
-          });
-        }
-      }
-      else if(line.includes(']') || line.includes('시') || line.includes('분')) {
-        const dayMatch = line.match(/\[(.*?)\]/);
-        if(dayMatch) {
-          parsedNoticeBuffer.schedule.push({
-            day: dayMatch[1],
-            time: line.replace(dayMatch[0], '').trim()
-          });
-        }
-      }
-    });
-
+    let result = await callClaude(NT_SYSTEM, input);
+    const clean = result.replace(/```json|```/g,'').trim();
+    parsedNoticeBuffer = JSON.parse(clean);
     document.getElementById('nt-preview').textContent = JSON.stringify(parsedNoticeBuffer, null, 2);
     document.getElementById('nt-preview-wrap').style.display='block';
     setStatus('nt-status','✓ 파싱 완료!','ok');
   } catch(e){
-    setStatus('nt-status','⚠ 파싱 실패: '+e.message,'err');
+    setStatus('nt-status','⚠ '+e.message,'err');
   } finally { setBtnLoading('nt-parse-btn', false); }
 }
 
 function applyNotice(){
   if(!parsedNoticeBuffer||!DATA){ setStatus('nt-apply-status','먼저 파싱을 실행하세요.','err'); return; }
-  if(!DATA.notice) DATA.notice = {};
-  
+  // Merge: only overwrite non-empty arrays
   ['schedule','fines','links','unable'].forEach(k=>{
-    if(parsedNoticeBuffer[k] && parsedNoticeBuffer[k].length) DATA.notice[k] = parsedNoticeBuffer[k];
+    if(parsedNoticeBuffer[k]&&parsedNoticeBuffer[k].length) DATA.notice[k]=parsedNoticeBuffer[k];
   });
   updateRawEditor();
   setStatus('nt-apply-status','✓ 적용됨. GitHub 저장 버튼으로 반영하세요.','ok');
@@ -759,21 +633,18 @@ function renderAll(){
   if(!DATA) return;
   buildSubjectSelects();
   renderCurrentSchedule();
+  renderCurrentLectures();
   updateRawEditor();
 }
 
 function buildSubjectSelects(){
   if(!DATA) return;
-  const defaultSubjects = ["총창", "국어", "영어", "수학", "사회", "과학", "음악", "미술", "체육", "실과", "도덕", "통합교과"];
-  const currentSubjects = DATA.lectures ? Object.keys(DATA.lectures) : [];
-  const mergedSubjects = Array.from(new Set([...defaultSubjects, ...currentSubjects]));
-  
-  const opts = mergedSubjects.map(s=>`<option value="${s}">${s}</option>`).join('');
+  const subjects = Object.keys(DATA.lectures||{});
+  const opts = subjects.map(s=>`<option value="${s}">${s}</option>`).join('');
   const emptyOpt = '<option value="">AI가 자동 감지</option>';
-  
   document.getElementById('lc-subj').innerHTML = emptyOpt + opts;
   document.getElementById('lc-view-subj').innerHTML = opts;
-  renderCurrentLectures();
+  if(subjects.length) renderCurrentLectures();
 }
 
 // ===================== HELPERS =====================
@@ -787,15 +658,13 @@ function setBtnLoading(id, loading){
   const btn = document.getElementById(id);
   if(!btn) return;
   if(loading){ btn.disabled=true; btn.innerHTML='<span class="spinner"></span> 처리 중...'; }
-  else { btn.disabled=false; btn.innerHTML='✨ 파싱 실행'; }
+  else { btn.disabled=false; btn.innerHTML='✨ AI 파싱'; }
 }
 function switchTab(name, btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.getElementById('panel-'+name).classList.add('on');
   btn.classList.add('on');
-  if(name==='schedule') renderCurrentSchedule();
-  if(name==='lectures') renderCurrentLectures();
 }
 
 // ===================== INIT =====================
