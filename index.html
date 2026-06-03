@@ -640,10 +640,10 @@ function buildStats(t){
   const h=Math.floor(totalMins/60),m=totalMins%60;
   const period = (S.termPeriods&&S.termPeriods[t])||'미정';
   document.getElementById('statsRow').innerHTML=`
+    <div class="sc"><div class="sc-label">기간</div><div class="sc-val" style="font-size:11px;padding-top:5px;color:var(--text2);line-height:1.4">${period}</div><div class="sc-sub">&nbsp;</div></div>
     <div class="sc"><div class="sc-label">전체 회차</div><div class="sc-val">${total}</div><div class="sc-sub">회</div></div>
     <div class="sc"><div class="sc-label">기록 완료</div><div class="sc-val" style="color:var(--accent)">${done}</div><div class="sc-sub">/ ${total}</div></div>
-    <div class="sc"><div class="sc-label">총 스터디 시간</div><div class="sc-val">${h}<span style="font-size:13px;color:var(--text3)">h</span>${m}<span style="font-size:13px;color:var(--text3)">m</span></div><div class="sc-sub">기록 기준</div></div>
-    <div class="sc"><div class="sc-label">기간</div><div class="sc-val" style="font-size:11px;padding-top:5px;color:var(--text2);line-height:1.4">${period}</div><div class="sc-sub">&nbsp;</div></div>`;
+    <div class="sc"><div class="sc-label">총 스터디 시간</div><div class="sc-val">${h}<span style="font-size:13px;color:var(--text3)">h</span>${m}<span style="font-size:13px;color:var(--text3)">m</span></div><div class="sc-sub">기록 기준</div></div>`;
 }
 
 // ==================== CALENDAR ====================
@@ -807,15 +807,30 @@ function showSubject(name,btn){
   if(btn){document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));btn.classList.add('on');}
   currentSubject=name;renderLectures();
 }
-function renderLectures(){
-  const showOld=document.getElementById('showOld')?.checked!==false;
-  const lecs=S.lectures[currentSubject]||[];
-  let html='';
+function calcLectureTotalMins(lecs){
+  let totalMins=0;
   lecs.forEach(l=>{
-    if(!showOld&&l.old)return;
-    html+=`<div class="li${l.old?' old':''}"><span class="lnum">${l.num}</span><span class="ltitle">${l.title}${l.old?'<span class="old-badge">작년</span>':''}</span></div>`;
+    const m=l.title.match(/\[(\d+)분\]/);
+    if(m) totalMins+=parseInt(m[1]);
   });
-  document.getElementById('lectureList').innerHTML=html||'<div style="color:var(--text3);font-size:13px;padding:12px 0">강의가 없습니다.</div>';
+  return totalMins;
+}
+function renderLectures(){\
+  const showOld=document.getElementById('showOld')?.checked!==false;\
+  const lecs=S.lectures[currentSubject]||[];\
+  const visibleLecs=lecs.filter(l=>showOld||!l.old);\
+  const totalMins=calcLectureTotalMins(visibleLecs);\
+  let header='';\
+  if(totalMins>0){\
+    const h=Math.floor(totalMins/60),m=totalMins%60;\
+    const timeStr=h>0?(m>0?`${h}시간 ${m}분`:`${h}시간`):`${m}분`;\
+    header=`<div style="font-size:12px;color:var(--teal);margin-bottom:12px;font-family:'JetBrains Mono',monospace">⏱ 강의시간 합산: <span style="font-weight:500">${timeStr}</span> <span style="color:var(--text3);font-size:11px">(${totalMins}분)</span></div>`;\
+  }\
+  let html='';\
+  visibleLecs.forEach(l=>{\
+    html+=`<div class="li${l.old?' old':''}"><span class="lnum">${l.num}</span><span class="ltitle">${l.title}${l.old?'<span class="old-badge">작년</span>':''}</span></div>`;\
+  });\
+  document.getElementById('lectureList').innerHTML=header+(html||'<div style="color:var(--text3);font-size:13px;padding:12px 0">강의가 없습니다.</div>');\
 }
 function addLecture(){
   const subj=document.getElementById('la-subj').value;
