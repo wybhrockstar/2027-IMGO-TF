@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>임고 스터디</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0d0d;--bg2:#161616;--bg3:#1e1e1e;--bg4:#272727;--bg5:#2f2f2f;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--border3:rgba(255,255,255,0.2);
+  --text:#e8e8e8;--text2:#aaa;--text3:#666;--text4:#444;
+  --accent:#c8f060;--accent2:rgba(200,240,96,0.15);--accent3:rgba(200,240,96,0.08);
+  --red:#ff5f5f;--amber:#ffb347;--blue:#6eb5ff;--purple:#b8a5ff;--teal:#5ecfb0;--pink:#ff8fa3;
+  --r:10px;--rs:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+button{font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
+
+/* ── HEADER ── */
+.hdr{border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:200}
+.logo{font-weight:700;font-size:15px;color:var(--accent);letter-spacing:.04em}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.dday{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--accent2);border:1px solid var(--accent);color:var(--accent);padding:3px 12px;border-radius:20px}
+.edit-btn{font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);color:var(--text3);background:none;transition:.15s}
+.edit-btn:hover,.edit-btn.on{border-color:var(--amber);color:var(--amber)}
+
+/* ── NAV ── */
+.nav{display:flex;gap:0;padding:0 16px;border-bottom:1px solid var(--border);background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.ntab{padding:12px 16px;font-size:13px;font-weight:500;color:var(--text3);background:none;border:none;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
+.ntab:hover{color:var(--text2)}
+.ntab.on{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── MAIN ── */
+.main{padding:20px 20px 80px;max-width:900px}
+.page{display:none}.page.on{display:block}
+.sec-title{font-size:11px;font-weight:500;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;margin-bottom:14px}
+
+/* ── TERM TABS ── */
+.term-tabs{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap}
+.ttab{padding:6px 16px;font-size:12px;font-weight:500;border-radius:20px;border:1px solid var(--border2);color:var(--text3);background:none;transition:.15s}
+.ttab:hover{border-color:var(--accent);color:var(--accent)}
+.ttab.on{background:var(--accent2);border-color:var(--accent);color:var(--accent)}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:22px}
+@media(min-width:500px){.stats{grid-template-columns:repeat(4,1fr)}}
+.sc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.sc-label{font-size:11px;color:var(--text3);margin-bottom:5px}
+.sc-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500}
+.sc-sub{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ── CALENDAR ── */
+.cal-wrap{margin-bottom:26px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-hd{text-align:center;font-size:11px;color:var(--text3);padding:6px 2px;font-weight:500}
+.cc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:6px 5px;min-height:64px}
+.cc.today{border-color:var(--accent);background:var(--accent3)}
+.cc.sday{border-color:rgba(94,207,176,.3)}
+.cc.empty{background:transparent;border-color:transparent}
+.cd{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:3px}
+.cc.today .cd{color:var(--accent);font-weight:500}
+.cc-sub{font-size:9px;color:var(--teal);line-height:1.35}
+.cc-time{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);margin-top:1px}
+
+/* ── SCHEDULE ── */
+.wdiv{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:.05em;padding:8px 0 9px;border-top:1px solid var(--border);margin-bottom:6px}
+.wdiv:first-child{border-top:none}
+.sr{display:grid;grid-template-columns:auto 1fr auto;align-items:start;gap:10px;padding:9px 12px;border-radius:var(--rs);border:1px solid transparent;transition:.12s}
+.sr:hover{background:var(--bg3);border-color:var(--border)}
+.sr.today-row{background:var(--accent3);border-color:rgba(200,240,96,.15)}
+.sr-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);white-space:nowrap}
+.sr-day{font-size:10px;color:var(--text3)}
+.sr-sub{font-size:13px;color:var(--text)}
+.sr-note{font-size:11px;color:var(--text3)}
+.sr-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal);white-space:nowrap;text-align:right}
+.sr-time.pass{color:var(--text3)}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:7px;vertical-align:middle;flex-shrink:0;margin-top:-1px}
+.dot-mon{background:var(--accent)}.dot-wed{background:var(--blue)}.dot-fri{background:var(--purple)}.dot-sun{background:var(--amber)}.dot-sat{background:var(--red)}.dot-else{background:var(--teal)}
+
+/* ── LECTURES ── */
+.subj-tabs{display:flex;gap:5px;margin-bottom:18px;flex-wrap:wrap}
+.stab{padding:5px 13px;font-size:12px;border-radius:20px;border:1px solid var(--border2);color:var(--text3);background:none;transition:.12s}
+.stab:hover{border-color:var(--blue);color:var(--blue)}
+.stab.on{background:rgba(110,181,255,.1);border-color:var(--blue);color:var(--blue)}
+.lec-list{display:grid;grid-template-columns:1fr;gap:5px}
+@media(min-width:560px){.lec-list{grid-template-columns:repeat(2,1fr)}}
+.li{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);transition:.12s}
+.li:hover{border-color:var(--border2)}
+.li.old{opacity:.5}
+.li.old .lnum{color:var(--text4)}
+.lnum{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);white-space:nowrap;padding-top:2px;min-width:34px}
+.ltitle{font-size:12px;color:var(--text2);line-height:1.5}
+.old-badge{font-size:9px;background:rgba(255,179,71,.12);color:var(--amber);border:1px solid rgba(255,179,71,.25);padding:1px 6px;border-radius:10px;margin-left:6px;white-space:nowrap;vertical-align:middle}
+
+/* ── NOTICE ── */
+.nc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.nc-stitle{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;font-weight:500}
+.nr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.nr:last-child{border-bottom:none;padding-bottom:0}
+.nl{color:var(--text2)}.nv{font-weight:500}.nv.a{color:var(--accent)}
+.fine-row{display:flex;align-items:center;gap:10px;padding:9px 13px;background:var(--bg4);border-radius:var(--rs);margin-bottom:5px}
+.fine-icon{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.fine-name{font-size:13px;flex:1}.fine-amt{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500}
+.link-card{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r);text-decoration:none;transition:.15s;margin-bottom:7px}
+.link-card:hover{border-color:var(--accent)}
+.link-title{font-size:13px;color:var(--text)}.link-url{font-size:11px;color:var(--text3);margin-top:1px;font-family:'JetBrains Mono',monospace}
+.link-arr{color:var(--text3);margin-left:auto;font-size:16px}
+.unable-list{display:flex;flex-direction:column;gap:5px}
+.ui-item{display:flex;align-items:center;gap:9px;padding:8px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--text2)}
+.ucnt{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);min-width:22px;text-align:center}
+
+/* ── EDIT MODE PANEL ── */
+.edit-panel{background:var(--bg2);border:1px solid rgba(255,179,71,.25);border-radius:var(--r);padding:18px;margin-bottom:18px}
+.ep-title{font-size:12px;color:var(--amber);font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.ep-title::before{content:'✏️';font-size:14px}
+.ep-tabs{display:flex;gap:5px;margin-bottom:16px;flex-wrap:wrap}
+.eptab{padding:5px 13px;font-size:12px;border-radius:20px;border:1px solid var(--border2);color:var(--text3);background:none;transition:.12s}
+.eptab:hover{border-color:var(--amber);color:var(--amber)}
+.eptab.on{background:rgba(255,179,71,.1);border-color:var(--amber);color:var(--amber)}
+.ep-section{display:none}.ep-section.on{display:block}
+.fgroup{margin-bottom:14px}
+.fgroup label{display:block;font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:.04em}
+.fi{width:100%;padding:8px 10px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text);outline:none;transition:.12s}
+.fi:focus{border-color:var(--amber)}
+.fi-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fi-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.btn{padding:8px 18px;border-radius:var(--rs);border:1px solid;font-size:13px;font-weight:500;transition:.12s}
+.btn-amber{border-color:var(--amber);color:var(--amber);background:rgba(255,179,71,.1)}
+.btn-amber:hover{background:rgba(255,179,71,.2)}
+.btn-red{border-color:var(--red);color:var(--red);background:rgba(255,95,95,.1)}
+.btn-red:hover{background:rgba(255,95,95,.2)}
+.btn-teal{border-color:var(--teal);color:var(--teal);background:rgba(94,207,176,.1)}
+.btn-teal:hover{background:rgba(94,207,176,.2)}
+.btn-sm{padding:5px 11px;font-size:11px}
+.ep-list{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;max-height:320px;overflow-y:auto}
+.ep-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);font-size:12px}
+.ep-item-text{flex:1;color:var(--text2);line-height:1.4}
+.ep-del{background:none;border:none;color:var(--text4);font-size:16px;padding:0 2px;line-height:1;transition:.1s}
+.ep-del:hover{color:var(--red)}
+.ep-edit-inline{background:none;border:none;color:var(--text4);font-size:13px;padding:0 4px;line-height:1;transition:.1s}
+.ep-edit-inline:hover{color:var(--amber)}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.msg-ok{color:var(--teal);font-size:12px;padding:4px 0}
+.msg-err{color:var(--red);font-size:12px;padding:4px 0}
+.lec-old-toggle{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:13px;color:var(--text2)}
+.toggle-wrap{position:relative;width:36px;height:20px;cursor:pointer}
+.toggle-wrap input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:var(--bg4);border-radius:20px;border:1px solid var(--border2);transition:.2s}
+.slider::before{content:'';position:absolute;width:14px;height:14px;left:2px;top:2px;background:var(--text3);border-radius:50%;transition:.2s}
+.toggle-wrap input:checked+.slider{background:rgba(110,181,255,.15);border-color:var(--blue)}
+.toggle-wrap input:checked+.slider::before{transform:translateX(16px);background:var(--blue)}
+
+/* ── PASSWORD MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:28px;width:90%;max-width:320px}
+.modal h3{font-size:15px;font-weight:500;margin-bottom:16px;color:var(--text)}
+.modal-hint{font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.6}
+
+/* scrollbar */
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD MODAL -->
+<div class="modal-bg" id="pwModal">
+<div class="modal">
+  <h3>✏️ 편집 모드 잠금 해제</h3>
+  <div class="modal-hint">비밀번호를 입력하세요.<br>처음 설정 시 원하는 번호로 자동 등록됩니다.</div>
+  <div class="fgroup"><input class="fi" type="password" id="pwInput" placeholder="비밀번호" maxlength="20" onkeydown="if(event.key==='Enter')tryPw()"></div>
+  <div id="pwMsg" style="font-size:12px;margin-bottom:12px"></div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-amber" onclick="tryPw()">확인</button>
+    <button class="btn" style="border-color:var(--border2);color:var(--text3)" onclick="closePwModal()">취소</button>
+  </div>
+</div>
+</div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="logo">📚 임고 스터디</div>
+  <div class="hdr-right">
+    <div class="dday" id="ddayBadge">D-?</div>
+    <button class="edit-btn" id="editToggleBtn" onclick="onEditToggle()">편집 모드</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="ntab on" onclick="goPage('schedule',this)">스터디 현황</button>
+  <button class="ntab" onclick="goPage('lectures',this)">강의 목록</button>
+  <button class="ntab" onclick="goPage('notice',this)">공지사항</button>
+</nav>
+
+<!-- ======= PAGE: SCHEDULE ======= -->
+<div class="page on main" id="page-schedule">
+
+  <!-- EDIT PANEL: SCHEDULE -->
+  <div class="edit-panel" id="ep-schedule" style="display:none">
+    <div class="ep-title">스터디 현황 편집</div>
+    <div class="ep-tabs">
+      <button class="eptab on" onclick="epTab('ep-add',this)">일정 추가</button>
+      <button class="eptab" onclick="epTab('ep-timelog',this)">시간 기록</button>
+      <button class="eptab" onclick="epTab('ep-settings',this)">텀 설정</button>
+      <button class="eptab" onclick="epTab('ep-del-sched',this)">일정 삭제</button>
+    </div>
+
+    <div class="ep-section on" id="ep-add">
+      <div class="fi-row3" style="margin-bottom:8px">
+        <div class="fgroup" style="margin-bottom:0"><label>날짜 (예: 8/11)</label><input class="fi" id="ea-date" placeholder="8/11"></div>
+        <div class="fgroup" style="margin-bottom:0"><label>요일</label>
+          <select class="fi" id="ea-day">
+            <option>월</option><option>화</option><option>수</option><option>목</option><option>금</option><option>토</option><option>일</option>
+          </select></div>
+        <div class="fgroup" style="margin-bottom:0"><label>텀</label>
+          <select class="fi" id="ea-term"><option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option></select></div>
+      </div>
+      <div class="fi-row" style="margin-bottom:8px">
+        <div class="fgroup" style="margin-bottom:0"><label>과목/내용</label><input class="fi" id="ea-subj" placeholder="국어 1~20"></div>
+        <div class="fgroup" style="margin-bottom:0"><label>주차 라벨</label><input class="fi" id="ea-week" placeholder="1주차"></div>
+      </div>
+      <div class="fi-row" style="margin-bottom:12px">
+        <div class="fgroup" style="margin-bottom:0"><label>시간 기록 (선택, 예: 2:30)</label><input class="fi" id="ea-time" placeholder="2:30"></div>
+        <div class="fgroup" style="margin-bottom:0"><label>비고 (선택)</label><input class="fi" id="ea-note" placeholder="PASS / 재언 PASS 등"></div>
+      </div>
+      <button class="btn btn-amber" onclick="addScheduleItem()">+ 일정 추가</button>
+      <div id="ea-msg" class="msg-ok" style="margin-top:8px"></div>
+    </div>
+
+    <div class="ep-section" id="ep-timelog">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:12px">기존 일정에 시간을 기록하거나 수정합니다.</div>
+      <div class="fgroup"><label>텀 선택</label>
+        <select class="fi" id="tl-term" onchange="renderTimelogList()"><option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option></select></div>
+      <div class="ep-list" id="tl-list"></div>
+    </div>
+
+    <div class="ep-section" id="ep-settings">
+      <div class="fgroup"><label>D-DAY 날짜 (YYYY-MM-DD)</label><input class="fi" id="set-dday" placeholder="2026-11-08"></div>
+      <div class="fgroup"><label>텀 기간 표시</label>
+        <div class="fi-row">
+          <input class="fi" id="set-period-t" placeholder="텀 번호 (1~4)">
+          <input class="fi" id="set-period-v" placeholder="예: 2025.08.11 ~ 09.22">
+        </div>
+      </div>
+      <button class="btn btn-amber" onclick="saveSettings()" style="margin-right:8px">저장</button>
+      <div id="set-msg" class="msg-ok" style="margin-top:8px"></div>
+    </div>
+
+    <div class="ep-section" id="ep-del-sched">
+      <div class="fgroup"><label>텀 선택</label>
+        <select class="fi" id="ds-term" onchange="renderDelSchedList()"><option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option></select></div>
+      <div class="ep-list" id="ds-list"></div>
+      <div id="ds-msg" class="msg-ok"></div>
+    </div>
+  </div>
+
+  <div class="term-tabs" id="termTabs"></div>
+  <div class="stats" id="statsRow"></div>
+  <div class="cal-wrap"><div class="sec-title">2주 캘린더</div><div id="calGrid"></div></div>
+  <div class="sec-title">전체 일정</div>
+  <div id="scheduleList"></div>
+</div>
+
+<!-- ======= PAGE: LECTURES ======= -->
+<div class="page main" id="page-lectures">
+
+  <div class="edit-panel" id="ep-lectures" style="display:none">
+    <div class="ep-title">강의 목록 편집</div>
+    <div class="ep-tabs">
+      <button class="eptab on" onclick="epTab('ep-lec-add',this)">강의 추가</button>
+      <button class="eptab" onclick="epTab('ep-lec-subj',this)">과목 관리</button>
+      <button class="eptab" onclick="epTab('ep-lec-del',this)">강의 삭제</button>
+    </div>
+
+    <div class="ep-section on" id="ep-lec-add">
+      <div class="fi-row" style="margin-bottom:8px">
+        <div class="fgroup" style="margin-bottom:0"><label>과목 선택</label>
+          <select class="fi" id="la-subj" onchange="renderLecDelList()"></select></div>
+        <div class="fgroup" style="margin-bottom:0"><label>강 번호 (예: 3강)</label><input class="fi" id="la-num" placeholder="3강"></div>
+      </div>
+      <div class="fgroup"><label>강의 제목</label><input class="fi" id="la-title" placeholder="국어 교수법 개요"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <label style="font-size:12px;color:var(--text3)">작년 강의 (구버전 표시)</label>
+        <label class="toggle-wrap"><input type="checkbox" id="la-old"><span class="slider"></span></label>
+      </div>
+      <button class="btn btn-amber" onclick="addLecture()">+ 추가</button>
+      <div id="la-msg" class="msg-ok" style="margin-top:8px"></div>
+    </div>
+
+    <div class="ep-section" id="ep-lec-subj">
+      <div class="fi-row" style="margin-bottom:10px">
+        <input class="fi" id="ls-name" placeholder="새 과목명">
+        <button class="btn btn-amber" onclick="addSubject()">과목 추가</button>
+      </div>
+      <div class="ep-list" id="ls-list"></div>
+    </div>
+
+    <div class="ep-section" id="ep-lec-del">
+      <div class="fgroup"><label>과목 선택</label><select class="fi" id="ld-subj" onchange="renderLecDelList2()"></select></div>
+      <div class="ep-list" id="ld-list"></div>
+    </div>
+  </div>
+
+  <div class="sec-title">과목별 강의 목록</div>
+  <div class="lec-old-toggle">
+    <label class="toggle-wrap"><input type="checkbox" id="showOld" onchange="renderLectures()" checked><span class="slider"></span></label>
+    <span>작년 강의 표시</span>
+  </div>
+  <div class="subj-tabs" id="subjectTabs"></div>
+  <div class="lec-list" id="lectureList"></div>
+</div>
+
+<!-- ======= PAGE: NOTICE ======= -->
+<div class="page main" id="page-notice">
+
+  <div class="edit-panel" id="ep-notice" style="display:none">
+    <div class="ep-title">공지사항 편집</div>
+    <div class="ep-tabs">
+      <button class="eptab on" onclick="epTab('ep-nt-sched',this)">스터디 시간표</button>
+      <button class="eptab" onclick="epTab('ep-nt-fine',this)">벌금</button>
+      <button class="eptab" onclick="epTab('ep-nt-links',this)">링크</button>
+      <button class="eptab" onclick="epTab('ep-nt-unable',this)">못 푸는 것</button>
+    </div>
+
+    <div class="ep-section on" id="ep-nt-sched">
+      <div id="nt-sched-list" class="ep-list" style="margin-bottom:10px"></div>
+      <div class="fi-row" style="margin-bottom:8px">
+        <input class="fi" id="ns-day" placeholder="요일 (예: 월~금)">
+        <input class="fi" id="ns-time" placeholder="12:00~13:30 모의고사">
+      </div>
+      <button class="btn btn-amber" onclick="addSchedRow()">+ 추가</button>
+    </div>
+    <div class="ep-section" id="ep-nt-fine">
+      <div id="nt-fine-list" class="ep-list" style="margin-bottom:10px"></div>
+      <div class="fi-row" style="margin-bottom:8px">
+        <input class="fi" id="fn-name" placeholder="미루기">
+        <input class="fi" id="fn-amt" placeholder="30000">
+      </div>
+      <button class="btn btn-amber" onclick="addFine()">+ 추가</button>
+    </div>
+    <div class="ep-section" id="ep-nt-links">
+      <div id="nt-link-list" class="ep-list" style="margin-bottom:10px"></div>
+      <div class="fgroup"><label>제목</label><input class="fi" id="lk-title" placeholder="2026 모의고사 자료"></div>
+      <div class="fgroup"><label>URL</label><input class="fi" id="lk-url" placeholder="https://..."></div>
+      <button class="btn btn-amber" onclick="addLink()">+ 추가</button>
+    </div>
+    <div class="ep-section" id="ep-nt-unable">
+      <div id="nt-unable-list" class="ep-list" style="margin-bottom:10px"></div>
+      <div class="fi-row" style="margin-bottom:8px">
+        <input class="fi" id="un-cnt" placeholder="개수 (예: 3)" style="max-width:90px">
+        <input class="fi" id="un-name" placeholder="백구 전년도 1~3회">
+      </div>
+      <button class="btn btn-amber" onclick="addUnable()">+ 추가</button>
+    </div>
+  </div>
+
+  <div class="nc"><div class="nc-stitle">스터디 시간표</div><div id="nt-sched-view"></div></div>
+  <div class="nc"><div class="nc-stitle">스터디 벌금</div><div id="nt-fine-view"></div></div>
+  <div class="nc"><div class="nc-stitle">자료 링크</div><div id="nt-link-view"></div></div>
+  <div style="margin-top:22px"><div class="sec-title">못 푸는 것들 <span id="unable-count-label" style="color:var(--text3)"></span></div><div class="unable-list" id="nt-unable-view"></div></div>
+</div>
+
+<script>
+// ==================== DEFAULT DATA ====================
+const DEFAULT = {
+  dday: '2026-11-08',
+  termPeriods: { 1:'2025.08.11 ~ 09.22', 2:'2025.09.24 ~ 10.19', 3:'2025.10.20 ~ 11.08', 4:'미정' },
+  schedule: {
+    1:[
+      {week:'1주차',items:[
+        {date:'8/11',day:'월',subject:'총창 전체',time:'1:25'},
+        {date:'8/13',day:'수',subject:'영어 전체',time:'2:11'},
+        {date:'8/15',day:'금',subject:'음악 전체',time:'2:12'},
+        {date:'8/17',day:'일',subject:'도덕 전체',note:'PASS'},
+      ]},
+      {week:'2주차',items:[
+        {date:'8/18',day:'월',subject:'미술 전체',time:'1:54',note:'막바지에 중단'},
+        {date:'8/20',day:'수',subject:'실과 1~16',time:'2:20'},
+        {date:'8/22',day:'금',subject:'실과 17~23 통교 전체',time:'2:05'},
+        {date:'8/24',day:'일',subject:'체육 1~16',time:'1:40'},
+      ]},
+      {week:'3주차',items:[
+        {date:'8/25',day:'월',subject:'체육 17~37',time:'2:38'},
+        {date:'8/27',day:'수',subject:'국어 1~20',time:'2:10'},
+        {date:'8/29',day:'금',subject:'국어 21~38',time:'2:30'},
+        {date:'8/31',day:'일',subject:'국어 39~47 사회 1~8',time:'1:55'},
+      ]},
+      {week:'4주차',items:[
+        {date:'9/1',day:'월',subject:'사회 9~21',time:'2:21'},
+        {date:'9/3',day:'수',subject:'사회 22~36',time:'3:05'},
+        {date:'9/5',day:'금',subject:'수학 1~21',time:'2:40'},
+        {date:'9/7',day:'일',subject:'수학 측정',time:'1:58'},
+      ]},
+      {week:'5주차',items:[
+        {date:'9/8',day:'월',subject:'수학 기본이론 나머지, 변화와 관계, 자료와 가능성',time:'2:35'},
+        {date:'9/10',day:'수',subject:'수학 수와 연산',time:'2:53'},
+        {date:'9/12',day:'금',subject:'과학 화학',time:'2:50'},
+        {date:'9/14',day:'일',subject:'과학 생명',time:'2:49'},
+      ]},
+      {week:'6주차',items:[
+        {date:'9/15',day:'월',subject:'과학 1~6, 61~69',time:'2:07'},
+        {date:'9/17',day:'수',subject:'과학 물리',time:'2:07',note:'재언 PASS'},
+        {date:'9/19',day:'금',subject:'과학 지구',time:'2:56'},
+        {date:'9/21',day:'일',subject:'과학 교육론, 교육과정',note:'PASS'},
+      ]},
+      {week:'마지막',items:[
+        {date:'9/22',day:'월',subject:'도덕 전체',time:'1:45',note:'태현 PASS'},
+      ]}
+    ],
+    2:[
+      {week:'D-40 이전',items:[
+        {date:'9/24',day:'수',subject:'총창 실과',time:'2:55'},
+        {date:'9/25',day:'목',subject:'임고트립(R) 2회'},
+        {date:'9/26',day:'금',subject:'영어 통교',time:'2:45'},
+        {date:'9/27',day:'토',subject:'임고트립(R) 4회'},
+        {date:'9/28',day:'일',subject:'음악 미술',time:'2:57'},
+      ]},
+      {week:'D-40 주차 (9/29)',items:[
+        {date:'9/29',day:'월',subject:'도덕',time:'2:31'},
+        {date:'9/30',day:'화',subject:'뉴로직R 1회'},
+        {date:'10/1',day:'수',subject:'체육',time:'2:22'},
+        {date:'10/2',day:'목',subject:'뉴로직R 2회'},
+        {date:'10/3',day:'금',subject:'국어 (~쓰기)',time:'1:44'},
+        {date:'10/4',day:'토',subject:'임고원포R 1회'},
+        {date:'10/5',day:'일',subject:'국어 나머지',time:'1:40'},
+      ]},
+      {week:'D-33 주차 (10/6)',items:[
+        {date:'10/6',day:'월',subject:'추석',note:'패스'},
+        {date:'10/7',day:'화',subject:'임고원포R 2회',note:'PASS'},
+        {date:'10/8',day:'수',subject:'사회 각론',time:'2:51'},
+        {date:'10/9',day:'목',subject:'임고원포R 3회'},
+        {date:'10/10',day:'금',subject:'수학 (교육론, 교육과정, 변화·관계, 자료·가능성)',time:'2:04'},
+        {date:'10/11',day:'토',subject:'임고원포R 4회'},
+        {date:'10/12',day:'일',subject:'수학 (도형+측정)',time:'2:08'},
+      ]},
+      {week:'D-26 주차 (10/13)',items:[
+        {date:'10/13',day:'월',subject:'과학 (과교론+과학/사회)',time:'1:45'},
+        {date:'10/14',day:'화',subject:'임고원포R 5회'},
+        {date:'10/15',day:'수',subject:'수학 (수와 연산)',time:'1:51',note:'재언 PASS'},
+        {date:'10/16',day:'목',subject:'임고원포R 6회'},
+        {date:'10/17',day:'금',subject:'과학 (물/생)',time:'2:10',note:'재언 PASS'},
+        {date:'10/18',day:'토',subject:'백구F 1회'},
+        {date:'10/19',day:'일',subject:'과학 (화/지)',time:'1:40',note:'반반 출제'},
+      ]}
+    ],
+    3:[
+      {week:'D-19 주차 (10/20)',items:[
+        {date:'10/20',day:'월',subject:'임고트립(F) 1회'},
+        {date:'10/21',day:'화',subject:'임고트립(F) 3회'},
+        {date:'10/22',day:'수',subject:'백구F 2회'},
+        {date:'10/23',day:'목',subject:'쿠키넷F 1회'},
+        {date:'10/24',day:'금',subject:'쿠키넷F 2회'},
+        {date:'10/26',day:'일',subject:'테크니컬(F) 1회'},
+      ]},
+      {week:'D-12 주차 (10/27)',items:[
+        {date:'10/27',day:'월',subject:'임고원포F 1회'},
+        {date:'10/28',day:'화',subject:'임고원포F 2회'},
+        {date:'10/29',day:'수',subject:'백구F 3회'},
+        {date:'10/30',day:'목',subject:'뉴로직F 1회'},
+        {date:'10/31',day:'금',subject:'뉴로직F 2회'},
+        {date:'11/2',day:'일',subject:'시그니처(F) 3회'},
+      ]},
+      {week:'D-5 주차 (11/3)',items:[
+        {date:'11/3',day:'월',subject:'테크니컬(F) 3회'},
+        {date:'11/4',day:'화',subject:'테크니컬(F) 5회'},
+        {date:'11/5',day:'수',subject:'테크니컬(F) 6회'},
+        {date:'11/6',day:'목',subject:'쿠키넷F 3회'},
+        {date:'11/7',day:'금',subject:'D-1'},
+        {date:'11/8',day:'토',subject:'🌟 D-DAY'},
+      ]}
+    ],
+    4:[{week:'미정',items:[{date:'-',day:'-',subject:'추후 업데이트 예정'}]}]
+  },
+  lectures: {
+    '총론·창체':[{num:'1~2강',title:'총론',old:false},{num:'3강',title:'창의적 체험활동',old:false}],
+    '실과':[
+      {num:'1강',title:'OT ~ 성취기준 [01-01]',old:false},{num:'2강',title:'성취기준 [01-02] ~ [01-04]',old:false},{num:'3강',title:'성취기준 [01-05] ~ [01-07]',old:false},{num:'4강',title:'성취기준 [02-01]',old:false},{num:'5강',title:'성취기준 [02-02] ~ [02-04]',old:false},{num:'6강',title:'성취기준 [02-05] ~ [02-06]',old:false},{num:'7강',title:'성취기준 [02-07], [02-09]',old:false},{num:'8~9강',title:'성취기준 [02-08]',old:false},{num:'10강',title:'성취기준 [02-08] 3 ~ [02-11]',old:false},{num:'11강',title:'성취기준 [03-01] ~ [03-02] 1',old:false},{num:'12강',title:'성취기준 [03-02] 2',old:false},{num:'13강',title:'성취기준 [03-03] ~ [03-05] 1',old:false},{num:'14강',title:'성취기준 [03-05] 2',old:false},{num:'15강',title:'성취기준 [04-01] ~ [04-05]',old:false},{num:'16강',title:'성취기준 [04-07] ~ [04-08] 1',old:false},{num:'17강',title:'성취기준 [04-08] 2 ~ [04-11]',old:false},{num:'18강',title:'성취기준 [05-01]',old:false},{num:'19강',title:'성취기준 [05-02] ~ [05-03]',old:false},{num:'20강',title:'성취기준 [05-04] ~ [05-05], [04-06]',old:false},{num:'21~22강',title:'실과 교과교육론',old:false},{num:'23강',title:'실과 교육과정',old:false}
+    ],
+    '영어':[
+      {num:'1강',title:'영어 OT',old:false},{num:'2강',title:'언어 습득 이론 (모국어 습득 이론 ~ Five Hypotheses)',old:false},{num:'3강',title:'언어 습득 이론 (Output Hypothesis ~ Interaction Hypothesis)',old:false},{num:'4강',title:'언어 습득 이론 (Sociocultural Theory)',old:false},{num:'5강',title:'영어 교수법 (GTM ~ ALM)',old:false},{num:'6강',title:'영어 교수법 (TPR ~ NA)',old:false},{num:'7강',title:'영어 교수법 (CLT)',old:false},{num:'8강',title:'영어 교수법 (TBLT ~ WLA)',old:false},{num:'9강',title:'학습자 변인 (초등 학습자의 특성 ~ 학습 전략)',old:false},{num:'10강',title:'학습자 변인 (의사소통 전략 ~ 정의적 요인)',old:false},{num:'11강',title:'기능별 언어지도 (공통)',old:false},{num:'12강',title:'기능별 언어지도 (듣기)',old:false},{num:'13강',title:'기능별 언어지도 (읽기의 이해 과정 ~ 읽기의 유형)',old:false},{num:'14강',title:'기능별 언어지도 (음철법 ~ 읽기 지도 방법)',old:false},{num:'15강',title:'기능별 언어지도 (말하기의 특성 ~ PPP)',old:false},{num:'16강',title:'기능별 언어지도 (중간 언어 ~ 오류 처리 유형)',old:false},{num:'17강',title:'기능별 언어지도 (쓰기)',old:false},{num:'18강',title:'요소별 언어지도 (발음 지도 ~ 어휘 지도)',old:false},{num:'19강',title:'요소별 언어지도 (문법 지도 ~ 문화 지도)',old:false},{num:'20강',title:'활동 중심 수업 ~ 교사 언어',old:false},{num:'21강',title:'평가',old:false},{num:'22~23강',title:'교육과정 (성취기준 전후 ~ 기타 기출)',old:false}
+    ],
+    '통합교과':[
+      {num:'1강',title:'OT ~ 교육과정1 (바른 생활)',old:false},{num:'2강',title:'교육과정2 (바른 생활)',old:false},{num:'3강',title:'교육과정3 (바른 생활 성취기준 ~ 교수·학습의 방향)',old:false},{num:'4강',title:'교육과정4 (바른 생활 교수·학습 방법 ~ 슬기로운 생활)',old:false},{num:'5강',title:'교육과정5 (즐거운 생활 ~ 지도서 부록)',old:false},{num:'6강',title:'교육과정6 (지도서 총론)',old:false}
+    ],
+    '음악':[
+      {num:'1강',title:'OT ~ 전통음악 (장구)',old:false},{num:'2강',title:'전통음악 (장단~정간보)',old:false},{num:'3강',title:'전통음악 (말붙임새~토리)',old:false},{num:'4강',title:'전통음악 (토리 분석)',old:false},{num:'5강',title:'전통음악 (장단 구분법), 서양음악 기초',old:false},{num:'6강',title:'서양음악 (이동도법~조표와 임시표)',old:false},{num:'7강',title:'서양음악 (악곡의 구조와 형식~3/4박자와 6/8박자)',old:false},{num:'8강',title:'서양음악 (당김음~돌림 노래)',old:false},{num:'9강',title:'서양음악, 악기 연주법 (음계~핸드벨)',old:false},{num:'10강',title:'악기 연주법 (단소, 소금)',old:false},{num:'11강',title:"주요 감상곡 (대취타 ~ 시조 '태산이')",old:false},{num:'12강',title:'주요 감상곡 (영산회상 ~ 음악극)',old:false},{num:'13강',title:'교과교육론 (달크로즈, 코다이)',old:false},{num:'14강',title:'교과교육론 (오르프, 고든), 2022 개정 교육과정',old:false},{num:'15~16강',title:'2022 개정 교육과정',old:false},{num:'17강',title:'3~4학년 제재곡 7개 지도서 ①',old:false},{num:'18강',title:'3~4학년 제재곡 7개 지도서 ②',old:false},{num:'19강',title:'3~4학년 제재곡 6~5개 지도서',old:false},{num:'20강',title:'3~4학년 제재곡 4개 지도서',old:false},{num:'21강',title:'3~4학년 제재곡 3~2개 지도서',old:false},{num:'22강',title:'3~4학년 1개 / 5~6학년 7개 지도서',old:false},{num:'23강',title:'5~6학년 제재곡 6~5개 지도서',old:false},{num:'24강',title:'5~6학년 제재곡 4개, 3개 지도서 ①',old:false},{num:'25강',title:'5~6학년 제재곡 3개 ②, 2개 ①',old:false},{num:'26강',title:'5~6학년 제재곡 2개 ②, 1개',old:false}
+    ],
+    '미술':[
+      {num:'1강',title:'OT ~ 교과교육론(로웬펠드)',old:false},{num:'2강',title:'교과교육론(가드너)',old:false},{num:'3강',title:'조형요소와 원리',old:false},{num:'4강',title:'색',old:false},{num:'5강',title:'사진과 애니메이션',old:false},{num:'6강',title:'조소',old:false},{num:'7강',title:'다양한 표현기법 ~ 판화',old:false},{num:'8강',title:'판화',old:false},{num:'9강',title:'전통 공예',old:false},{num:'10강',title:'수채화 ~ 디자인',old:false},{num:'11강',title:'전통 회화',old:false},{num:'12강',title:'풍경화 ~ 인물화',old:false},{num:'13강',title:'정물화 ~ 서예',old:false},{num:'14강',title:'서예',old:false},{num:'15강',title:'미술양식(자연주의 ~ 옵아트)',old:false},{num:'16강',title:'미술양식(미디어 아트 ~ 키네틱 아트)',old:false},{num:'17강',title:'미술양식(콜라주 ~ 미술관관람)',old:false},{num:'18강',title:'교과교육론(펠드만 ~ 아이스너)',old:false},{num:'19강',title:'교과교육론(학년군별 특징~미술교육흐름)',old:false},{num:'20강',title:'교과교육론(미술과 교수·학습 모형)',old:false},{num:'21~22강',title:'교육과정',old:false}
+    ],
+    '도덕':[
+      {num:'1강',title:'OT _ 도덕과 교과서 단원 구성',old:false},{num:'2~5강',title:'도덕과 주요 수업 모형',old:false},{num:'6강',title:'도덕 교육의 관점 ~ 이론적 기초①',old:false},{num:'7~9강',title:'도덕과 교육의 이론적 기초②~④',old:false},{num:'10강',title:'도덕과 일반 이론(기타)',old:false},{num:'11~12강',title:'도덕과 교육과정',old:false}
+    ],
+    '체육':[
+      {num:'1강',title:'OT~이해점검',old:false},{num:'2강',title:'시범 보이기~피드백 제공',old:false},{num:'3강',title:'동기유발~평가',old:false},{num:'4강',title:'루틴과 규칙~체육 수업의 흐름',old:false},{num:'5강',title:'직접 교수 모형~개별화 수업 모형',old:false},{num:'6강',title:'협동 학습 모형',old:false},{num:'7강',title:'스포츠 교육 모형~탐구 수업 모형',old:false},{num:'8강',title:'이해 중심 게임 수업 모형',old:false},{num:'9강',title:'TPSR 모형~과제식 학습',old:false},{num:'10강',title:'수업 스타일~교육과정 모형',old:false},{num:'11~16강',title:'교육과정',old:false},{num:'17강',title:'운동 3~4학년 (기본 체력운동-체력운동 관련 기본 움직임)',old:false},{num:'18강',title:'운동 3~4학년 (기본 체력운동-체력운동 기능)',old:false},{num:'19강',title:'운동 3~4학년 (건강 운동 및 생활 습관)',old:false},{num:'20강',title:'운동 5~6학년 (건강 체력 및 운동 체력)',old:false},{num:'21강',title:'운동 5~6학년 (성장 및 안전 활동)',old:false},{num:'22~25강',title:'스포츠 3~4학년 (기본 움직임의 기초 기술)',old:false},{num:'26~28강',title:'스포츠 3~4학년 (스포츠 유형별 움직임 기술)',old:false},{num:'29~31강',title:'스포츠 5~6학년 (기술형 스포츠 유형별 활동)',old:false},{num:'32~34강',title:'스포츠 5~6학년 (전략형 스포츠 유형별 활동)',old:false},{num:'35~36강',title:'스포츠 5~6학년 (생태형 스포츠 유형별 활동)',old:false},{num:'37강',title:'표현 3~4학년',old:false},{num:'38강',title:'표현 5~6학년',old:false}
+    ],
+    '국어':[
+      {num:'1강',title:'2026학년도 국어 OT',old:false},{num:'2~9강',title:'기초 문식성',old:false},{num:'10~15강',title:'문법 영역',old:false},{num:'16~24강',title:'읽기 영역',old:false},{num:'25~32강',title:'쓰기 영역',old:false},{num:'33~39강',title:'듣기·말하기 영역',old:false},{num:'40강',title:'교수·학습 모형, 문학(1)',old:false},{num:'41~46강',title:'문학(2~7)',old:false},{num:'47강',title:'문학(8), 교수·학습 모형, 그림책 읽기 지도',old:false},{num:'48강',title:'매체',old:false}
+    ],
+    '사회':[
+      {num:'1강',title:'OT ~ 개념 학습 모형①',old:false},{num:'2강',title:'개념 학습 모형② ~ 탐구 학습 모형①',old:false},{num:'3강',title:'탐구 학습 모형② ~ 문제 해결 학습 모형',old:false},{num:'4강',title:'의사 결정 학습 모형',old:false},{num:'5강',title:'논쟁 문제 학습 모형①',old:false},{num:'6강',title:'논쟁 문제 학습 모형② ~ 협동 학습 모형①',old:false},{num:'7강',title:'협동 학습 모형② ~ 사회과 수업 기법①',old:false},{num:'8강',title:'사회과 수업 기법②',old:false},{num:'9강',title:"사회과의 궁극적 목표 '시민성' ~ 사회과의 고급 사고력",old:false},{num:'10~11강',title:'사회과 교육의 본질에 대한 유형',old:false},{num:'12강',title:'사회과 교육과정의 내용 구성 원리',old:false},{num:'13강',title:'사회과 역사 및 지리 영역의 지도',old:false},{num:'14강',title:'사회과 교육과정 전반부',old:false},{num:'15~16강',title:'3학년 1학기',old:false},{num:'17강',title:'3학년 2학기①',old:false},{num:'18강',title:'3학년 2학기② ~ 4학년 1학기①',old:false},{num:'19~21강',title:'4학년 1학기②~④',old:false},{num:'22~24강',title:'4학년 2학기',old:false},{num:'25~28강',title:'5학년 1학기',old:false},{num:'29~31강',title:'6학년 1학기',old:false},{num:'32~34강',title:'6학년 2학기',old:false},{num:'35~36강',title:'5학년 2학기',old:false}
+    ],
+    '수학':[
+      {num:'1강',title:'2026학년도 수학 OT',old:false},{num:'2강',title:'수학의 가치~수학적 사고',old:false},{num:'3강',title:'수학적 지식의 형태와 특성',old:false},{num:'4~6강',title:'수학 수업 모형',old:false},{num:'7강',title:'수학 교육 과정',old:false},{num:'8~14강',title:'평면도형(1~7)',old:false},{num:'15강',title:'평면도형(8), 입체도형(1)',old:false},{num:'16~18강',title:'입체도형(2~4)',old:false},{num:'19강',title:'기본 이론-디에네스(개념학습 이론)',old:false},{num:'20~21강',title:'반힐레',old:false},{num:'22강',title:'도형 한판정리 안내',old:false},{num:'23~33강',title:'측정',old:false},{num:'34~56강',title:'수와 연산',old:false},{num:'57강',title:'스켐프 ~ 피아제',old:false},{num:'58~61강',title:'변화와 관계',old:false},{num:'62~64강',title:'자료와 가능성',old:false},{num:'65강',title:'프로이덴탈 ~ 오슈벨',old:false},{num:'66강',title:'교수학적 변환론 ~ 초등학교 수학 학습에 대한 관점',old:false}
+    ],
+    '과학':[
+      {num:'1강',title:'OT, 과학의 본성',old:false},{num:'2강',title:'과학 탐구 과정 - 기초 탐구 과정 기능',old:false},{num:'3강',title:'과학 탐구 과정 - 통합 탐구 과정 기능',old:false},{num:'4강',title:'과학 학습 모형 - 경험 학습, 발견 학습, 탐구 학습',old:false},{num:'5강',title:'과학 학습 모형 - 순환 학습, POE, 5E',old:false},{num:'6강',title:'과학 학습 모형 - 개념 변화 학습, STS 학습',old:false},{num:'7강',title:'각론 OT, 물질 (1) 물체와 물질(개념)',old:false},{num:'8강',title:'물질 (1) 물체와 물질(탐구)',old:false},{num:'9강',title:'물질 (2) 물의 상태 변화(개념)',old:false},{num:'10강',title:'물질 (2) 물의 상태 변화(탐구)',old:false},{num:'11강',title:'물질 (3) 여러 가지 기체(개념)',old:false},{num:'12강',title:'물질 (3) 여러 가지 기체(탐구)',old:false},{num:'13강',title:'물질 (4) 용해와 용액(개념)',old:false},{num:'14강',title:'물질 (4) 용해와 용액(탐구)',old:false},{num:'15강',title:'물질 (5) 혼합물의 분리(개념)',old:false},{num:'16강',title:'물질 (5) 혼합물의 분리(탐구)',old:false},{num:'17강',title:'물질 (6) 산과 염기(개념)',old:false},{num:'18강',title:'물질 (6) 산과 염기(탐구)',old:false},{num:'19강',title:'물질 (7) 물질의 연소(개념)',old:false},{num:'20강',title:'물질 (7) 물질의 연소(탐구)',old:false},{num:'21강',title:'생명 (1) 동물의 생활(개념, 탐구)',old:false},{num:'22강',title:'생명 (2) 식물의 생활(개념, 탐구)',old:false},{num:'23강',title:'생명 (3) 생물의 한살이(개념)',old:false},{num:'24강',title:'생명 (3) 생물의 한살이(탐구)',old:false},{num:'25강',title:'생명 (4) 다양한 생물과 우리 생활(개념)',old:false},{num:'26강',title:'생명 (4) 다양한 생물과 우리 생활(탐구)',old:false},{num:'27강',title:'생명 (5) 생물과 환경(개념)',old:false},{num:'28강',title:'생명 (5) 생물과 환경(탐구)',old:false},{num:'29강',title:'생명 (6) 우리 몸의 구조와 기능(개념)',old:false},{num:'30강',title:'생명 (6) 우리 몸의 구조와 기능(탐구)',old:false},{num:'31강',title:'생명 (7) 식물의 구조와 기능(개념)',old:false},{num:'32강',title:'생명 (7) 식물의 구조와 기능(탐구)',old:false},{num:'33강',title:'운동과 에너지 (1) 힘과 우리 생활(개념)',old:false},{num:'34강',title:'운동과 에너지 (1) 힘과 우리 생활(탐구)',old:false},{num:'35강',title:'운동과 에너지 (2) 소리의 성질(개념)',old:false},{num:'36강',title:'운동과 에너지 (2) 소리의 성질(탐구)',old:false},{num:'37강',title:'운동과 에너지 (3) 자석의 이용(개념)',old:false},{num:'38강',title:'운동과 에너지 (3) 자석의 이용(탐구)',old:false},{num:'39강',title:'운동과 에너지 (4) 빛의 성질(개념1)',old:false},{num:'40강',title:'운동과 에너지 (4) 빛의 성질(개념2)',old:false},{num:'41강',title:'운동과 에너지 (4) 빛의 성질(탐구)',old:false},{num:'42강',title:'운동과 에너지 (5) 열과 우리 생활(개념)',old:false},{num:'43강',title:'운동과 에너지 (5) 열과 우리 생활(탐구)',old:false},{num:'44강',title:'운동과 에너지 (6) 물질의 운동(개념, 탐구)',old:false},{num:'45~46강',title:'운동과 에너지 (7) 전기의 이용(개념)',old:false},{num:'47강',title:'운동과 에너지 (7) 전기의 이용(탐구)',old:false},{num:'48강',title:'지구와 우주 (1) 지구와 바다(개념, 탐구)',old:false},{num:'49강',title:'지구와 우주 (2) 땅의 변화(개념)',old:false},{num:'50강',title:'지구와 우주 (2) 땅의 변화(탐구)',old:false},{num:'51~52강',title:'지구와 우주 (3) 밤하늘 관찰(개념)',old:false},{num:'53강',title:'지구와 우주 (3) 밤하늘 관찰(탐구)',old:false},{num:'54강',title:'지구와 우주 (4) 지층과 화석(개념+탐구)',old:false},{num:'55강',title:'지구와 우주 (5) 날씨와 우리 생활(개념)',old:false},{num:'56강',title:'지구와 우주 (5) 날씨와 우리 생활(탐구)',old:false},{num:'57강',title:'지구와 우주 (6) 지구의 운동(개념)',old:false},{num:'58강',title:'지구와 우주 (6) 지구의 운동(탐구)',old:false},{num:'59강',title:'지구와 우주 (7) 계절의 변화(개념)',old:false},{num:'60강',title:'지구와 우주 (7) 계절의 변화(탐구)',old:false},{num:'61강',title:'과학과 사회 (1) 감염병과 건강한 생활',old:false},{num:'62강',title:'과학과 사회 (2) 기후변화와 우리 생활',old:false},{num:'63강',title:'과학과 사회 (3)(4) 자원과 에너지, 과학과 나의 진로',old:false},{num:'64강',title:'과학 태도, 과학적 방법, 과학 지식',old:false},{num:'65강',title:'과학의 진보, 과학 학습 이론(구성주의, 행동주의)',old:false},{num:'66강',title:'과학 학습 이론(피아제~브루너)',old:false},{num:'67강',title:'과학 교수 학습 방법(실험 수업~협동 학습)',old:false},{num:'68강',title:'과학 교수 학습 방법(창의적 사고~거꾸로 학습), 평가',old:false},{num:'69강',title:'과학 실험 안전, 2022 개정 과학과 교육과정',old:false}
+    ]
+  },
+  notice: {
+    schedule:[
+      {day:'월~금',time:'12:00~13:30 모의고사'},
+      {day:'토',time:'10:00~11:30 교직논술'},
+      {day:'일',time:'12:00~13:30 모의고사'}
+    ],
+    fines:[
+      {name:'미루기',amount:30000},
+      {name:'파토 / 노쇼',amount:50000}
+    ],
+    links:[
+      {title:'📁 2026 모의고사 자료',url:'https://drive.google.com/drive/folders/1BgKi5dsFW4PLhFr4g95MYuEX7Zmni_bQ?usp=sharing'}
+    ],
+    unable:[
+      {count:3,name:'백구 전년도 1~3회'},
+      {count:2,name:'시그니처(R) 1~2회'},
+      {count:1,name:'초임공(R) 1회'},
+      {count:4,name:'초임공(F) 2~5회'},
+      {count:3,name:'쿠키넷(R) 2,4,6월'},
+      {count:2,name:'테크니컬(R) 2,4회'},
+      {count:3,name:'튼실튼실(F) 1~3회'}
+    ]
+  }
+};
+
+// ==================== STATE ====================
+let S = {};
+let editMode = false;
+let currentTerm = 1;
+let currentSubject = '';
+const PW_KEY = 'study_pw';
+const DATA_KEY = 'study_data';
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(DATA_KEY);
+    if(raw) S = JSON.parse(raw);
+    else S = JSON.parse(JSON.stringify(DEFAULT));
+  } catch(e){ S = JSON.parse(JSON.stringify(DEFAULT)); }
+}
+function saveData(){ localStorage.setItem(DATA_KEY, JSON.stringify(S)); }
+
+// ==================== PASSWORD ====================
+function onEditToggle(){
+  if(editMode){ editMode=false; refreshEditPanels(); document.getElementById('editToggleBtn').classList.remove('on'); return; }
+  document.getElementById('pwModal').classList.add('on');
+  document.getElementById('pwInput').value='';
+  document.getElementById('pwMsg').textContent='';
+  setTimeout(()=>document.getElementById('pwInput').focus(),100);
+}
+function tryPw(){
+  const val = document.getElementById('pwInput').value.trim();
+  if(!val){document.getElementById('pwMsg').style.color='var(--red)';document.getElementById('pwMsg').textContent='비밀번호를 입력해주세요.';return;}
+  const stored = localStorage.getItem(PW_KEY);
+  if(!stored){
+    localStorage.setItem(PW_KEY, val);
+    document.getElementById('pwMsg').style.color='var(--teal)';
+    document.getElementById('pwMsg').textContent='✓ 비밀번호가 설정되었습니다.';
+    setTimeout(()=>{ closePwModal(); activateEdit(); }, 700);
+  } else if(stored === val){
+    closePwModal(); activateEdit();
+  } else {
+    document.getElementById('pwMsg').style.color='var(--red)';
+    document.getElementById('pwMsg').textContent='비밀번호가 틀렸습니다.';
+    document.getElementById('pwInput').select();
+  }
+}
+function closePwModal(){ document.getElementById('pwModal').classList.remove('on'); }
+function activateEdit(){ editMode=true; document.getElementById('editToggleBtn').classList.add('on'); refreshEditPanels(); }
+function refreshEditPanels(){
+  ['ep-schedule','ep-lectures','ep-notice'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = editMode ? 'block' : 'none';
+  });
+  if(editMode){
+    document.getElementById('set-dday').value = S.dday||'';
+    renderTimelogList(); renderDelSchedList(); renderNoticeEditPanels(); renderSubjectManage(); renderLecDelList2();
+  }
+}
+
+// ==================== EP TABS ====================
+function epTab(id, btn){
+  btn.closest('.edit-panel').querySelectorAll('.eptab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  btn.closest('.edit-panel').querySelectorAll('.ep-section').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+
+// ==================== D-DAY ====================
+function updateDday(){
+  const parts = (S.dday||'2026-11-08').split('-');
+  const dd = new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.ceil((dd-today)/(864e5));
+  const badge = document.getElementById('ddayBadge');
+  badge.textContent = diff>0?'D-'+diff:diff===0?'D-DAY ★':'D+'+Math.abs(diff);
+}
+
+// ==================== STATS ====================
+function buildStats(t){
+  const td = S.schedule[t]||[];
+  let total=0,done=0,totalMins=0;
+  td.forEach(w=>w.items.forEach(it=>{
+    if(it.date==='-')return; total++;
+    if(it.time){done++;const p=it.time.split(':');totalMins+=parseInt(p[0])*60+parseInt(p[1]);}
+  }));
+  const h=Math.floor(totalMins/60),m=totalMins%60;
+  const period = (S.termPeriods&&S.termPeriods[t])||'미정';
+  document.getElementById('statsRow').innerHTML=`
+    <div class="sc"><div class="sc-label">전체 회차</div><div class="sc-val">${total}</div><div class="sc-sub">회</div></div>
+    <div class="sc"><div class="sc-label">기록 완료</div><div class="sc-val" style="color:var(--accent)">${done}</div><div class="sc-sub">/ ${total}</div></div>
+    <div class="sc"><div class="sc-label">총 스터디 시간</div><div class="sc-val">${h}<span style="font-size:13px;color:var(--text3)">h</span>${m}<span style="font-size:13px;color:var(--text3)">m</span></div><div class="sc-sub">기록 기준</div></div>
+    <div class="sc"><div class="sc-label">기간</div><div class="sc-val" style="font-size:11px;padding-top:5px;color:var(--text2);line-height:1.4">${period}</div><div class="sc-sub">&nbsp;</div></div>`;
+}
+
+// ==================== CALENDAR ====================
+const dotColors={월:'var(--accent)',수:'var(--blue)',금:'var(--purple)',일:'var(--amber)',토:'var(--red)',화:'var(--teal)',목:'var(--pink)'};
+function buildCalendar(t){
+  const today=new Date();today.setHours(0,0,0,0);
+  const studyMap={};
+  (S.schedule[t]||[]).forEach(w=>w.items.forEach(it=>{
+    if(it.date==='-')return;
+    const p=it.date.split('/');
+    const yr= parseInt(p[0])>=8?2025:2026;
+    const key=`${yr}-${parseInt(p[0])-1}-${parseInt(p[1])}`;
+    studyMap[key]={subject:it.subject,time:it.time};
+  }));
+  const start=new Date(today);
+  const dow=start.getDay();
+  start.setDate(start.getDate()+(dow===0?-6:1-dow));
+  const dayL=['월','화','수','목','금','토','일'];
+  let html='<div class="cal-grid">';
+  dayL.forEach(l=>html+=`<div class="cal-hd">${l}</div>`);
+  for(let i=0;i<14;i++){
+    const d=new Date(start);d.setDate(d.getDate()+i);
+    const key=`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    const isT=d.getTime()===today.getTime();
+    const info=studyMap[key];
+    let cls='cc'+(isT?' today':info?' sday':'');
+    html+=`<div class="${cls}"><div class="cd">${d.getMonth()+1}/${d.getDate()}</div>`;
+    if(info){
+      const sh=info.subject.length>10?info.subject.slice(0,9)+'…':info.subject;
+      html+=`<div class="cc-sub">${sh}</div>`;
+      if(info.time)html+=`<div class="cc-time">${info.time}</div>`;
+    }
+    html+='</div>';
+  }
+  html+='</div>';
+  document.getElementById('calGrid').innerHTML=html;
+}
+
+// ==================== SCHEDULE LIST ====================
+function buildSchedule(t){
+  const td=S.schedule[t]||[];
+  let html='';
+  const today=new Date();today.setHours(0,0,0,0);
+  td.forEach(w=>{
+    html+=`<div class="wdiv">— ${w.week}</div>`;
+    w.items.forEach(it=>{
+      if(it.date==='-'){html+=`<div class="sr"><div class="sr-sub" style="color:var(--text3);grid-column:1/-1">${it.subject}</div></div>`;return;}
+      const dc=dotColors[it.day]||'var(--teal)';
+      const timeH=it.time?`<div class="sr-time">[${it.time}]</div>`:it.note?`<div class="sr-time pass">${it.note}</div>`:`<div class="sr-time pass">—</div>`;
+      const noteH=it.note&&it.time?`<span class="sr-note"> · ${it.note}</span>`:'';
+      html+=`<div class="sr"><div class="sr-date"><span class="dot" style="background:${dc}"></span>${it.date}<span class="sr-day">(${it.day})</span></div><div class="sr-sub">${it.subject}${noteH}</div>${timeH}</div>`;
+    });
+  });
+  document.getElementById('scheduleList').innerHTML=html||'<div style="color:var(--text3);padding:20px 0;font-size:13px">일정이 없습니다.</div>';
+}
+
+// ==================== TERM SWITCH ====================
+function showTerm(n){
+  currentTerm=n;
+  document.querySelectorAll('.ttab').forEach((t,i)=>t.classList.toggle('on',i+1===n));
+  buildStats(n);buildCalendar(n);buildSchedule(n);
+  if(editMode){renderTimelogList();renderDelSchedList();}
+}
+function buildTermTabs(){
+  document.getElementById('termTabs').innerHTML=[1,2,3,4].map((n,i)=>`<button class="ttab${i===0?' on':''}" onclick="showTerm(${n})">${n===1?'1st':n===2?'2nd':n===3?'3rd':'4th'} Term</button>`).join('');
+}
+
+// ==================== ADD SCHEDULE ====================
+function addScheduleItem(){
+  const date=document.getElementById('ea-date').value.trim();
+  const day=document.getElementById('ea-day').value;
+  const t=parseInt(document.getElementById('ea-term').value);
+  const subj=document.getElementById('ea-subj').value.trim();
+  const week=document.getElementById('ea-week').value.trim()||'추가';
+  const time=document.getElementById('ea-time').value.trim();
+  const note=document.getElementById('ea-note').value.trim();
+  const msg=document.getElementById('ea-msg');
+  if(!date||!subj){msg.style.color='var(--red)';msg.textContent='날짜와 내용은 필수입니다.';return;}
+  if(!S.schedule[t])S.schedule[t]=[];
+  let wk=S.schedule[t].find(w=>w.week===week);
+  if(!wk){wk={week,items:[]};S.schedule[t].push(wk);}
+  const item={date,day,subject:subj};
+  if(time)item.time=time;
+  if(note)item.note=note;
+  wk.items.push(item);
+  saveData();
+  if(t===currentTerm){buildStats(t);buildCalendar(t);buildSchedule(t);}
+  msg.style.color='var(--teal)';msg.textContent='✓ 추가되었습니다.';
+  ['ea-date','ea-subj','ea-time','ea-note'].forEach(id=>document.getElementById(id).value='');
+  setTimeout(()=>msg.textContent='',2000);
+  if(editMode){renderTimelogList();renderDelSchedList();}
+}
+
+// ==================== TIMELOG ====================
+function renderTimelogList(){
+  const t=parseInt(document.getElementById('tl-term').value);
+  const td=S.schedule[t]||[];
+  let html='';
+  td.forEach((w,wi)=>w.items.forEach((it,ii)=>{
+    if(it.date==='-')return;
+    const curTime=it.time||'';
+    html+=`<div class="ep-item">
+      <div class="ep-item-text">${it.date}(${it.day}) ${it.subject}</div>
+      <input class="fi" style="width:72px;padding:4px 6px;font-size:12px" value="${curTime}" placeholder="2:30" id="tl-${t}-${wi}-${ii}" onchange="saveTimeLog(${t},${wi},${ii},this.value)">
+    </div>`;
+  }));
+  document.getElementById('tl-list').innerHTML=html||'<div style="color:var(--text3);font-size:12px;padding:8px 0">일정이 없습니다.</div>';
+}
+function saveTimeLog(t,wi,ii,val){
+  const v=val.trim();
+  if(v) S.schedule[t][wi].items[ii].time=v;
+  else delete S.schedule[t][wi].items[ii].time;
+  saveData();
+  if(t===currentTerm){buildStats(t);buildCalendar(t);buildSchedule(t);}
+}
+
+// ==================== DEL SCHEDULE ====================
+function renderDelSchedList(){
+  const t=parseInt(document.getElementById('ds-term').value);
+  const td=S.schedule[t]||[];
+  let html='';
+  td.forEach((w,wi)=>w.items.forEach((it,ii)=>{
+    html+=`<div class="ep-item"><div class="ep-item-text">${it.date}(${it.day}) ${it.subject}</div><button class="ep-del" onclick="delSchedItem(${t},${wi},${ii})">×</button></div>`;
+  }));
+  document.getElementById('ds-list').innerHTML=html||'<div style="color:var(--text3);font-size:12px;padding:8px 0">일정이 없습니다.</div>';
+}
+function delSchedItem(t,wi,ii){
+  S.schedule[t][wi].items.splice(ii,1);
+  if(S.schedule[t][wi].items.length===0)S.schedule[t].splice(wi,1);
+  saveData();
+  if(t===currentTerm){buildStats(t);buildCalendar(t);buildSchedule(t);}
+  renderDelSchedList();renderTimelogList();
+}
+
+// ==================== SETTINGS ====================
+function saveSettings(){
+  const dday=document.getElementById('set-dday').value.trim();
+  const pt=document.getElementById('set-period-t').value.trim();
+  const pv=document.getElementById('set-period-v').value.trim();
+  if(dday)S.dday=dday;
+  if(pt&&pv){if(!S.termPeriods)S.termPeriods={};S.termPeriods[parseInt(pt)]=pv;}
+  saveData();updateDday();buildStats(currentTerm);
+  const msg=document.getElementById('set-msg');msg.style.color='var(--teal)';msg.textContent='✓ 저장되었습니다.';
+  setTimeout(()=>msg.textContent='',2000);
+}
+
+// ==================== LECTURES ====================
+function buildSubjectTabs(){
+  const subjects=Object.keys(S.lectures||{});
+  if(!subjects.length)return;
+  if(!currentSubject||!S.lectures[currentSubject])currentSubject=subjects[0];
+  const tabsEl=document.getElementById('subjectTabs');
+  const selEl=document.getElementById('la-subj');
+  const selEl2=document.getElementById('ld-subj');
+  tabsEl.innerHTML=subjects.map(s=>`<button class="stab${s===currentSubject?' on':''}" onclick="showSubject('${s}',this)">${s}</button>`).join('');
+  if(selEl)selEl.innerHTML=subjects.map(s=>`<option value="${s}">${s}</option>`).join('');
+  if(selEl2)selEl2.innerHTML=subjects.map(s=>`<option value="${s}">${s}</option>`).join('');
+  renderLectures();
+}
+function showSubject(name,btn){
+  if(btn){document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));btn.classList.add('on');}
+  currentSubject=name;renderLectures();
+}
+function renderLectures(){
+  const showOld=document.getElementById('showOld')?.checked!==false;
+  const lecs=S.lectures[currentSubject]||[];
+  let html='';
+  lecs.forEach(l=>{
+    if(!showOld&&l.old)return;
+    html+=`<div class="li${l.old?' old':''}"><span class="lnum">${l.num}</span><span class="ltitle">${l.title}${l.old?'<span class="old-badge">작년</span>':''}</span></div>`;
+  });
+  document.getElementById('lectureList').innerHTML=html||'<div style="color:var(--text3);font-size:13px;padding:12px 0">강의가 없습니다.</div>';
+}
+function addLecture(){
+  const subj=document.getElementById('la-subj').value;
+  const num=document.getElementById('la-num').value.trim();
+  const title=document.getElementById('la-title').value.trim();
+  const isOld=document.getElementById('la-old').checked;
+  const msg=document.getElementById('la-msg');
+  if(!subj||!title){msg.style.color='var(--red)';msg.textContent='과목과 제목은 필수입니다.';return;}
+  if(!S.lectures[subj])S.lectures[subj]=[];
+  S.lectures[subj].push({num:num||'-',title,old:isOld});
+  saveData();
+  if(subj===currentSubject)renderLectures();
+  renderLecDelList2();
+  msg.style.color='var(--teal)';msg.textContent='✓ 추가되었습니다.';
+  document.getElementById('la-num').value='';document.getElementById('la-title').value='';document.getElementById('la-old').checked=false;
+  setTimeout(()=>msg.textContent='',2000);
+}
+function addSubject(){
+  const name=document.getElementById('ls-name').value.trim();
+  if(!name)return;
+  if(!S.lectures[name])S.lectures[name]=[];
+  saveData();buildSubjectTabs();renderSubjectManage();
+  document.getElementById('ls-name').value='';
+}
+function renderSubjectManage(){
+  const subjects=Object.keys(S.lectures||{});
+  document.getElementById('ls-list').innerHTML=subjects.map((s,i)=>`<div class="ep-item"><div class="ep-item-text">${s}</div><button class="ep-del" onclick="delSubject('${s}')">×</button></div>`).join('');
+}
+function delSubject(name){
+  if(!confirm(`'${name}' 과목을 삭제할까요? 강의 목록도 함께 삭제됩니다.`))return;
+  delete S.lectures[name];
+  if(currentSubject===name)currentSubject='';
+  saveData();buildSubjectTabs();renderSubjectManage();
+}
+function renderLecDelList(){
+  const subj=document.getElementById('la-subj').value;
+  renderLecDelListFor(subj,'ld-list');
+}
+function renderLecDelList2(){
+  const subj=document.getElementById('ld-subj')?.value;
+  if(subj)renderLecDelListFor(subj,'ld-list');
+}
+function renderLecDelListFor(subj,listId){
+  const lecs=S.lectures[subj]||[];
+  document.getElementById(listId).innerHTML=lecs.map((l,i)=>`<div class="ep-item"><div class="ep-item-text">${l.num} ${l.title}${l.old?' (작년)':''}</div><button class="ep-del" onclick="delLecture('${subj}',${i})">×</button></div>`).join('')||'<div style="color:var(--text3);font-size:12px">강의가 없습니다.</div>';
+}
+function delLecture(subj,i){
+  S.lectures[subj].splice(i,1);
+  saveData();if(subj===currentSubject)renderLectures();renderLecDelList2();
+}
+
+// ==================== NOTICE ====================
+function renderNoticeView(){
+  // schedule
+  let sh='';
+  (S.notice.schedule||[]).forEach(r=>{sh+=`<div class="nr"><span class="nl">${r.day}</span><span class="nv a">${r.time}</span></div>`;});
+  document.getElementById('nt-sched-view').innerHTML=sh;
+  // fines
+  let fh='';
+  (S.notice.fines||[]).forEach(f=>{
+    const col=f.amount>=50000?'var(--red)':'var(--amber)';
+    fh+=`<div class="fine-row"><div class="fine-icon" style="background:${f.amount>=50000?'rgba(255,95,95,.15)':'rgba(255,179,71,.15)'}">💸</div><div class="fine-name">${f.name}</div><div class="fine-amt" style="color:${col}">${f.amount.toLocaleString()}원</div></div>`;
+  });
+  document.getElementById('nt-fine-view').innerHTML=fh;
+  // links
+  let lh='';
+  (S.notice.links||[]).forEach(l=>{lh+=`<a class="link-card" href="${l.url}" target="_blank"><div><div class="link-title">${l.title}</div><div class="link-url">${l.url.replace(/https?:\/\//,'').split('/')[0]}</div></div><div class="link-arr">↗</div></a>`;});
+  document.getElementById('nt-link-view').innerHTML=lh;
+  // unable
+  const unable=S.notice.unable||[];
+  const total=unable.reduce((a,b)=>a+b.count,0);
+  document.getElementById('unable-count-label').textContent=`(${total}개)`;
+  document.getElementById('nt-unable-view').innerHTML=unable.map(u=>`<div class="ui-item"><span class="ucnt">${u.count}</span>${u.name}</div>`).join('');
+}
+function renderNoticeEditPanels(){
+  // sched
+  document.getElementById('nt-sched-list').innerHTML=(S.notice.schedule||[]).map((r,i)=>`<div class="ep-item"><div class="ep-item-text">${r.day} · ${r.time}</div><button class="ep-del" onclick="delNoticeItem('schedule',${i})">×</button></div>`).join('');
+  // fines
+  document.getElementById('nt-fine-list').innerHTML=(S.notice.fines||[]).map((f,i)=>`<div class="ep-item"><div class="ep-item-text">${f.name} · ${f.amount.toLocaleString()}원</div><button class="ep-del" onclick="delNoticeItem('fines',${i})">×</button></div>`).join('');
+  // links
+  document.getElementById('nt-link-list').innerHTML=(S.notice.links||[]).map((l,i)=>`<div class="ep-item"><div class="ep-item-text">${l.title}</div><button class="ep-del" onclick="delNoticeItem('links',${i})">×</button></div>`).join('');
+  // unable
+  document.getElementById('nt-unable-list').innerHTML=(S.notice.unable||[]).map((u,i)=>`<div class="ep-item"><div class="ep-item-text">[${u.count}] ${u.name}</div><button class="ep-del" onclick="delNoticeItem('unable',${i})">×</button></div>`).join('');
+}
+function delNoticeItem(type,i){S.notice[type].splice(i,1);saveData();renderNoticeView();renderNoticeEditPanels();}
+function addSchedRow(){
+  const day=document.getElementById('ns-day').value.trim();
+  const time=document.getElementById('ns-time').value.trim();
+  if(!day||!time)return;
+  if(!S.notice.schedule)S.notice.schedule=[];
+  S.notice.schedule.push({day,time});saveData();renderNoticeView();renderNoticeEditPanels();
+  document.getElementById('ns-day').value='';document.getElementById('ns-time').value='';
+}
+function addFine(){
+  const name=document.getElementById('fn-name').value.trim();
+  const amt=parseInt(document.getElementById('fn-amt').value)||0;
+  if(!name)return;
+  if(!S.notice.fines)S.notice.fines=[];
+  S.notice.fines.push({name,amount:amt});saveData();renderNoticeView();renderNoticeEditPanels();
+  document.getElementById('fn-name').value='';document.getElementById('fn-amt').value='';
+}
+function addLink(){
+  const title=document.getElementById('lk-title').value.trim();
+  const url=document.getElementById('lk-url').value.trim();
+  if(!title||!url)return;
+  if(!S.notice.links)S.notice.links=[];
+  S.notice.links.push({title,url});saveData();renderNoticeView();renderNoticeEditPanels();
+  document.getElementById('lk-title').value='';document.getElementById('lk-url').value='';
+}
+function addUnable(){
+  const cnt=parseInt(document.getElementById('un-cnt').value)||0;
+  const name=document.getElementById('un-name').value.trim();
+  if(!name)return;
+  if(!S.notice.unable)S.notice.unable=[];
+  S.notice.unable.push({count:cnt,name});saveData();renderNoticeView();renderNoticeEditPanels();
+  document.getElementById('un-cnt').value='';document.getElementById('un-name').value='';
+}
+
+// ==================== PAGE NAV ====================
+function goPage(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('page-'+name).classList.add('on');
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  if(name==='lectures')buildSubjectTabs();
+}
+
+// ==================== INIT ====================
+loadData();
+updateDday();
+buildTermTabs();
+showTerm(1);
+renderNoticeView();
+buildSubjectTabs();
+</script>
+</body>
+</html>
