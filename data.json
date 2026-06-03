@@ -989,54 +989,204 @@
     ],
     "국어": [
       {
+        "num": "0강",
+        "title": "2027학년도 국어 OT [42분]",
+        "old": false
+      },
+      {
         "num": "1강",
-        "title": "2026학년도 국어 OT",
+        "title": "기초 문식성 (1) [76분]",
         "old": false
       },
       {
-        "num": "2~9강",
-        "title": "기초 문식성",
+        "num": "2강",
+        "title": "기초 문식성 (2) [22분]",
         "old": false
       },
       {
-        "num": "10~15강",
-        "title": "문법 영역",
+        "num": "3강",
+        "title": "기초 문식성 (3) [25분]",
         "old": false
       },
       {
-        "num": "16~24강",
-        "title": "읽기 영역",
+        "num": "4강",
+        "title": "기초 문식성 (4) [57분]",
         "old": false
       },
       {
-        "num": "25~32강",
-        "title": "쓰기 영역",
+        "num": "5강",
+        "title": "기초 문식성 (5) [32분]",
+        "old": false
+      },
+      {
+        "num": "6강",
+        "title": "기초 문식성 (6) [50분]",
+        "old": false
+      },
+      {
+        "num": "7강",
+        "title": "기초 문식성 (7) [42분]",
+        "old": false
+      },
+      {
+        "num": "8강",
+        "title": "기초 문식성 (8) [49분]",
+        "old": false
+      },
+      {
+        "num": "9강",
+        "title": "문법 영역 (1) [53분]",
+        "old": false
+      },
+      {
+        "num": "10강",
+        "title": "문법 영역 (2) [25분]",
+        "old": false
+      },
+      {
+        "num": "11강",
+        "title": "문법 영역 (3) [52분]",
+        "old": false
+      },
+      {
+        "num": "12강",
+        "title": "문법 영역 (4) [38분]",
+        "old": false
+      },
+      {
+        "num": "13강",
+        "title": "문법 영역 (5) [70분]",
+        "old": false
+      },
+      {
+        "num": "14강",
+        "title": "문법 영역 (6) [69분]",
+        "old": false
+      },
+      {
+        "num": "15강",
+        "title": "읽기 영역 (1) [41분]",
+        "old": false
+      },
+      {
+        "num": "16강",
+        "title": "읽기 영역 (2) [48분]",
+        "old": false
+      },
+      {
+        "num": "17강",
+        "title": "읽기 영역 (3) [31분]",
+        "old": false
+      },
+      {
+        "num": "18강",
+        "title": "읽기 영역 (4) [26분]",
+        "old": false
+      },
+      {
+        "num": "19강",
+        "title": "읽기 영역 (5) [80분]",
+        "old": false
+      },
+      {
+        "num": "20강",
+        "title": "읽기 영역 (6) [43분]",
+        "old": false
+      },
+      {
+        "num": "21강",
+        "title": "읽기 영역 (7) [26분]",
+        "old": false
+      },
+      {
+        "num": "22강",
+        "title": "읽기 영역 (8) [33분]",
+        "old": false
+      },
+      {
+        "num": "23강",
+        "title": "읽기 영역 (9) [23분]",
+        "old": false
+      },
+      {
+        "num": "24강",
+        "title": "수업 모형 [12분]",
+        "old": false
+      },
+      {
+        "num": "25강",
+        "title": "쓰기 영역 (1) [66분]",
+        "old": false
+      },
+      {
+        "num": "26강",
+        "title": "쓰기 영역 (2) [55분]",
+        "old": false
+      },
+      {
+        "num": "27강",
+        "title": "쓰기 영역 (3) [55분]",
+        "old": false
+      },
+      {
+        "num": "28강",
+        "title": "쓰기 영역 (4) [20분]",
+        "old": false
+      },
+      {
+        "num": "29강",
+        "title": "쓰기 영역 (5) [44분]",
+        "old": false
+      },
+      {
+        "num": "30강",
+        "title": "쓰기 영역 (6) [34분]",
+        "old": false
+      },
+      {
+        "num": "31강",
+        "title": "쓰기 영역 (7) [35분]",
+        "old": false
+      },
+      {
+        "num": "32강",
+        "title": "쓰기 영역 (8) [36분]",
+        "old": false
+      },
+      {
+        "num": "33강",
+        "title": "듣기·말하기 영역 (1) [44분]",
+        "old": false
+      },
+      {
+        "num": "34강",
+        "title": "듣기·말하기 영역 (2) [48분]",
         "old": false
       },
       {
         "num": "33~39강",
         "title": "듣기·말하기 영역",
-        "old": false
+        "old": true
       },
       {
         "num": "40강",
         "title": "교수·학습 모형, 문학(1)",
-        "old": false
+        "old": true
       },
       {
         "num": "41~46강",
         "title": "문학(2~7)",
-        "old": false
+        "old": true
       },
       {
         "num": "47강",
         "title": "문학(8), 교수·학습 모형, 그림책 읽기 지도",
-        "old": false
+        "old": true
       },
       {
         "num": "48강",
         "title": "매체",
-        "old": false
+        "old": true
       }
     ],
     "사회": [
