@@ -69,8 +69,10 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 .apply-btn:disabled{opacity:.4;cursor:not-allowed}
 .divider{height:1px;background:var(--border);margin:18px 0}
 .old-badge{font-size:10px;background:rgba(255,179,71,.12);color:var(--amber);border:1px solid rgba(255,179,71,.25);padding:1px 6px;border-radius:10px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+.drag-handle{cursor:grab;color:var(--text3);font-size:16px;padding:0 4px;user-select:none;line-height:1}
+.drag-handle:active{cursor:grabbing}
+.cur-item.drag-over{border-color:var(--accent);background:var(--accent2)}
+.cur-item.dragging{opacity:.4}
 </style>
 </head>
 <body>
@@ -115,6 +117,13 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 
   <!-- SCHEDULE -->
   <div class="panel on" id="panel-schedule">
+    <div class="ai-box">
+      <div class="ai-title">📅 텀 기간 설정</div>
+      <div class="ai-desc">각 텀의 기간을 직접 수정합니다.</div>
+      <div style="display:grid;gap:8px;margin-bottom:12px" id="term-period-inputs"></div>
+      <button class="save-cfg-btn" onclick="saveTermPeriods()">저장</button>
+      <div class="cfg-status" id="term-period-status"></div>
+    </div>
     <div class="ai-box">
       <div class="ai-title">🤖 AI 일정 파싱</div>
       <div class="ai-desc">
@@ -214,6 +223,20 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
           <button class="apply-btn" onclick="applyLectures('append')" style="border-color:var(--purple);color:var(--purple);background:rgba(184,165,255,.1)">+ 뒤에 추가</button>
           <div class="ai-status" id="lc-apply-status"></div>
         </div>
+      </div>
+    </div>
+
+    <div class="ai-box">
+      <div class="ai-title">🔀 강의 순서 변경</div>
+      <div class="ai-desc">드래그로 강의 탭 순서를 변경합니다. 각 과목 내 강의 항목의 순서를 바꿉니다.</div>
+      <div class="fgroup" style="margin-bottom:12px">
+        <label>과목 선택</label>
+        <select class="fi" id="lo-subj" style="max-width:200px" onchange="renderLecOrder()"></select>
+      </div>
+      <div id="lo-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px"></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="apply-btn" onclick="saveLecOrder()">✓ 순서 저장</button>
+        <div class="ai-status" id="lo-status"></div>
       </div>
     </div>
 
@@ -372,7 +395,75 @@ async function callGemini(systemPrompt, userContent){
   return data.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('') || '';
 }
 
-// ── SCHEDULE ──
+// ── TERM PERIODS ──
+function renderTermPeriodInputs(){
+  if(!DATA) return;
+  const tp = DATA.termPeriods || {};
+  let html = '';
+  [1,2,3,4].forEach(t=>{
+    const val = tp[t]||'';
+    html += `<div style="display:grid;grid-template-columns:60px 1fr;gap:8px;align-items:center">
+      <label style="margin-bottom:0;color:var(--amber);font-weight:600">${t}텀</label>
+      <input class="fi fi-mono" id="tp-${t}" value="${val}" placeholder="2026.08.10 ~ 09.21">
+    </div>`;
+  });
+  document.getElementById('term-period-inputs').innerHTML = html;
+}
+function saveTermPeriods(){
+  if(!DATA){ setStatus('term-period-status','데이터가 없습니다.','err'); return; }
+  if(!DATA.termPeriods) DATA.termPeriods = {};
+  [1,2,3,4].forEach(t=>{
+    const v = document.getElementById('tp-'+t)?.value.trim();
+    if(v) DATA.termPeriods[t] = v;
+  });
+  updateRawEditor();
+  setStatus('term-period-status','✓ 저장됨. GitHub 저장 버튼으로 반영하세요.','ok');
+  setTimeout(()=>setStatus('term-period-status','',''), 3000);
+}
+
+// ── LECTURE ORDER ──
+let dragSrcIdx = null;
+function renderLecOrder(){
+  if(!DATA) return;
+  const subj = document.getElementById('lo-subj').value;
+  const lecs = DATA.lectures[subj]||[];
+  const listEl = document.getElementById('lo-list');
+  listEl.innerHTML = lecs.map((l,i)=>`
+    <div class="cur-item" draggable="true" data-idx="${i}"
+      ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropLec(event,'${subj}')" ondragleave="dragLeave(event)" ondragend="dragEnd(event)">
+      <span class="drag-handle">⠿</span>
+      <div class="cur-item-text"><span style="font-family:monospace;font-size:11px;color:var(--text3);min-width:50px;display:inline-block">${l.num}</span> ${l.title}${l.old?' <span class="old-badge">작년</span>':''}</div>
+    </div>`).join('');
+}
+function dragStart(e){
+  dragSrcIdx = parseInt(e.currentTarget.dataset.idx);
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+}
+function dragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  e.currentTarget.classList.add('drag-over');
+}
+function dragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+function dragEnd(e){ e.currentTarget.classList.remove('dragging'); }
+function dropLec(e, subj){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const targetIdx = parseInt(e.currentTarget.dataset.idx);
+  if(dragSrcIdx===null||dragSrcIdx===targetIdx) return;
+  const lecs = DATA.lectures[subj];
+  const moved = lecs.splice(dragSrcIdx, 1)[0];
+  lecs.splice(targetIdx, 0, moved);
+  dragSrcIdx = null;
+  renderLecOrder();
+}
+function saveLecOrder(){
+  updateRawEditor();
+  setStatus('lo-status','✓ 순서 저장됨. GitHub 저장 버튼으로 반영하세요.','ok');
+  setTimeout(()=>setStatus('lo-status','',''), 3000);
+}
+
 const SC_SYSTEM = `당신은 임용고시 스터디 일정 파싱 전문가입니다.
 사용자가 카카오톡 공지 텍스트 또는 자연어 지시를 주면, 이를 파싱해서 JSON 형식으로 반환하세요.
 
