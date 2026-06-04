@@ -232,29 +232,26 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
     </div>
 
     <div class="ai-box">
-      <div class="ai-title">🔀 강의 순서 변경</div>
-      <div class="ai-desc">드래그로 해당 과목의 강의 항목 순서를 바꿉니다. 저장 후 GitHub에 반영하세요.</div>
-      <div class="fgroup" style="margin-bottom:12px">
-        <label>과목 선택</label>
-        <select class="fi" id="lo-subj" style="max-width:200px" onchange="renderLecOrder()"></select>
-      </div>
-      <div id="lo-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px"></div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button class="apply-btn" onclick="saveLecOrder()">✓ 순서 저장 &amp; GitHub 반영</button>
-        <div class="ai-status" id="lo-status"></div>
-      </div>
-    </div>
-
-    <div class="ai-box">
       <div class="ai-title">📋 현재 강의 목록</div>
+      <div class="ai-desc">드래그(⠿)로 강의 항목 순서를 변경할 수 있습니다. × 로 삭제.</div>
       <div class="fgroup" style="margin-bottom:12px">
         <label>과목 선택</label>
         <select class="fi" id="lc-view-subj" style="max-width:200px" onchange="renderCurrentLectures()"></select>
       </div>
       <div id="lc-current-list"></div>
-      <div style="margin-top:12px">
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
-        <div class="ai-status" id="lc-push-status" style="margin-top:6px"></div>
+        <div class="ai-status" id="lc-push-status" style="margin-top:0"></div>
+      </div>
+    </div>
+
+    <div class="ai-box">
+      <div class="ai-title">🔀 과목 탭 순서 변경</div>
+      <div class="ai-desc">과목 탭의 표시 순서를 드래그로 변경합니다. 텀마다 필요한 순서로 조정하고 GitHub에 저장하세요.</div>
+      <div id="subj-order-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px"></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="apply-btn" onclick="saveSubjOrder()">✓ 순서 저장 &amp; GitHub 반영</button>
+        <div class="ai-status" id="so-status"></div>
       </div>
     </div>
   </div>
@@ -536,15 +533,59 @@ function renderCurrentLectures(){
   if(!DATA) return;
   const subj = document.getElementById('lc-view-subj').value;
   const lecs = DATA.lectures[subj]||[];
-  document.getElementById('lc-current-list').innerHTML = lecs.map((l,i)=>`
-    <div class="cur-item">
-      <div class="cur-item-text"><span style="font-family:monospace;font-size:11px;color:var(--text3);min-width:50px;display:inline-block">${l.num}</span> ${l.title} ${l.old?'<span class="old-badge">작년</span>':''}</div>
-      <button class="del-btn" onclick="delLecture('${subj}',${i})">×</button>
-    </div>`).join('') || '<div style="color:var(--text3);font-size:12px;padding:8px">강의가 없습니다.</div>';
+  const listEl = document.getElementById('lc-current-list');
+  if(!lecs.length){ listEl.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px">강의가 없습니다.</div>'; return; }
+  listEl.innerHTML = '';
+  lecs.forEach(function(l,i){
+    const div = document.createElement('div');
+    div.className = 'cur-item';
+    div.draggable = true;
+    div.dataset.idx = i;
+    div.dataset.subj = subj;
+    div.innerHTML = '<span class="drag-handle" title="드래그로 순서 변경">⠿</span>'
+      +'<div class="cur-item-text">'
+      +'<span style="font-family:monospace;font-size:11px;color:var(--text3);min-width:50px;display:inline-block">'+l.num+'</span> '
+      +l.title+(l.old?' <span class="old-badge">작년</span>':'')
+      +'</div>'
+      +'<button class="del-btn">×</button>';
+    div.querySelector('.del-btn').addEventListener('click', function(){ delLecture(subj, i); });
+    div.addEventListener('dragstart', lecDragStart);
+    div.addEventListener('dragover', lecDragOver);
+    div.addEventListener('drop', lecDrop);
+    div.addEventListener('dragleave', lecDragLeave);
+    div.addEventListener('dragend', lecDragEnd);
+    listEl.appendChild(div);
+  });
 }
 function delLecture(subj, i){
   DATA.lectures[subj].splice(i,1);
   renderCurrentLectures(); updateRawEditor();
+}
+var lecDragSrc = null;
+function lecDragStart(e){
+  lecDragSrc = parseInt(e.currentTarget.dataset.idx);
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function lecDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+function lecDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+function lecDragEnd(e){ e.currentTarget.classList.remove('dragging'); }
+function lecDrop(e){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const targetIdx = parseInt(e.currentTarget.dataset.idx);
+  const subj = e.currentTarget.dataset.subj;
+  if(lecDragSrc === null || lecDragSrc === targetIdx) return;
+  const lecs = DATA.lectures[subj];
+  const moved = lecs.splice(lecDragSrc, 1)[0];
+  lecs.splice(targetIdx, 0, moved);
+  lecDragSrc = null;
+  renderCurrentLectures();
+  updateRawEditor();
 }
 
 // ── NOTICE ──
@@ -607,17 +648,17 @@ function renderAll(){
   renderCurrentSchedule();
   renderCurrentLectures();
   renderTermPeriodInputs();
+  renderSubjOrderList();
   updateRawEditor();
 }
 function buildSubjectSelects(){
   if(!DATA) return;
   const subjects = Object.keys(DATA.lectures||{});
-  const opts = subjects.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
+  const opts = subjects.map(function(s){ return '<option value="'+s+'">'+s+'</option>'; }).join('');
   const emptyOpt = '<option value="">AI가 자동 감지</option>';
   document.getElementById('lc-subj').innerHTML = emptyOpt + opts;
   document.getElementById('lc-view-subj').innerHTML = opts;
-  document.getElementById('lo-subj').innerHTML = opts;
-  if(subjects.length){ renderCurrentLectures(); renderLecOrder(); }
+  if(subjects.length) renderCurrentLectures();
 }
 
 // ── TERM PERIODS ──
@@ -646,55 +687,65 @@ function saveTermPeriods(){
   setTimeout(function(){ setStatus('term-period-status','',''); }, 3000);
 }
 
-// ── LECTURE ORDER ──
-var dragSrcIdx = null;
-function renderLecOrder(){
+// ── SUBJECT ORDER ──
+var subjDragSrc = null;
+function renderSubjOrderList(){
   if(!DATA) return;
-  const subj = document.getElementById('lo-subj').value;
-  const lecs = DATA.lectures[subj]||[];
-  const listEl = document.getElementById('lo-list');
-  listEl.innerHTML = lecs.map(function(l,i){
-    return '<div class="cur-item" draggable="true" data-idx="'+i+'" data-subj="'+subj+'"'
-      +' ondragstart="dragStart(event)"'
-      +' ondragover="dragOver(event)"'
-      +' ondrop="dropLec(event)"'
-      +' ondragleave="dragLeave(event)"'
-      +' ondragend="dragEnd(event)">'
-      +'<span class="drag-handle">⠿</span>'
-      +'<div class="cur-item-text"><span style="font-family:monospace;font-size:11px;color:var(--text3);min-width:50px;display:inline-block">'+l.num+'</span> '+l.title+(l.old?' <span class="old-badge">작년</span>':'')+'</div>'
-      +'</div>';
-  }).join('');
+  const subjects = Object.keys(DATA.lectures||{});
+  const listEl = document.getElementById('subj-order-list');
+  if(!listEl) return;
+  listEl.innerHTML = '';
+  if(!subjects.length){ listEl.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px">과목이 없습니다.</div>'; return; }
+  subjects.forEach(function(s,i){
+    const div = document.createElement('div');
+    div.className = 'cur-item';
+    div.draggable = true;
+    div.dataset.idx = i;
+    div.innerHTML = '<span class="drag-handle" title="드래그로 순서 변경">⠿</span>'
+      +'<div class="cur-item-text" style="font-size:13px;font-weight:500">'+s+'</div>'
+      +'<span style="font-family:monospace;font-size:11px;color:var(--text3)">'+(DATA.lectures[s]||[]).length+'강</span>';
+    div.addEventListener('dragstart', subjDragStart);
+    div.addEventListener('dragover', subjDragOver);
+    div.addEventListener('drop', subjDrop);
+    div.addEventListener('dragleave', subjDragLeave);
+    div.addEventListener('dragend', subjDragEnd);
+    listEl.appendChild(div);
+  });
 }
-function dragStart(e){
-  dragSrcIdx = parseInt(e.currentTarget.dataset.idx);
+function subjDragStart(e){
+  subjDragSrc = parseInt(e.currentTarget.dataset.idx);
   e.currentTarget.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
 }
-function dragOver(e){
+function subjDragOver(e){
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
   e.currentTarget.classList.add('drag-over');
 }
-function dragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
-function dragEnd(e){ e.currentTarget.classList.remove('dragging'); }
-function dropLec(e){
+function subjDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+function subjDragEnd(e){ e.currentTarget.classList.remove('dragging'); }
+function subjDrop(e){
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
   const targetIdx = parseInt(e.currentTarget.dataset.idx);
-  const subj = e.currentTarget.dataset.subj;
-  if(dragSrcIdx === null || dragSrcIdx === targetIdx) return;
-  const lecs = DATA.lectures[subj];
-  const moved = lecs.splice(dragSrcIdx, 1)[0];
-  lecs.splice(targetIdx, 0, moved);
-  dragSrcIdx = null;
-  renderLecOrder();
-}
-function saveLecOrder(){
+  if(subjDragSrc === null || subjDragSrc === targetIdx) return;
+  const subjects = Object.keys(DATA.lectures);
+  const reordered = {};
+  const arr = subjects.slice();
+  const moved = arr.splice(subjDragSrc, 1)[0];
+  arr.splice(targetIdx, 0, moved);
+  arr.forEach(function(k){ reordered[k] = DATA.lectures[k]; });
+  DATA.lectures = reordered;
+  subjDragSrc = null;
+  renderSubjOrderList();
+  buildSubjectSelects();
   updateRawEditor();
-  renderCurrentLectures();
+}
+function saveSubjOrder(){
+  updateRawEditor();
   pushToGithub();
-  setStatus('lo-status','✓ 순서 저장 후 GitHub에 반영 중...','ok');
-  setTimeout(function(){ setStatus('lo-status','',''); }, 4000);
+  setStatus('so-status','✓ 저장 후 GitHub에 반영 중...','ok');
+  setTimeout(function(){ setStatus('so-status','',''); }, 4000);
 }
 
 // ── HELPERS ──
