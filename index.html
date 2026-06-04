@@ -44,7 +44,8 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 /* ── MAIN ── */
 .main{padding:20px 20px 80px;max-width:900px}
 .page{display:none}.page.on{display:block}
-.sec-title{font-size:11px;font-weight:500;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;margin-bottom:14px}
+.sec-title{font-size:11px;font-weight:700;letter-spacing:.12em;color:#fff;text-transform:uppercase;margin-bottom:14px}
+body.light .sec-title{color:var(--text3)}
 
 /* ── TERM TABS ── */
 .term-tabs{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap}
@@ -63,12 +64,15 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 /* ── CALENDAR ── */
 .cal-wrap{margin-bottom:26px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.cal-hd{text-align:center;font-size:11px;color:var(--text3);padding:6px 2px;font-weight:500}
-.cc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:6px 5px;min-height:64px}
+.cal-hd{text-align:center;font-size:11px;color:var(--text2);padding:6px 2px;font-weight:500}
+.cc{background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:6px 5px;min-height:64px}
 .cc.today{border-color:var(--accent);background:var(--accent3)}
 .cc.sday{border-color:rgba(94,207,176,.3)}
 .cc.empty{background:transparent;border-color:transparent}
-.cd{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:3px}
+.cd{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);margin-bottom:3px}
+body.light .cal-hd{color:var(--text3)}
+body.light .cc{background:var(--bg3);border-color:var(--border)}
+body.light .cd{color:var(--text3)}
 .cc.today .cd{color:var(--accent);font-weight:500}
 .cc-sub{font-size:9px;color:var(--teal);line-height:1.35}
 .cc-time{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);margin-top:1px}
@@ -86,6 +90,7 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 .sr-note-hi{font-size:11px;color:var(--amber)}
 .sr-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal);white-space:nowrap;text-align:right}
 .sr-time.pass{color:var(--text3)}
+.sr-time.text{color:var(--amber);font-family:'Noto Sans KR',sans-serif}
 .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:7px;vertical-align:middle;flex-shrink:0;margin-top:-1px}
 .dot-mon{background:var(--accent)}.dot-wed{background:var(--blue)}.dot-fri{background:var(--purple)}.dot-sun{background:var(--amber)}.dot-sat{background:var(--red)}.dot-else{background:var(--teal)}
 
@@ -101,13 +106,25 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 .li.old{background:var(--bg3);border-color:var(--border)}
 .li.old:hover{border-color:var(--border2)}
 .li.old .lnum{color:var(--amber)}
+body.light .li{background:var(--bg3);border-color:var(--border)}
+body.light .li:hover{background:var(--bg4);border-color:var(--border2)}
+body.light .li.old{background:var(--bg4);border-color:var(--border2)}
+body.light .li.old:hover{background:var(--bg5);border-color:var(--border3)}
 .lnum{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--teal);white-space:nowrap;padding-top:2px;min-width:34px}
 .ltitle{font-size:12px;color:var(--text);line-height:1.5}
 .old-badge{font-size:9px;background:rgba(255,179,71,.15);color:var(--amber);border:1px solid rgba(255,179,71,.3);padding:1px 6px;border-radius:10px;margin-left:6px;white-space:nowrap;vertical-align:middle}
+.lec-old-toggle{display:flex;align-items:center;gap:9px;margin:-4px 0 16px;color:var(--text2);font-size:12px}
+.toggle-wrap{position:relative;display:inline-block;width:42px;height:24px;flex:0 0 auto}
+.toggle-wrap input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:var(--bg4);border:1px solid var(--border2);border-radius:999px;transition:.18s}
+.slider:before{content:"";position:absolute;width:18px;height:18px;left:2px;top:2px;background:var(--text3);border-radius:50%;transition:.18s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.toggle-wrap input:checked + .slider{background:var(--amber2,rgba(255,179,71,.15));border-color:rgba(255,179,71,.45)}
+.toggle-wrap input:checked + .slider:before{transform:translateX(18px);background:var(--amber)}
 
 /* ── NOTICE ── */
 .nc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px}
-.nc-stitle{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;font-weight:500}
+.nc-stitle{font-size:11px;color:#fff;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;font-weight:700}
+body.light .nc-stitle{color:var(--text3)}
 .nr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
 .nr:last-child{border-bottom:none;padding-bottom:0}
 .nl{color:var(--text2)}.nv{font-weight:500}.nv.a{color:var(--accent)}
@@ -413,12 +430,20 @@ function updateDday(){
 }
 
 // ==================== STATS ====================
+function isStudyTimeValue(v){
+  return /^\d+:\d{1,2}$/.test(String(v||'').trim());
+}
+function studyTimeMins(v){
+  if(!isStudyTimeValue(v)) return 0;
+  const p=String(v).trim().split(':');
+  return parseInt(p[0],10)*60+parseInt(p[1],10);
+}
 function buildStats(t){
   const td = S.schedule[t]||[];
   let total=0,done=0,totalMins=0;
   td.forEach(w=>w.items.forEach(it=>{
     if(it.date==='-')return; total++;
-    if(it.time){done++;const p=it.time.split(':');totalMins+=parseInt(p[0])*60+parseInt(p[1]);}
+    if(isStudyTimeValue(it.time)){done++;totalMins+=studyTimeMins(it.time);}
   }));
   const h=Math.floor(totalMins/60),m=totalMins%60;
   const period = (S.termPeriods&&S.termPeriods[t])||'미정';
@@ -457,7 +482,10 @@ function buildCalendar(t){
     if(info){
       const sh=info.subject.length>10?info.subject.slice(0,9)+'…':info.subject;
       html+=`<div class="cc-sub">${sh}</div>`;
-      if(info.time)html+=`<div class="cc-time">${info.time}</div>`;
+      if(info.time){
+        const cls=isStudyTimeValue(info.time)?'cc-time':'cc-time sr-note-hi';
+        html+=`<div class="${cls}">${info.time}</div>`;
+      }
     }
     html+='</div>';
   }
@@ -531,10 +559,11 @@ function buildSchedule(t){
 
     // parse subject and note from item
     // note is in item.note field (orange color)
-    const noteH=item.note&&item.time?`<span class="sr-note-hi"> · ${item.note}</span>`:
-                item.note&&!item.time?'':'';
-    const timeH=item.time?`<div class="sr-time">[${item.time}]</div>`:
-                item.note&&!item.time?`<div class="sr-time pass sr-note-hi">${item.note}</div>`:
+    const hasNumericTime=isStudyTimeValue(item.time);
+    const hasTextTime=item.time&&!hasNumericTime;
+    const noteH=item.note?`<span class="sr-note-hi"> · ${item.note}</span>`:'';
+    const timeH=hasNumericTime?`<div class="sr-time">[${item.time}]</div>`:
+                hasTextTime?`<div class="sr-time text">${item.time}</div>`:
                 `<div class="sr-time pass">—</div>`;
 
     html+=`<div class="sr${rowCls}"><div class="sr-date"><span class="dot" style="background:${dc}"></span>${item.date}<span class="sr-day">(${item.day})</span></div><div class="sr-sub">${item.subject}${noteH}</div>${timeH}</div>`;

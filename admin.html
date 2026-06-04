@@ -9,7 +9,7 @@
 :root{
   --bg:#0d0d0d;--bg2:#161616;--bg3:#1e1e1e;--bg4:#272727;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
-  --text:#e8e8e8;--text2:#aaa;--text3:#666;
+  --text:#e8e8e8;--text2:#aaa;--text3:#777;--text4:#8a8a8a;
   --accent:#c8f060;--accent2:rgba(200,240,96,0.12);
   --amber:#ffb347;--amber2:rgba(255,179,71,0.12);
   --red:#ff5f5f;--teal:#5ecfb0;--blue:#6eb5ff;--purple:#b8a5ff;
@@ -44,7 +44,7 @@ label{display:block;font-size:11px;color:var(--text3);margin-bottom:4px}
 .tab.on{background:var(--accent2);border-color:var(--accent);color:var(--accent)}
 .panel{display:none}.panel.on{display:block}
 .ai-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:18px;margin-bottom:16px}
-.ai-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.ai-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:8px}
 .ai-desc{font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.7}
 .ai-desc b{color:var(--text2);font-weight:500}
 .example-box{background:var(--bg4);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--text3);line-height:1.8;font-style:italic}
@@ -60,7 +60,7 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 .preview-wrap{margin-top:14px}
 .preview-title{font-size:11px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
 .preview-box{background:var(--bg4);border:1px solid var(--border);border-radius:var(--rs);padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);max-height:260px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6}
-.cur-item{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);font-size:12px;margin-bottom:5px}
+.cur-item{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);font-size:12px;margin-bottom:5px}
 .cur-item-text{flex:1;color:var(--text2)}
 .del-btn{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 2px;line-height:1;transition:.1s}
 .del-btn:hover{color:var(--red)}
@@ -503,10 +503,15 @@ async function pushToGithub(){
     const json = await res.json();
     cfg.sha = json.content.sha;
     localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
-    ['sc','lc','nt','raw'].forEach(p=>setStatus(p+'-push-status','✓ GitHub 저장 완료!','ok'));
-    setTimeout(()=>['sc','lc','nt','raw'].forEach(p=>setStatus(p+'-push-status','','')), 3000);
+    ['sc','tl2','lc','nt','raw'].forEach(p=>setStatus(p+'-push-status','✓ GitHub 저장 완료!','ok'));
+    setStatus('term-period-status','✓ GitHub 저장 완료!','ok');
+    setTimeout(()=>{
+      ['sc','tl2','lc','nt','raw'].forEach(p=>setStatus(p+'-push-status','',''));
+      setStatus('term-period-status','','');
+    }, 3000);
   } catch(e){
-    ['sc','lc','nt','raw'].forEach(p=>setStatus(p+'-push-status','⚠ '+e.message,'err'));
+    ['sc','tl2','lc','nt','raw'].forEach(p=>setStatus(p+'-push-status','⚠ '+e.message,'err'));
+    setStatus('term-period-status','⚠ '+e.message,'err');
   }
 }
 
@@ -867,6 +872,15 @@ function delScheduleItem(term, wi, ii){
 }
 
 // ── TIMELOG PANEL ──
+function isStudyTimeValue(v){
+  return /^\d+:\d{1,2}$/.test(String(v||'').trim());
+}
+function formatStudyTimeDisplay(v){
+  const text = String(v||'').trim();
+  if(!text) return '';
+  if(isStudyTimeValue(text)) return `<span style="color:var(--teal);font-family:monospace;font-size:11px">[${escHtml(text)}]</span>`;
+  return `<span style="color:var(--amber);font-size:11px">${escHtml(text)}</span>`;
+}
 function renderTimelogPanel(){
   if(!DATA) return;
   const term = parseInt(document.getElementById('tl2-term').value);
@@ -923,19 +937,14 @@ function renderTimelogPanel(){
     // Current values
     const curTime = item.time || '';
     const curNote = item.note || '';
-    const isTimeVal = /^\d+:\d+$/.test(curTime);
-
     // Time display: numeric -> teal [x:xx], text -> amber text, empty -> --
-    let timeDisplay = '';
-    if(curTime){
-      if(/^\d+:\d+$/.test(curTime)) timeDisplay = `<span style="color:var(--teal);font-family:monospace;font-size:11px">[${curTime}]</span>`;
-      else timeDisplay = `<span style="color:var(--amber);font-size:11px">${escHtml(curTime)}</span>`;
-    }
+    const timeDisplay = formatStudyTimeDisplay(curTime);
 
     div.innerHTML =
       `<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);min-width:72px">${item.date}(${item.day})</span>`
       +`<span style="font-size:13px;color:var(--text)">${escHtml(item.subject)}`
         +(curNote?` <span style="color:var(--amber);font-size:11px">${escHtml(curNote)}</span>`:'')
+        +(timeDisplay?` ${timeDisplay}`:'')
       +`</span>`
       +`<input class="fi tl2-note-inp" placeholder="비고" value="${escHtml(curNote)}" style="width:110px;padding:4px 7px;font-size:12px;background:var(--bg4)">`
       +`<input class="fi tl2-time-inp" placeholder="시간 (예: 2:30 또는 PASS)" value="${escHtml(curTime)}" style="width:140px;padding:4px 7px;font-size:12px;font-family:monospace;background:var(--bg4)">`;
@@ -956,14 +965,10 @@ function renderTimelogPanel(){
       const subjSpan = div.querySelector('span:nth-child(2)');
       const noteVal = DATA.schedule[term][wi].items[ii].note||'';
       const timeVal = DATA.schedule[term][wi].items[ii].time||'';
-      let timeHtml = '';
-      if(timeVal){
-        if(/^\d+:\d+$/.test(timeVal)) timeHtml = ` <span style="color:var(--teal);font-family:monospace;font-size:11px">[${timeVal}]</span>`;
-        else timeHtml = ` <span style="color:var(--amber);font-size:11px">${escHtml(timeVal)}</span>`;
-      }
+      const timeHtml = formatStudyTimeDisplay(timeVal);
       subjSpan.innerHTML = escHtml(item.subject)
         +(noteVal?` <span style="color:var(--amber);font-size:11px">${escHtml(noteVal)}</span>`:'')
-        +timeHtml;
+        +(timeHtml?` ${timeHtml}`:'');
     }
 
     [noteInp, timeInp].forEach(inp => {
