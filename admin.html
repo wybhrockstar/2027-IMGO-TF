@@ -539,6 +539,9 @@ function dateToCalendarDate(dateStr){
 function calendarSyncId(term, date){
   return `imgo-t${term}-${date}`;
 }
+function cleanCalendarTitle(title){
+  return String(title || '스터디').replace(/^\s*\[\s*\d+\s*텀\s*\]\s*/, '').trim() || '스터디';
+}
 function buildGoogleCalendarPayload(){
   if(!DATA) return null;
   const eventsById = new Map();
@@ -548,7 +551,7 @@ function buildGoogleCalendarPayload(){
       (week.items||[]).forEach((item, ii) => {
         const date = dateToCalendarDate(item.date);
         if(!date) return;
-        const title = item.subject || '스터디';
+        const title = cleanCalendarTitle(item.subject);
         const desc = [
           `Term: ${term}`,
           `Date: ${item.date||''} (${item.day||''})`,
