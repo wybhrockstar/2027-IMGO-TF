@@ -113,6 +113,10 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div class="fgroup"><label>Gemini API Key <span style="color:var(--text3);font-weight:400">(AI 파싱 기능용, 무료)</span></label><input class="fi fi-mono" id="cfg-gemini-key" type="password" placeholder="AIza..."></div>
       <div class="fgroup" style="display:flex;align-items:flex-end"><div style="font-size:11px;color:var(--text3);line-height:1.7">aistudio.google.com → Get API Key (무료)<br>로컬에만 저장, 서버 전송 없음</div></div>
     </div>
+    <div class="cfg-row">
+      <div class="fgroup"><label>Google Calendar Sync URL</label><input class="fi fi-mono" id="cfg-gcal-url" placeholder="Google Apps Script 웹앱 URL"></div>
+      <div class="fgroup" style="display:flex;align-items:flex-end"><div style="font-size:11px;color:var(--text3);line-height:1.7">Apps Script 배포 URL을 입력하면<br>1~4텀 전체 일정을 캘린더와 동기화합니다.</div></div>
+    </div>
     <button class="save-cfg-btn" onclick="saveConfig()">저장</button>
     <div class="cfg-status" id="cfg-status"></div>
   </div>
@@ -238,7 +242,9 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div id="sc-current-list"></div>
       <div style="margin-top:12px">
         <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
+        <button class="apply-btn" onclick="syncGoogleCalendar()" style="border-color:var(--purple);color:var(--purple);background:rgba(184,165,255,.1);margin-left:6px">📅 Google Calendar 동기화</button>
         <div class="ai-status" id="sc-push-status" style="margin-top:6px"></div>
+        <div class="ai-status" id="gcal-status" style="margin-top:6px"></div>
       </div>
     </div>
   </div>
@@ -260,7 +266,9 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div id="tl2-list"></div>
       <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
+        <button class="apply-btn" onclick="syncGoogleCalendar()" style="border-color:var(--purple);color:var(--purple);background:rgba(184,165,255,.1)">📅 Google Calendar 동기화</button>
         <div class="ai-status" id="tl2-push-status" style="margin-top:0"></div>
+        <div class="ai-status" id="tl2-gcal-status" style="margin-top:0"></div>
       </div>
     </div>
   </div>
@@ -456,12 +464,14 @@ function loadConfig(){
   if(cfg.token)     document.getElementById('cfg-token').value     = cfg.token;
   if(cfg.repo)      document.getElementById('cfg-repo').value      = cfg.repo;
   if(cfg.geminiKey) document.getElementById('cfg-gemini-key').value = cfg.geminiKey;
+  if(cfg.gcalUrl)   document.getElementById('cfg-gcal-url').value   = cfg.gcalUrl;
   if(!cfg.token || !cfg.repo) document.getElementById('setupBanner').style.display = 'block';
 }
 function saveConfig(){
   cfg.token     = document.getElementById('cfg-token').value.trim();
   cfg.repo      = document.getElementById('cfg-repo').value.trim();
   cfg.geminiKey = document.getElementById('cfg-gemini-key').value.trim();
+  cfg.gcalUrl   = document.getElementById('cfg-gcal-url').value.trim();
   localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
   const s = document.getElementById('cfg-status');
   s.style.color='var(--teal)'; s.textContent='✓ 저장되었습니다.';
@@ -512,6 +522,103 @@ async function pushToGithub(){
   } catch(e){
     ['sc','tl2','lc','nt','raw'].forEach(p=>setStatus(p+'-push-status','⚠ '+e.message,'err'));
     setStatus('term-period-status','⚠ '+e.message,'err');
+  }
+}
+
+// ── GOOGLE CALENDAR SYNC ──
+function dateToCalendarDate(dateStr){
+  if(!dateStr || dateStr==='-') return null;
+  const parts = String(dateStr).split('/');
+  if(parts.length!==2) return null;
+  const month = parseInt(parts[0],10);
+  const day = parseInt(parts[1],10);
+  if(!month || !day) return null;
+  const year = (month>=6 && month<=12) ? 2026 : 2027;
+  return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+function buildGoogleCalendarPayload(){
+  if(!DATA) return null;
+  const events = [];
+  const schedule = DATA.schedule || {};
+  [1,2,3,4].forEach(term => {
+    (schedule[term]||[]).forEach((week, wi) => {
+      (week.items||[]).forEach((item, ii) => {
+        const date = dateToCalendarDate(item.date);
+        if(!date) return;
+        const title = `[${term}텀] ${item.subject||'스터디'}`;
+        const desc = [
+          `Term: ${term}`,
+          `Week: ${week.week||''}`,
+          `Date: ${item.date||''} (${item.day||''})`,
+          item.time ? `Time record: ${item.time}` : '',
+          item.note ? `Note: ${item.note}` : ''
+        ].filter(Boolean).join('\n');
+        events.push({
+          id: `imgo-t${term}-${date}-${wi}-${ii}`,
+          term,
+          date,
+          title,
+          description: desc,
+          color: term===1?'10':term===2?'9':term===3?'5':'6'
+        });
+      });
+    });
+  });
+  return {
+    source: '2027-imgo-tf-admin',
+    timezone: 'Asia/Seoul',
+    dday: DATA.dday || '',
+    termPeriods: DATA.termPeriods || {},
+    events
+  };
+}
+async function syncGoogleCalendar(){
+  if(!cfg.gcalUrl){
+    setStatus('gcal-status','Google Calendar Sync URL을 설정에 입력하고 저장해주세요.','err');
+    setStatus('tl2-gcal-status','Google Calendar Sync URL을 설정에 입력하고 저장해주세요.','err');
+    return;
+  }
+  const payload = buildGoogleCalendarPayload();
+  if(!payload || !payload.events.length){
+    setStatus('gcal-status','동기화할 일정이 없습니다.','err');
+    setStatus('tl2-gcal-status','동기화할 일정이 없습니다.','err');
+    return;
+  }
+  setStatus('gcal-status',`Google Calendar 동기화 중... (${payload.events.length}개)`,'loading');
+  setStatus('tl2-gcal-status',`Google Calendar 동기화 중... (${payload.events.length}개)`,'loading');
+  try{
+    const res = await fetch(cfg.gcalUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    const text = await res.text();
+    let result = {};
+    try{ result = JSON.parse(text); }catch(e){}
+    if(!res.ok || result.ok===false) throw new Error(result.error || text || '동기화 실패');
+    const msg = `✓ Google Calendar 동기화 완료 (${result.created||0}개 생성, ${result.updated||0}개 수정, ${result.deleted||0}개 삭제)`;
+    setStatus('gcal-status',msg,'ok');
+    setStatus('tl2-gcal-status',msg,'ok');
+    setTimeout(()=>{
+      setStatus('gcal-status','','');
+      setStatus('tl2-gcal-status','','');
+    }, 5000);
+  }catch(e){
+    try{
+      await fetch(cfg.gcalUrl, {
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify(payload)
+      });
+      const msg = `✓ Google Calendar 동기화 요청 전송됨 (${payload.events.length}개). 캘린더에서 반영 여부를 확인해주세요.`;
+      setStatus('gcal-status',msg,'ok');
+      setStatus('tl2-gcal-status',msg,'ok');
+    }catch(e2){
+      const msg = '⚠ '+(e2.message || e.message || e2 || e);
+      setStatus('gcal-status',msg,'err');
+      setStatus('tl2-gcal-status',msg,'err');
+    }
   }
 }
 
