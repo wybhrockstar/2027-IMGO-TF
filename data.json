@@ -483,113 +483,118 @@
     "음악 심화": [],
     "영어": [
       {
+        "num": "0강",
+        "title": "영어 OT [14분]",
+        "old": false
+      },
+      {
         "num": "1강",
-        "title": "영어 OT",
+        "title": "언어 습득 이론 (모국어 습득 이론 ~ Five Hypotheses) [83분]",
         "old": false
       },
       {
         "num": "2강",
-        "title": "언어 습득 이론 (모국어 습득 이론 ~ Five Hypotheses)",
+        "title": "언어 습득 이론 (Noticing Hypothesis ~ Interaction Hypothesis) [65분]",
         "old": false
       },
       {
         "num": "3강",
-        "title": "언어 습득 이론 (Output Hypothesis ~ Interaction Hypothesis)",
+        "title": "언어 습득 이론 (Sociocultural Theory) [35분]",
         "old": false
       },
       {
         "num": "4강",
-        "title": "언어 습득 이론 (Sociocultural Theory)",
+        "title": "영어 교수법 (GTM - ALM) [47분]",
         "old": false
       },
       {
         "num": "5강",
-        "title": "영어 교수법 (GTM ~ ALM)",
+        "title": "영어 교수법 (TPR ~ NA) [59분]",
         "old": false
       },
       {
         "num": "6강",
-        "title": "영어 교수법 (TPR ~ NA)",
+        "title": "영어 교수법 (CLT) [82분]",
         "old": false
       },
       {
         "num": "7강",
-        "title": "영어 교수법 (CLT)",
+        "title": "영어 교수법 (TBLT ~ WLA) [67분]",
         "old": false
       },
       {
         "num": "8강",
-        "title": "영어 교수법 (TBLT ~ WLA)",
+        "title": "학습자 변인 (초등 학습자의 특성 ~ 학습 전략) [52분]",
         "old": false
       },
       {
         "num": "9강",
-        "title": "학습자 변인 (초등 학습자의 특성 ~ 학습 전략)",
+        "title": "학습자 변인 (의사소통 전략 ~ 정의적 요인) [42분]",
         "old": false
       },
       {
         "num": "10강",
-        "title": "학습자 변인 (의사소통 전략 ~ 정의적 요인)",
+        "title": "기능별 언어지도 (공통) [46분]",
         "old": false
       },
       {
         "num": "11강",
-        "title": "기능별 언어지도 (공통)",
+        "title": "기능별 언어지도 (듣기) [38분]",
         "old": false
       },
       {
         "num": "12강",
-        "title": "기능별 언어지도 (듣기)",
+        "title": "기능별 언어지도 (읽기의 이해 과정 ~ 읽기의 유형) [72분]",
         "old": false
       },
       {
         "num": "13강",
-        "title": "기능별 언어지도 (읽기의 이해 과정 ~ 읽기의 유형)",
+        "title": "기능별 언어지도 (음철법 ~ 일견 어휘) [38분]",
         "old": false
       },
       {
         "num": "14강",
-        "title": "기능별 언어지도 (음철법 ~ 읽기 지도 방법)",
+        "title": "기능별 언어지도 (말하기의 특성 ~ PPP) [64분]",
         "old": false
       },
       {
         "num": "15강",
-        "title": "기능별 언어지도 (말하기의 특성 ~ PPP)",
+        "title": "기능별 언어지도 (중간 언어 ~ 오류 처리 유형) [65분]",
         "old": false
       },
       {
         "num": "16강",
-        "title": "기능별 언어지도 (중간 언어 ~ 오류 처리 유형)",
+        "title": "기능별 언어지도 (쓰기) [42분]",
         "old": false
       },
       {
         "num": "17강",
-        "title": "기능별 언어지도 (쓰기)",
+        "title": "요소별 언어지도 (발음 지도 ~ 어휘 지도) [59분]",
         "old": false
       },
       {
         "num": "18강",
-        "title": "요소별 언어지도 (발음 지도 ~ 어휘 지도)",
+        "title": "요소별 언어지도 (문법 지도 ~ 문화 지도) [38분]",
         "old": false
       },
       {
         "num": "19강",
-        "title": "요소별 언어지도 (문법 지도 ~ 문화 지도)",
+        "title": "활동 중심 수업 ~ 교사 언어 [71분]",
         "old": false
       },
       {
         "num": "20강",
-        "title": "활동 중심 수업 ~ 교사 언어",
+        "title": "평가 [50분]",
         "old": false
       },
       {
         "num": "21강",
-        "title": "평가",
+        "title": "교육과정 (성취기준 전후 ~ 이해영역 성취기준) [67분]",
         "old": false
       },
       {
-        "num": "22~23강",
-        "title": "교육과정 (성취기준 전후 ~ 기타 기출)",
+        "num": "22강",
+        "title": "교육과정 (표현영역 성취기준) ~ 기타 기출 [62분]",
         "old": false
       }
     ],
