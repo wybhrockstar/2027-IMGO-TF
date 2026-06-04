@@ -231,6 +231,14 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
         <div id="lc-subj-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
         <!-- 탭별 콘텐츠 -->
         <div id="lc-subj-panels"></div>
+        <!-- AI 수정 -->
+        <div class="divider"></div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;letter-spacing:.06em">🤖 AI로 파싱 결과 수정</div>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+          <textarea class="fi" id="lc-ai-fix-input" placeholder="수정 지시 입력 (예: 과학 50강 제목을 '땅의 변화(탐구)'로 바꿔줘, 51강을 작년으로 변경)" style="min-height:56px;flex:1;min-width:200px;font-size:12px;resize:vertical"></textarea>
+          <button class="ai-btn" id="lc-ai-fix-btn" onclick="aiFixLectures()" style="padding:9px 18px;font-size:12px;align-self:flex-end">✨ AI 수정</button>
+        </div>
+        <div class="ai-status" id="lc-ai-fix-status"></div>
         <!-- 최종 반영 -->
         <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <button class="apply-btn" id="lc-apply-btn" onclick="applyLectures()">✓ 검수 완료 — 반영</button>
@@ -744,6 +752,39 @@ function renderParsedSubjTabs(){
 function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // AI 수정 기능 제거됨
+
+// ── AI 파싱결과 수정 (Anthropic API) ──
+const LC_FIX_SYSTEM = `You are a lecture list editor. The user gives you the current parsed lecture buffer (JSON) and a Korean instruction. Apply the instruction and return ONLY the modified JSON — no markdown, no explanation.
+
+The buffer shape:
+{ "과목명": { "current": [{n,k,subject,title,duration,display,old},...], "old": [...] }, ... }
+
+Rules:
+- "old:true" means last year's lecture, "old:false" means this year's
+- "display" = k강. title [duration분] (duration may be null → omit bracket)
+- Keep all fields; only change what the instruction says
+- Return valid JSON only`;
+
+async function aiFixLectures(){
+  if(!parsedLecturesBuffer){ setStatus('lc-ai-fix-status','먼저 파싱을 실행하세요.','err'); return; }
+  const fixInput = document.getElementById('lc-ai-fix-input').value.trim();
+  if(!fixInput){ setStatus('lc-ai-fix-status','수정 지시를 입력해주세요.','err'); return; }
+  setStatus('lc-ai-fix-status','AI 수정 중...','loading');
+  document.getElementById('lc-ai-fix-btn').disabled = true;
+  try{
+    const prompt = `현재 파싱 결과:\n${JSON.stringify(parsedLecturesBuffer)}\n\n수정 지시:\n${fixInput}`;
+    const result = await callGemini(LC_FIX_SYSTEM, prompt);
+    const clean = result.replace(/```json|```/g,'').trim();
+    parsedLecturesBuffer = JSON.parse(clean);
+    renderParsedSubjTabs();
+    document.getElementById('lc-ai-fix-input').value = '';
+    setStatus('lc-ai-fix-status','✓ 수정 완료. 결과를 확인 후 검수 완료하세요.','ok');
+  } catch(e){
+    setStatus('lc-ai-fix-status','⚠ '+e.message,'err');
+  } finally {
+    document.getElementById('lc-ai-fix-btn').disabled = false;
+  }
+}
 
 function applyLectures(){
   if(!parsedLecturesBuffer||!DATA){ setStatus('lc-apply-status','먼저 파싱을 실행하세요.','err'); return; }
