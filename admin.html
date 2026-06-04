@@ -536,9 +536,12 @@ function dateToCalendarDate(dateStr){
   const year = (month>=6 && month<=12) ? 2026 : 2027;
   return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 }
+function calendarSyncId(term, date){
+  return `imgo-t${term}-${date}`;
+}
 function buildGoogleCalendarPayload(){
   if(!DATA) return null;
-  const events = [];
+  const eventsById = new Map();
   const schedule = DATA.schedule || {};
   [1,2,3,4].forEach(term => {
     (schedule[term]||[]).forEach((week, wi) => {
@@ -552,8 +555,9 @@ function buildGoogleCalendarPayload(){
           item.time ? `Time record: ${item.time}` : '',
           item.note ? `Note: ${item.note}` : ''
         ].filter(Boolean).join('\n');
-        events.push({
-          id: `imgo-t${term}-${date}-${wi}-${ii}`,
+        const id = calendarSyncId(term, date);
+        eventsById.set(id, {
+          id,
           term,
           date,
           title,
@@ -568,7 +572,9 @@ function buildGoogleCalendarPayload(){
     timezone: 'Asia/Seoul',
     dday: DATA.dday || '',
     termPeriods: DATA.termPeriods || {},
-    events
+    syncStart: '2026-01-01',
+    syncEnd: '2028-01-01',
+    events: [...eventsById.values()]
   };
 }
 async function syncGoogleCalendar(){
