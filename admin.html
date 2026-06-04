@@ -68,7 +68,7 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 .apply-btn:hover{background:rgba(94,207,176,.2)}
 .apply-btn:disabled{opacity:.4;cursor:not-allowed}
 .divider{height:1px;background:var(--border);margin:18px 0}
-.old-badge{font-size:10px;background:rgba(255,179,71,.12);color:var(--amber);border:1px solid rgba(255,179,71,.25);padding:1px 6px;border-radius:10px}
+.old-badge{font-size:10px;background:rgba(184,165,255,.15);color:var(--purple);border:1px solid rgba(184,165,255,.3);padding:1px 6px;border-radius:10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 .drag-handle{cursor:grab;color:var(--text3);font-size:18px;padding:0 4px;user-select:none;line-height:1;flex-shrink:0}
@@ -138,6 +138,53 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div class="cfg-status" id="term-period-status" style="margin-top:8px"></div>
     </div>
     <div class="ai-box">
+      <div class="ai-title">📋 스터디 현황 편집</div>
+      <div class="ai-desc">
+        날짜·제목 형식으로 입력하면 <b>2026년 요일을 자동 계산</b>해 1텀 일정에 추가합니다.<br>
+        형식: <code style="font-family:monospace;background:var(--bg4);padding:1px 5px;border-radius:3px;font-size:11px">m/d 제목</code> 한 줄씩 입력 (요일은 자동 계산, 중복 날짜는 최신으로 업데이트)
+      </div>
+      <div class="example-box">
+        <span>예시</span><br>
+        6/14 도덕 9~15<br>
+        6/15 미술 1~14<br>
+        6/17 미술 15~25<br>
+        6/21 체육 19~28 (+ 교육과정 ½)
+      </div>
+      <div class="fgroup" style="margin-bottom:10px">
+        <label>추가할 텀 선택</label>
+        <select class="fi" id="sc-study-term" style="max-width:140px">
+          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option><option value="4">4텀</option>
+        </select>
+      </div>
+      <div class="fgroup" style="margin-bottom:12px">
+        <label>일정 입력 (줄바꿈으로 구분)</label>
+        <textarea class="fi" id="sc-study-input" placeholder="6/14 도덕 9~15&#10;6/15 미술 1~14&#10;6/17 미술 15~25" style="min-height:120px"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="ai-btn" style="background:var(--teal);border-color:var(--teal);color:#0d0d0d" id="sc-study-parse-btn" onclick="parseStudyScheduleRule()">⚡ 파싱</button>
+        <div class="ai-status" id="sc-study-status"></div>
+      </div>
+      <!-- 규칙 파싱 결과 -->
+      <div id="sc-study-preview-wrap" style="display:none">
+        <div class="divider"></div>
+        <div class="preview-title">파싱 결과 미리보기</div>
+        <div class="preview-box" id="sc-study-preview" style="max-height:200px"></div>
+        <!-- AI 수정 -->
+        <div class="divider"></div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;letter-spacing:.06em">🤖 Gemini AI로 파싱 결과 수정</div>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+          <textarea class="fi" id="sc-study-ai-input" placeholder="수정 지시 입력 (예: 6/21 제목을 '체육 19~28'로만 바꿔줘, 6/28에 통교 추가)" style="min-height:56px;flex:1;min-width:200px;font-size:12px;resize:vertical"></textarea>
+          <button class="ai-btn" id="sc-study-ai-btn" onclick="aiFixStudySchedule()" style="padding:9px 18px;font-size:12px;align-self:flex-end">✨ AI 수정</button>
+        </div>
+        <div class="ai-status" id="sc-study-ai-status"></div>
+        <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="apply-btn" id="sc-study-apply-btn" onclick="applyStudySchedule()">✓ 일정에 추가 (해당 텀)</button>
+          <div class="ai-status" id="sc-study-apply-status"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ai-box">
       <div class="ai-title">🤖 AI 일정 파싱</div>
       <div class="ai-desc">
         카톡 공지를 <b>그대로 붙여넣기</b>하거나, 변경사항을 자연어로 입력하세요.<br>
@@ -179,7 +226,8 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
     </div>
 
     <div class="ai-box">
-      <div class="ai-title">📋 현재 일정 보기 / 삭제</div>
+      <div class="ai-title">📋 현재 일정 목록</div>
+      <div class="ai-desc">제목을 <b>클릭</b>하면 내용 편집, × 로 삭제. 날짜 기준 자동 정렬, 중복 날짜는 최신으로 유지됩니다.</div>
       <div class="fgroup" style="margin-bottom:12px">
         <label>텀 선택</label>
         <select class="fi" id="sc-view-term" style="max-width:140px" onchange="renderCurrentSchedule()">
@@ -521,27 +569,249 @@ function applySchedule(){
   document.getElementById('sc-preview-wrap').style.display='none';
   setTimeout(()=>setStatus('sc-apply-status','',''), 4000);
 }
+
+// ── 스터디 현황 편집: 규칙 기반 파서 ──
+const DAY_NAMES = ['일','월','화','수','목','금','토'];
+
+function calcDayOfWeek(month, date){
+  // 2026년 기준 요일 계산
+  const d = new Date(2026, month - 1, date);
+  return DAY_NAMES[d.getDay()];
+}
+
+// m/d → 날짜 정렬용 숫자 (e.g. "6/14" → 614)
+function dateToSortKey(dateStr){
+  const m = dateStr.match(/^(\d+)\/(\d+)$/);
+  if(!m) return 9999;
+  return parseInt(m[1]) * 100 + parseInt(m[2]);
+}
+
+// 텀 전체를 평탄화한 아이템 배열로 (편집용)
+function flattenScheduleTerm(term){
+  const weeks = (DATA.schedule[term]||[]);
+  const items = [];
+  weeks.forEach(w => (w.items||[]).forEach(item => items.push({...item})));
+  return items;
+}
+
+// 아이템 배열 → 날짜 정렬 + 중복(같은 date) 제거(최신 우선 → 마지막 항목 유지)
+function deduplicateAndSort(items){
+  // 중복: 같은 date면 나중 것(배열 뒤쪽)이 최신
+  const map = new Map();
+  items.forEach(item => map.set(item.date, item));
+  const deduped = [...map.values()];
+  deduped.sort((a, b) => dateToSortKey(a.date) - dateToSortKey(b.date));
+  return deduped;
+}
+
+// 아이템 배열 → 주차 그룹으로 재구성 (7일 단위)
+function groupItemsIntoWeeks(items){
+  if(!items.length) return [];
+  // 첫 번째 아이템의 월/일로 기준주 계산
+  const getMonDay = (dateStr) => {
+    const m = dateStr.match(/^(\d+)\/(\d+)$/);
+    return m ? {mo: parseInt(m[1]), da: parseInt(m[2])} : {mo:0,da:0};
+  };
+  // 단순히 7일 묶음으로 그룹화
+  const groups = [];
+  let weekItems = [];
+  let weekStartKey = null;
+  for(const item of items){
+    const key = dateToSortKey(item.date);
+    if(weekStartKey === null){
+      weekStartKey = key;
+    } else if(key - weekStartKey >= 7){
+      if(weekItems.length) groups.push(weekItems);
+      weekItems = [];
+      weekStartKey = key;
+    }
+    weekItems.push(item);
+  }
+  if(weekItems.length) groups.push(weekItems);
+
+  return groups.map((grp, i) => ({
+    week: `${i+1}주차`,
+    items: grp
+  }));
+}
+
+// 텀 데이터에서 기존 week 레이블을 최대한 보존하면서 아이템 재배치
+function rebuildTermWithItems(term, newItems){
+  const sorted = deduplicateAndSort(newItems);
+  if(!sorted.length){ DATA.schedule[term] = []; return; }
+
+  // 기존 주차 구조에서 date→week 매핑 추출
+  const dateWeekMap = new Map();
+  (DATA.schedule[term]||[]).forEach(w => (w.items||[]).forEach(it => dateWeekMap.set(it.date, w.week)));
+
+  // 새 아이템에 week 레이블 배정
+  const weekGroups = new Map();
+  sorted.forEach(item => {
+    const wk = dateWeekMap.get(item.date) || null;
+    const key = wk || `__auto_${dateToSortKey(item.date)}`;
+    if(!weekGroups.has(key)) weekGroups.set(key, {week: wk || null, items:[]});
+    weekGroups.get(key).items.push(item);
+  });
+
+  // week 레이블 없는 것들은 인접 그룹으로 합치거나 자동 주차로
+  const result = [];
+  let autoWeekNum = 1;
+  for(const [key, grp] of weekGroups){
+    result.push({
+      week: grp.week || `${autoWeekNum++}주차`,
+      items: grp.items
+    });
+  }
+  DATA.schedule[term] = result;
+}
+
+let parsedStudyBuffer = null; // [{date, day, subject}]
+
+function parseStudyScheduleRule(){
+  const input = document.getElementById('sc-study-input').value.trim();
+  if(!input){ setStatus('sc-study-status','내용을 입력해주세요.','err'); return; }
+
+  const lines = input.split('\n').map(l => l.trim()).filter(l => l);
+  const items = [];
+  const errors = [];
+
+  for(const line of lines){
+    // 패턴: m/d 제목 (요일이 있는 경우도 처리: m/d 요일 제목)
+    const m = line.match(/^(\d{1,2})\/(\d{1,2})\s+(?:([월화수목금토일])\s+)?(.+)$/);
+    if(!m){ errors.push(`파싱 실패: "${line}"`); continue; }
+    const month = parseInt(m[1]), day = parseInt(m[2]);
+    const calcDay = calcDayOfWeek(month, day);
+    const subject = m[4].trim();
+    items.push({ date: `${month}/${day}`, day: calcDay, subject });
+  }
+
+  if(!items.length){ setStatus('sc-study-status',`파싱된 항목이 없습니다. ${errors.join(' / ')}`.trim(),'err'); return; }
+
+  parsedStudyBuffer = items;
+  const previewLines = items.map(it => `${it.date.padEnd(5)}(${it.day})  ${it.subject}`);
+  if(errors.length) previewLines.push('', '⚠ 파싱 실패:', ...errors);
+  document.getElementById('sc-study-preview').textContent = previewLines.join('\n');
+  document.getElementById('sc-study-preview-wrap').style.display = 'block';
+  setStatus('sc-study-status',`✓ ${items.length}개 파싱 완료${errors.length?` (⚠ ${errors.length}개 실패)`:''}`, errors.length?'loading':'ok');
+}
+
+async function aiFixStudySchedule(){
+  if(!parsedStudyBuffer||!parsedStudyBuffer.length){ setStatus('sc-study-ai-status','먼저 파싱을 실행하세요.','err'); return; }
+  const fixInput = document.getElementById('sc-study-ai-input').value.trim();
+  if(!fixInput){ setStatus('sc-study-ai-status','수정 지시를 입력해주세요.','err'); return; }
+  setStatus('sc-study-ai-status','AI 수정 중...','loading');
+  document.getElementById('sc-study-ai-btn').disabled = true;
+  try{
+    const sys = `You are a schedule editor. The user gives a list of schedule items (JSON array with date, day, subject) and a Korean instruction. Apply the instruction and return ONLY the modified JSON array — no markdown, no explanation.\nRules:\n- date: "m/d" format\n- day: single Korean weekday char (월화수목금토일)\n- subject: string\nReturn valid JSON array only.`;
+    const prompt = `현재 파싱 결과:\n${JSON.stringify(parsedStudyBuffer, null, 2)}\n\n수정 지시:\n${fixInput}`;
+    const result = await callGemini(sys, prompt);
+    const clean = result.replace(/```json|```/g,'').trim();
+    parsedStudyBuffer = JSON.parse(clean);
+    const previewLines = parsedStudyBuffer.map(it => `${String(it.date).padEnd(5)}(${it.day})  ${it.subject}`);
+    document.getElementById('sc-study-preview').textContent = previewLines.join('\n');
+    document.getElementById('sc-study-ai-input').value = '';
+    setStatus('sc-study-ai-status','✓ 수정 완료. 내용 확인 후 적용하세요.','ok');
+  } catch(e){
+    setStatus('sc-study-ai-status','⚠ '+e.message,'err');
+  } finally {
+    document.getElementById('sc-study-ai-btn').disabled = false;
+  }
+}
+
+function applyStudySchedule(){
+  if(!parsedStudyBuffer||!DATA){ setStatus('sc-study-apply-status','먼저 파싱을 실행하세요.','err'); return; }
+  const term = document.getElementById('sc-study-term').value;
+
+  // 기존 아이템 모두 수집
+  const existing = flattenScheduleTerm(term);
+  // 새 항목 병합 (중복 날짜는 새것으로 덮어씀)
+  const merged = [...existing, ...parsedStudyBuffer];
+  rebuildTermWithItems(term, merged);
+  renderCurrentSchedule();
+  updateRawEditor();
+  // view-term을 추가한 텀으로 동기화
+  document.getElementById('sc-view-term').value = term;
+  renderCurrentSchedule();
+  setStatus('sc-study-apply-status','✓ 적용됨. "현재 일정 목록"에서 확인 후 GitHub 저장하세요.','ok');
+  document.getElementById('sc-study-preview-wrap').style.display='none';
+  parsedStudyBuffer = null;
+  setTimeout(()=>setStatus('sc-study-apply-status','',''), 5000);
+}
+
+// ── 현재 일정 목록 렌더링 (클릭 편집 가능) ──
 function renderCurrentSchedule(){
   if(!DATA) return;
   const term = document.getElementById('sc-view-term').value;
   const weeks = DATA.schedule[term]||[];
-  let html='';
-  weeks.forEach((w,wi)=>{
-    html+=`<div style="font-size:11px;color:var(--text3);margin:8px 0 5px;font-family:'JetBrains Mono',monospace">${w.week}</div>`;
-    (w.items||[]).forEach((item,ii)=>{
-      html+=`<div class="cur-item">
-        <div class="cur-item-text">${item.date}(${item.day}) · ${item.subject}${item.time?` <span style="color:var(--teal);font-family:monospace">${item.time}</span>`:''}${item.note?` <span style="color:var(--amber)">${item.note}</span>`:''}</div>
-        <button class="del-btn" onclick="delScheduleItem(${term},${wi},${ii})">×</button>
-      </div>`;
+  const listEl = document.getElementById('sc-current-list');
+
+  // 전체 아이템 플랫 목록으로 렌더 (날짜 정렬)
+  const allItems = [];
+  weeks.forEach((w, wi) => (w.items||[]).forEach((item, ii) => allItems.push({item, wi, ii})));
+  // 날짜 정렬
+  allItems.sort((a, b) => dateToSortKey(a.item.date) - dateToSortKey(b.item.date));
+
+  if(!allItems.length){
+    listEl.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px">일정이 없습니다.</div>';
+    return;
+  }
+  listEl.innerHTML = '';
+
+  allItems.forEach(({item, wi, ii}) => {
+    const div = document.createElement('div');
+    div.className = 'cur-item';
+    div.innerHTML =
+      '<div class="cur-item-text">'
+      +`<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);min-width:72px;display:inline-block">${item.date}(${item.day})</span> `
+      +`<span class="sc-title-text" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px" title="클릭하여 내용 편집">${escHtml(item.subject)}</span>`
+      +(item.time?` <span style="color:var(--teal);font-family:monospace;font-size:11px">${item.time}</span>`:'')
+      +(item.note?` <span style="color:var(--amber);font-size:11px">${escHtml(item.note)}</span>`:'')
+      +`<input class="edit-title-input fi" style="display:none;font-size:12px;padding:2px 6px;margin-left:4px" value="${item.subject.replace(/"/g,'&quot;')}">`
+      +'</div>'
+      +`<button class="del-btn" title="삭제">×</button>`;
+
+    // 클릭 → 편집
+    div.querySelector('.sc-title-text').addEventListener('click', function(){
+      div.classList.add('editing');
+      const inp = div.querySelector('.edit-title-input');
+      inp.style.display = 'inline-block';
+      div.querySelector('.sc-title-text').style.display = 'none';
+      inp.focus(); inp.select();
     });
+    div.querySelector('.edit-title-input').addEventListener('keydown', function(e){
+      if(e.key==='Enter') this.blur();
+      if(e.key==='Escape'){
+        div.classList.remove('editing');
+        div.querySelector('.edit-title-input').style.display='none';
+        div.querySelector('.sc-title-text').style.display='';
+      }
+    });
+    div.querySelector('.edit-title-input').addEventListener('blur', function(){
+      const newVal = this.value.trim();
+      if(newVal && newVal !== item.subject){
+        DATA.schedule[term][wi].items[ii].subject = newVal;
+        updateRawEditor();
+      }
+      div.classList.remove('editing');
+      renderCurrentSchedule();
+    });
+
+    div.querySelector('.del-btn').addEventListener('click', function(){
+      DATA.schedule[term][wi].items.splice(ii,1);
+      if(!DATA.schedule[term][wi].items.length) DATA.schedule[term].splice(wi,1);
+      renderCurrentSchedule(); updateRawEditor();
+    });
+
+    listEl.appendChild(div);
   });
-  document.getElementById('sc-current-list').innerHTML = html||'<div style="color:var(--text3);font-size:12px;padding:8px">일정이 없습니다.</div>';
 }
+
 function delScheduleItem(term, wi, ii){
   DATA.schedule[term][wi].items.splice(ii,1);
   if(!DATA.schedule[term][wi].items.length) DATA.schedule[term].splice(wi,1);
   renderCurrentSchedule(); updateRawEditor();
 }
+
 
 // ── LECTURES (규칙 기반 파서 — list.py 이식) ──────────────────────────────
 
@@ -740,7 +1010,7 @@ function renderParsedSubjTabs(){
     }
     // 작년 강의
     if(data.old.length){
-      html += `<div style="font-size:11px;color:var(--amber);letter-spacing:.06em;margin-bottom:4px">● 작년 강의 (${data.old.length}개)</div>`;
+      html += `<div style="font-size:11px;color:var(--purple);letter-spacing:.06em;margin-bottom:4px">● 작년 강의 (${data.old.length}개)</div>`;
       html += `<div class="preview-box">${data.old.map(i=>escHtml(i.display)).join('\n')}</div>`;
     }
     if(!data.current.length && !data.old.length) html='<div style="color:var(--text3);font-size:12px;padding:8px">항목 없음</div>';
@@ -848,7 +1118,7 @@ function renderCurrentLectures(){
     div.innerHTML =
       '<span class="drag-handle" title="드래그로 순서 변경">⠿</span>'
       +'<div class="cur-item-text">'
-        +'<span style="font-family:monospace;font-size:11px;color:var(--text3);min-width:50px;display:inline-block">'+(l.num||'')+'</span> '
+        +'<span style="font-family:monospace;font-size:11px;color:var(--text2);min-width:50px;display:inline-block">'+(l.num||'')+'</span> '
         +'<span class="lc-title-text" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px" title="클릭하여 제목 편집">'+(l.title||'')+'</span>'
         +'<input class="edit-title-input fi" style="display:none;font-size:12px;padding:2px 6px;margin-left:4px" value="'+(l.title||'').replace(/"/g,'&quot;')+'">'
         +(isOld?' <span class="old-badge">작년</span>':'')
@@ -914,7 +1184,7 @@ function renderCurrentLectures(){
   // 작년 강의 섹션
   if(oldLecs.length){
     const hdr = document.createElement('div');
-    hdr.style.cssText='font-size:11px;color:var(--amber);letter-spacing:.06em;margin:12px 0 5px;padding:0 2px;border-top:1px solid var(--border);padding-top:10px';
+    hdr.style.cssText='font-size:11px;color:var(--purple);letter-spacing:.06em;margin:12px 0 5px;padding:0 2px;border-top:1px solid var(--border);padding-top:10px';
     hdr.textContent=`● 작년 강의 (${oldLecs.length}개)`;
     listEl.appendChild(hdr);
     oldLecs.forEach((l,i)=> listEl.appendChild(makeDragItem(l,i,oldLecs)));
