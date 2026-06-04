@@ -172,6 +172,21 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 
 /* scrollbar */
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ── EXAMS ── */
+.exam-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;letter-spacing:.03em;white-space:nowrap}
+.badge-complete{background:rgba(94,207,176,.15);color:var(--teal);border:1px solid rgba(94,207,176,.3)}
+.badge-plan{background:rgba(200,240,96,.12);color:var(--accent);border:1px solid rgba(200,240,96,.25)}
+.badge-unknown{background:rgba(136,136,136,.12);color:var(--text3);border:1px solid rgba(136,136,136,.2)}
+.exam-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;min-width:28px;text-align:right;padding-top:2px}
+.exam-cnt.cnt-complete{color:var(--teal)}
+.exam-cnt.cnt-plan{color:var(--accent)}
+.exam-cnt.cnt-unknown{color:var(--text3)}
+.exam-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:5px;transition:.12s}
+.exam-row:hover{border-color:var(--border2)}
+.exam-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);min-width:28px;text-align:right;padding-top:2px}
+.exam-name{font-size:13px;color:var(--text);flex:1;line-height:1.5}
+.exam-essay{font-size:10px;color:var(--purple);background:rgba(184,165,255,.15);border:1px solid rgba(184,165,255,.3);padding:1px 6px;border-radius:8px;white-space:nowrap;margin-left:4px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -204,6 +219,7 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 <nav class="nav">
   <button class="ntab on" onclick="goPage('schedule',this)">스터디 현황</button>
   <button class="ntab" onclick="goPage('lectures',this)">강의 목록</button>
+  <button class="ntab" onclick="goPage('exams',this)">모의고사</button>
   <button class="ntab" onclick="goPage('notice',this)">공지사항</button>
 </nav>
 
@@ -325,6 +341,21 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
   <div class="lec-list" id="lectureList"></div>
 </div>
 
+
+<!-- ======= PAGE: EXAMS ======= -->
+<div class="page main" id="page-exams">
+  <div class="sec-title" id="exam-updated-label" style="margin-bottom:18px"></div>
+
+  <!-- 현황 범례 -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+    <span style="font-size:11px;color:var(--text3)">현황:</span>
+    <span class="exam-badge badge-complete">완료</span>
+    <span class="exam-badge badge-plan">예정</span>
+    <span class="exam-badge badge-unknown">미정</span>
+  </div>
+
+  <div id="examList"></div>
+</div>
 <!-- ======= PAGE: NOTICE ======= -->
 <div class="page main" id="page-notice">
 
@@ -334,7 +365,6 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
       <button class="eptab on" onclick="epTab('ep-nt-sched',this)">스터디 시간표</button>
       <button class="eptab" onclick="epTab('ep-nt-fine',this)">벌금</button>
       <button class="eptab" onclick="epTab('ep-nt-links',this)">링크</button>
-      <button class="eptab" onclick="epTab('ep-nt-unable',this)">못 푸는 것</button>
     </div>
 
     <div class="ep-section on" id="ep-nt-sched">
@@ -359,20 +389,12 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
       <div class="fgroup"><label>URL</label><input class="fi" id="lk-url" placeholder="https://..."></div>
       <button class="btn btn-amber" onclick="addLink()">+ 추가</button>
     </div>
-    <div class="ep-section" id="ep-nt-unable">
-      <div id="nt-unable-list" class="ep-list" style="margin-bottom:10px"></div>
-      <div class="fi-row" style="margin-bottom:8px">
-        <input class="fi" id="un-cnt" placeholder="개수 (예: 3)" style="max-width:90px">
-        <input class="fi" id="un-name" placeholder="백구 전년도 1~3회">
-      </div>
-      <button class="btn btn-amber" onclick="addUnable()">+ 추가</button>
-    </div>
   </div>
 
   <div class="nc"><div class="nc-stitle">스터디 시간표</div><div id="nt-sched-view"></div></div>
   <div class="nc"><div class="nc-stitle">스터디 벌금</div><div id="nt-fine-view"></div></div>
   <div class="nc"><div class="nc-stitle">자료 링크</div><div id="nt-link-view"></div></div>
-  
+
 </div>
 
 <script>
@@ -791,6 +813,9 @@ function saveSettings(){
 }
 
 // ==================== LECTURES ====================
+const SUB_DISPLAY_IDX = {'통교':'통합교과','총창':'총론·창체'};
+function subjDisplayName(s){ return SUB_DISPLAY_IDX[s]||s; }
+
 function buildSubjectTabs(){
   const subjects=Object.keys(S.lectures||{});
   if(!subjects.length)return;
@@ -798,9 +823,14 @@ function buildSubjectTabs(){
   const tabsEl=document.getElementById('subjectTabs');
   const selEl=document.getElementById('la-subj');
   const selEl2=document.getElementById('ld-subj');
-  tabsEl.innerHTML=subjects.map(s=>`<button class="stab${s===currentSubject?' on':''}" onclick="showSubject('${s}',this)">${s}</button>`).join('');
-  if(selEl)selEl.innerHTML=subjects.map(s=>`<option value="${s}">${s}</option>`).join('');
-  if(selEl2)selEl2.innerHTML=subjects.map(s=>`<option value="${s}">${s}</option>`).join('');
+  tabsEl.innerHTML=subjects.map(s=>{
+    const lecs=S.lectures[s]||[];
+    const currentCount=lecs.filter(l=>!l.old).length;
+    const label=subjDisplayName(s)+(currentCount?` (${currentCount})`:'');
+    return `<button class="stab${s===currentSubject?' on':''}" onclick="showSubject('${s}',this)">${label}</button>`;
+  }).join('');
+  if(selEl)selEl.innerHTML=subjects.map(s=>`<option value="${s}">${subjDisplayName(s)}</option>`).join('');
+  if(selEl2)selEl2.innerHTML=subjects.map(s=>`<option value="${s}">${subjDisplayName(s)}</option>`).join('');
   renderLectures();
 }
 function showSubject(name,btn){
@@ -815,7 +845,9 @@ function calcLectureMins(lecs){
 function renderLectures(){
   const showOld=document.getElementById('showOld')?.checked!==false;
   const lecs=S.lectures[currentSubject]||[];
-  const visible=lecs.filter(l=>showOld||!l.old);
+  const currentLecs=lecs.filter(l=>!l.old);
+  const oldLecs=lecs.filter(l=>l.old);
+  const visible=showOld?lecs:[...currentLecs];
   const mins=calcLectureMins(visible);
   let header='';
   if(mins>0){
@@ -824,9 +856,18 @@ function renderLectures(){
     header='<div style="font-size:12px;color:var(--teal);margin-bottom:12px;font-family:\'JetBrains Mono\',monospace">⏱ 강의시간 합산: <b>'+ts+'</b> <span style="color:var(--text3);font-size:11px">('+mins+'분)</span></div>';
   }
   let html='';
-  visible.forEach(l=>{
-    html+='<div class="li'+(l.old?' old':'')+'"><span class="lnum">'+l.num+'</span><span class="ltitle">'+l.title+(l.old?'<span class="old-badge">작년</span>':'')+'</span></div>';
-  });
+  if(currentLecs.length){
+    html+='<div style="font-size:10px;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;padding:4px 2px 6px;grid-column:1/-1">● 올해 강의</div>';
+    currentLecs.forEach(l=>{
+      html+='<div class="li"><span class="lnum">'+l.num+'</span><span class="ltitle">'+l.title+'</span></div>';
+    });
+  }
+  if(showOld&&oldLecs.length){
+    html+='<div style="font-size:10px;color:var(--amber);letter-spacing:.08em;text-transform:uppercase;padding:12px 2px 6px;grid-column:1/-1;border-top:1px solid var(--border);margin-top:8px">● 작년 강의</div>';
+    oldLecs.forEach(l=>{
+      html+='<div class="li old"><span class="lnum">'+l.num+'</span><span class="ltitle">'+l.title+'<span class="old-badge">작년</span></span></div>';
+    });
+  }
   document.getElementById('lectureList').innerHTML=header+(html||'<div style="color:var(--text3);font-size:13px;padding:12px 0">강의가 없습니다.</div>');
 }
 function addLecture(){
@@ -896,11 +937,7 @@ function renderNoticeView(){
   let lh='';
   (S.notice.links||[]).forEach(l=>{lh+=`<a class="link-card" href="${l.url}" target="_blank"><div><div class="link-title">${l.title}</div><div class="link-url">${l.url.replace(/https?:\/\//,'').split('/')[0]}</div></div><div class="link-arr">↗</div></a>`;});
   document.getElementById('nt-link-view').innerHTML=lh;
-  // unable
-  const unable=S.notice.unable||[];
-  const total=unable.reduce((a,b)=>a+b.count,0);
-  document.getElementById('unable-count-label').textContent=`(${total}개)`;
-  document.getElementById('nt-unable-view').innerHTML=unable.map(u=>`<div class="ui-item"><span class="ucnt">${u.count}</span>${u.name}</div>`).join('');
+
 }
 function renderNoticeEditPanels(){
   // sched
@@ -909,8 +946,7 @@ function renderNoticeEditPanels(){
   document.getElementById('nt-fine-list').innerHTML=(S.notice.fines||[]).map((f,i)=>`<div class="ep-item"><div class="ep-item-text">${f.name} · ${f.amount.toLocaleString()}원</div><button class="ep-del" onclick="delNoticeItem('fines',${i})">×</button></div>`).join('');
   // links
   document.getElementById('nt-link-list').innerHTML=(S.notice.links||[]).map((l,i)=>`<div class="ep-item"><div class="ep-item-text">${l.title}</div><button class="ep-del" onclick="delNoticeItem('links',${i})">×</button></div>`).join('');
-  // unable
-  document.getElementById('nt-unable-list').innerHTML=(S.notice.unable||[]).map((u,i)=>`<div class="ep-item"><div class="ep-item-text">[${u.count}] ${u.name}</div><button class="ep-del" onclick="delNoticeItem('unable',${i})">×</button></div>`).join('');
+
 }
 function delNoticeItem(type,i){S.notice[type].splice(i,1);saveData();renderNoticeView();renderNoticeEditPanels();}
 function addSchedRow(){
@@ -937,15 +973,32 @@ function addLink(){
   S.notice.links.push({title,url});saveData();renderNoticeView();renderNoticeEditPanels();
   document.getElementById('lk-title').value='';document.getElementById('lk-url').value='';
 }
-function addUnable(){
-  const cnt=parseInt(document.getElementById('un-cnt').value)||0;
-  const name=document.getElementById('un-name').value.trim();
-  if(!name)return;
-  if(!S.notice.unable)S.notice.unable=[];
-  S.notice.unable.push({count:cnt,name});saveData();renderNoticeView();renderNoticeEditPanels();
-  document.getElementById('un-cnt').value='';document.getElementById('un-name').value='';
-}
 
+
+
+// ==================== EXAMS ====================
+const STATUS_CLASS = {'완료':'badge-complete','예정':'badge-plan','미정':'badge-unknown'};
+const COUNT_CLASS  = {'완료':'cnt-complete','예정':'cnt-plan','미정':'cnt-unknown'};
+
+function renderExams(){
+  const exams = S.exams||[];
+  const updated = S.examsUpdated||'';
+  const label = document.getElementById('exam-updated-label');
+  if(label) label.textContent = updated ? '모의고사 현황 ('+updated+')' : '모의고사 현황';
+
+  const listEl = document.getElementById('examList');
+  if(!listEl) return;
+  if(!exams.length){
+    listEl.innerHTML='<div style="color:var(--text3);font-size:13px;padding:12px 0">등록된 모의고사가 없습니다.</div>';
+    return;
+  }
+  listEl.innerHTML = exams.map(e=>{
+    const sc = STATUS_CLASS[e.status]||'badge-unknown';
+    const cc = COUNT_CLASS[e.status]||'cnt-unknown';
+    const essay = e.essay ? '<span class="exam-essay">논술有</span>' : '';
+    return `<div class="exam-row"><span class="exam-cnt ${cc}">[${e.count}]</span><span class="exam-badge ${sc}" style="align-self:center;flex-shrink:0">${e.status}</span><span class="exam-name">${e.name}${essay}</span></div>`;
+  }).join('');
+}
 // ==================== PAGE NAV ====================
 function goPage(name,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
@@ -953,6 +1006,7 @@ function goPage(name,btn){
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
   btn.classList.add('on');
   if(name==='lectures')buildSubjectTabs();
+  if(name==='exams')renderExams();
 }
 
 // ==================== THEME ====================
@@ -977,6 +1031,7 @@ function toggleTheme(){
   showTerm(1);
   renderNoticeView();
   buildSubjectTabs();
+  renderExams();
 })();
 </script>
 </body>
