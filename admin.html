@@ -75,6 +75,13 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 .drag-handle:active{cursor:grabbing}
 .cur-item.drag-over{border-color:var(--accent);background:var(--accent2)}
 .cur-item.dragging{opacity:.35}
+.cur-item.editing .edit-title-input{display:inline-block!important}
+.cur-item.editing .lc-title-text{display:none!important}
+.edit-title-input{display:none;width:100%;background:var(--bg4);border:1px solid var(--amber);border-radius:4px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;padding:2px 6px;outline:none}
+.old-toggle-btn{background:none;border:1px solid rgba(255,179,71,.3);border-radius:10px;font-size:10px;cursor:pointer;padding:1px 7px;color:var(--amber);transition:.15s;white-space:nowrap;flex-shrink:0}
+.old-toggle-btn:hover{background:rgba(255,179,71,.15)}
+.old-toggle-btn.is-current{border-color:rgba(94,207,176,.3);color:var(--teal)}
+.old-toggle-btn.is-current:hover{background:rgba(94,207,176,.1)}
 </style>
 </head>
 <body>
@@ -193,17 +200,19 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
     <div class="ai-box">
       <div class="ai-title">📋 강의 목록 파서</div>
       <div class="ai-desc">
-        강의 목록을 <b>그대로 붙여넣기</b>하세요. 여러 과목을 한꺼번에 넣어도 <b>[과목명]</b> 태그 기준으로 자동 분류됩니다.<br>
-        <b>작년 강의</b>는 텍스트에 <code style="font-family:monospace;background:var(--bg4);padding:1px 5px;border-radius:3px;font-size:11px">(작년)</code> 또는 <code style="font-family:monospace;background:var(--bg4);padding:1px 5px;border-radius:3px;font-size:11px">(구)</code> 표시. 올해 강의 다음에 자동 배치됩니다.
+        <b>올해 강의</b>: 자동기록 원문 붙여넣기 (날짜+시간+강번 형식)<br>
+        <b>작년 강의</b>: <code style="font-family:monospace;background:var(--bg4);padding:1px 5px;border-radius:3px;font-size:11px">[과목명]</code> 태그 한 줄 + <code style="font-family:monospace;background:var(--bg4);padding:1px 5px;border-radius:3px;font-size:11px">n강. 제목</code> 목록 형식 → 자동으로 작년 강의 처리<br>
+        두 형식을 <b>한 번에</b> 붙여넣어도 됩니다. 검수 완료 시 강번 순 재배열, 중복 시 최신값 우선.
       </div>
       <div class="example-box">
-        <span>예시 — 여러 과목 동시 입력</span><br>
+        <span>올해 강의 (자동기록 형식)</span><br>
         2026-3-10<br>
         (45분)&nbsp;&nbsp;1강&nbsp;&nbsp;2강: [국어] 기초 문식성 ①<br>
-        2026-3-11<br>
-        (50분)&nbsp;&nbsp;2강&nbsp;&nbsp;3강: [수학] 수와 연산 이해<br>
-        2026-3-12<br>
-        (38분)&nbsp;&nbsp;1강&nbsp;&nbsp;1강: [과학] OT ~ 개관<br>
+        <br>
+        <span>작년 강의 ([과목명] 태그 + n강. 제목 형식 → 작년 강의로 자동 처리)</span><br>
+        [과학]<br>
+        50강. 지구와 우주 (2) 땅의 변화(탐구)<br>
+        51강. 지구와 우주 (3) 밤하늘 관찰(개념1)<br>
       </div>
       <div class="fgroup" style="margin-bottom:12px">
         <label>강의 목록 텍스트 (메타 정보 포함 원문 붙여넣기)</label>
@@ -222,17 +231,9 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
         <div id="lc-subj-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
         <!-- 탭별 콘텐츠 -->
         <div id="lc-subj-panels"></div>
-        <!-- AI 수정 보조 -->
-        <div class="divider"></div>
-        <div style="font-size:11px;color:var(--text3);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase">🤖 AI로 파싱 결과 수정</div>
-        <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">
-          <textarea class="fi" id="lc-ai-fix-input" placeholder="수정 지시 입력 (예: 3강 제목을 '개관 및 OT'로 바꿔줘)" style="min-height:60px;flex:1;min-width:200px;font-size:12px"></textarea>
-          <button class="ai-btn" id="lc-ai-fix-btn" onclick="aiFixLectures()" style="align-self:flex-end;padding:8px 16px;font-size:12px">✨ AI 수정</button>
-        </div>
-        <div class="ai-status" id="lc-ai-fix-status" style="margin-top:6px"></div>
         <!-- 최종 반영 -->
         <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <button class="apply-btn" id="lc-apply-btn" onclick="applyLectures()">✓ 검수 완료 — 최종 반영</button>
+          <button class="apply-btn" id="lc-apply-btn" onclick="applyLectures()">✓ 검수 완료 — 반영</button>
           <div class="ai-status" id="lc-apply-status"></div>
         </div>
       </div>
@@ -241,7 +242,7 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
     <!-- 현재 강의 목록 -->
     <div class="ai-box">
       <div class="ai-title">📋 현재 강의 목록</div>
-      <div class="ai-desc">드래그(⠿)로 순서 변경, × 로 삭제. 올해 강의 → 작년 강의 순으로 표시됩니다.</div>
+      <div class="ai-desc">드래그(⠿)로 순서 변경, 제목 클릭으로 편집, ↕로 올해/작년 전환, × 로 삭제.</div>
       <div class="fgroup" style="margin-bottom:12px">
         <label>과목 선택</label>
         <select class="fi" id="lc-view-subj" style="max-width:200px" onchange="renderCurrentLectures()"></select>
@@ -580,6 +581,26 @@ const DATE_DUR_RE = /\d{4}-\d{1,2}-\d{1,2}[ \t]*\r?\n?[ \t]*\((\d+)분\)/;
 function parseLecturesFromText(rawText){
   const text = rawText.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
 
+  // ── 형식C (작년 강의): [과목명] 태그 + n강. 제목 ──
+  // 예: [과학]\n50강. 지구와 우주...\n51강. ...
+  const oldResults = [];
+  const PAT_C_SECTION = /^\[([^\]]+)\]\s*\n((?:\d+강\.[^\n]*\n?)+)/gm;
+  for(const sec of text.matchAll(PAT_C_SECTION)){
+    const rawSub = sec[1].trim();
+    const sub = FILE_TO_INT_MAP[rawSub] || rawSub;
+    const lines = sec[2].split('\n').filter(l=>l.trim());
+    for(const line of lines){
+      const lm = line.match(/^(\d+)강\.\s*(.+)/);
+      if(!lm) continue;
+      const k = parseInt(lm[1]);
+      let title = applyNaming(lm[2].trim());
+      // 63강처럼 쉼표로 두 강이 묶인 경우 첫 번째 내용만 취함
+      // (사용자가 분리해서 입력해야 하나, 일단 그대로 보존)
+      const display = `${k}강. ${title}`;
+      oldResults.push({n: k, k, subject: sub, title, duration: null, display, old: true});
+    }
+  }
+
   // ── 형식A: 날짜\n(n분)\t n강  k강: [과목] 제목 ──
   const PAT_A_RE = /\d{4}-\d{1,2}-\d{1,2}[ \t]*\n[ \t]*\((?<dur>\d+)분\)[ \t]*(?<n>\d+)\s*강\s+(?<k>\d+)\s*강\s*:\s*\[(?<sub>[^\]]+)\][ \t]*(?<title>[^\n]*)/gm;
   const foundA = {};
@@ -615,7 +636,6 @@ function parseLecturesFromText(rawText){
       if(n===k && sub==='과학') sub = '과학 개념';
     }
 
-    // "작년"/"구" 마킹 감지
     const isOld = /\(작년\)|\(구\)|작년/.test(title);
     if(isOld) title = title.replace(/\s*\(?작년\)?|\s*\(?구\)?/g,'').trim();
 
@@ -624,7 +644,11 @@ function parseLecturesFromText(rawText){
 
     results[key] = {n, k, subject: sub, title, duration, display, old: isOld};
   }
-  return Object.values(results).sort((a,b)=> a.n!==b.n ? a.n-b.n : a.k-b.k);
+
+  const currentItems = Object.values(results).sort((a,b)=> a.n!==b.n ? a.n-b.n : a.k-b.k);
+
+  // 형식C 결과와 합산 (과목별로)
+  return [...currentItems, ...oldResults];
 }
 
 // 파싱 결과를 과목별로 묶기
@@ -719,63 +743,35 @@ function renderParsedSubjTabs(){
 
 function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// AI 수정 보조
-const LC_FIX_SYSTEM=`당신은 강의 목록 수정 전문가입니다.
-사용자가 현재 파싱된 강의 목록 JSON과 수정 지시를 주면, 수정된 전체 JSON을 반환하세요.
-
-형식:
-{ "과목명": { "current": [{"n":1,"k":2,"subject":"국어","title":"제목","duration":45,"display":"2강. 제목 [45분]","old":false},...], "old": [...] }, ... }
-
-반드시 JSON만 출력하세요. 마크다운 없이 순수 JSON.`;
-
-async function aiFixLectures(){
-  if(!parsedLecturesBuffer){ setStatus('lc-ai-fix-status','먼저 파싱을 실행하세요.','err'); return; }
-  const fixInput = document.getElementById('lc-ai-fix-input').value.trim();
-  if(!fixInput){ setStatus('lc-ai-fix-status','수정 지시를 입력해주세요.','err'); return; }
-  setStatus('lc-ai-fix-status','AI 수정 중...','loading');
-  document.getElementById('lc-ai-fix-btn').disabled=true;
-  try{
-    const currentJson = JSON.stringify(parsedLecturesBuffer, null, 2);
-    const prompt = `현재 파싱 결과:\n${currentJson}\n\n수정 지시:\n${fixInput}`;
-    let result = await callGemini(LC_FIX_SYSTEM, prompt);
-    const clean = result.replace(/```json|```/g,'').trim();
-    parsedLecturesBuffer = JSON.parse(clean);
-    renderParsedSubjTabs();
-    setStatus('lc-ai-fix-status','✓ AI 수정 완료. 결과를 확인하세요.','ok');
-    document.getElementById('lc-ai-fix-input').value='';
-  } catch(e){
-    setStatus('lc-ai-fix-status','⚠ '+e.message,'err');
-  } finally { document.getElementById('lc-ai-fix-btn').disabled=false; }
-}
+// AI 수정 기능 제거됨
 
 function applyLectures(){
   if(!parsedLecturesBuffer||!DATA){ setStatus('lc-apply-status','먼저 파싱을 실행하세요.','err'); return; }
 
   for(const [subj, data] of Object.entries(parsedLecturesBuffer)){
     if(!DATA.lectures[subj]) DATA.lectures[subj] = [];
-    // 기존 올해 강의 k번 목록
-    const existingCurrentKs = new Set(
-      DATA.lectures[subj].filter(l=>!l.old).map(l=>l.k||parseInt((l.num||'').replace('강','').split('~')[0]))
-    );
-    const existingOldKs = new Set(
-      DATA.lectures[subj].filter(l=>l.old).map(l=>l.k||parseInt((l.num||'').replace('강','').split('~')[0]))
-    );
 
-    // 새 올해 강의 추가 (중복 k 제외)
-    const newCurrent = data.current.filter(i=> !existingCurrentKs.has(i.k)).map(i=>({
-      num: `${i.k}강`, title: i.display, old: false, k: i.k
-    }));
-    // 새 작년 강의 추가 (중복 k 제외)
-    const newOld = data.old.filter(i=> !existingOldKs.has(i.k)).map(i=>({
-      num: `${i.k}강`, title: i.display, old: true, k: i.k
-    }));
+    // 기존을 k 기준 맵으로 분리 (중복 시 최신값 덮어쓰기 위해)
+    const curMap = new Map();
+    const oldMap = new Map();
+    for(const l of DATA.lectures[subj]){
+      const k = l.k || parseInt((l.num||'').replace('강','').split('~')[0]) || 0;
+      if(l.old) oldMap.set(k, l);
+      else curMap.set(k, l);
+    }
 
-    // 올해 먼저, 그 다음 작년 — k 순 정렬
-    const currentAll = [...DATA.lectures[subj].filter(l=>!l.old), ...newCurrent]
-      .sort((a,b)=>(a.k||0)-(b.k||0));
-    const oldAll = [...DATA.lectures[subj].filter(l=>l.old), ...newOld]
-      .sort((a,b)=>(a.k||0)-(b.k||0));
+    // 새 올해 강의 → curMap 덮어쓰기 (최신값 우선)
+    for(const i of data.current){
+      curMap.set(i.k, {num:`${i.k}강`, title: i.display, old: false, k: i.k});
+    }
+    // 새 작년 강의 → oldMap 덮어쓰기 (최신값 우선)
+    for(const i of data.old){
+      oldMap.set(i.k, {num:`${i.k}강`, title: i.display, old: true, k: i.k});
+    }
 
+    // k 순 정렬 후 합치기
+    const currentAll = [...curMap.values()].sort((a,b)=>(a.k||0)-(b.k||0));
+    const oldAll     = [...oldMap.values()].sort((a,b)=>(a.k||0)-(b.k||0));
     DATA.lectures[subj] = [...currentAll, ...oldAll];
   }
 
@@ -801,14 +797,61 @@ function renderCurrentLectures(){
     div.draggable = true;
     div.dataset.idx = i;
     div.dataset.subj = subj;
-    // 실제 인덱스 (전체 배열 기준)
     div.dataset.realIdx = lecs.indexOf(l);
-    div.innerHTML = '<span class="drag-handle" title="드래그로 순서 변경">⠿</span>'
+
+    const realIdx = lecs.indexOf(l);
+    const isOld = !!l.old;
+    const toggleLabel = isOld ? '↕ 올해로' : '↕ 작년으로';
+    const toggleClass = isOld ? 'old-toggle-btn' : 'old-toggle-btn is-current';
+
+    div.innerHTML =
+      '<span class="drag-handle" title="드래그로 순서 변경">⠿</span>'
       +'<div class="cur-item-text">'
-      +'<span style="font-family:monospace;font-size:11px;color:var(--text3);min-width:50px;display:inline-block">'+(l.num||'')+'</span> '
-      +(l.title||'')+(l.old?' <span class="old-badge">작년</span>':'')
+        +'<span style="font-family:monospace;font-size:11px;color:var(--text3);min-width:50px;display:inline-block">'+(l.num||'')+'</span> '
+        +'<span class="lc-title-text" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px" title="클릭하여 제목 편집">'+(l.title||'')+'</span>'
+        +'<input class="edit-title-input fi" style="display:none;font-size:12px;padding:2px 6px;margin-left:4px" value="'+(l.title||'').replace(/"/g,'&quot;')+'">'
+        +(isOld?' <span class="old-badge">작년</span>':'')
       +'</div>'
+      +'<button class="'+toggleClass+'" title="올해/작년 전환">'+toggleLabel+'</button>'
       +'<button class="del-btn">×</button>';
+
+    // 제목 클릭 → 편집 모드
+    div.querySelector('.lc-title-text').addEventListener('click', function(){
+      div.classList.add('editing');
+      const inp = div.querySelector('.edit-title-input');
+      inp.focus(); inp.select();
+    });
+    // 편집 완료 (Enter or blur)
+    div.querySelector('.edit-title-input').addEventListener('keydown', function(e){
+      if(e.key==='Enter'){ this.blur(); }
+      if(e.key==='Escape'){ div.classList.remove('editing'); }
+    });
+    div.querySelector('.edit-title-input').addEventListener('blur', function(){
+      const newTitle = this.value.trim();
+      if(newTitle){
+        const realI = parseInt(div.dataset.realIdx);
+        DATA.lectures[subj][realI].title = newTitle;
+        // num에서 k 추출해 display 재구성
+        const k = DATA.lectures[subj][realI].k || parseInt((DATA.lectures[subj][realI].num||'').replace('강',''));
+        DATA.lectures[subj][realI].display = `${k}강. ${newTitle}`;
+        updateRawEditor();
+      }
+      div.classList.remove('editing');
+      renderCurrentLectures();
+    });
+
+    // 올해/작년 토글
+    div.querySelector('.old-toggle-btn').addEventListener('click', function(){
+      const realI = parseInt(div.dataset.realIdx);
+      DATA.lectures[subj][realI].old = !DATA.lectures[subj][realI].old;
+      // k 순 재정렬
+      const curArr = DATA.lectures[subj].filter(x=>!x.old).sort((a,b)=>(a.k||0)-(b.k||0));
+      const oldArr = DATA.lectures[subj].filter(x=>x.old).sort((a,b)=>(a.k||0)-(b.k||0));
+      DATA.lectures[subj] = [...curArr, ...oldArr];
+      updateRawEditor();
+      renderCurrentLectures();
+    });
+
     div.querySelector('.del-btn').addEventListener('click', function(){ delLecture(subj, parseInt(div.dataset.realIdx)); });
     div.addEventListener('dragstart', lecDragStart);
     div.addEventListener('dragover', lecDragOver);
