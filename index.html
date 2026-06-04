@@ -859,13 +859,15 @@ function renderLectures(){
   if(currentLecs.length){
     html+='<div style="font-size:10px;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;padding:4px 2px 6px;grid-column:1/-1">● 올해 강의</div>';
     currentLecs.forEach(l=>{
-      html+='<div class="li"><span class="lnum">'+l.num+'</span><span class="ltitle">'+l.title+'</span></div>';
+      const t = (l.title||'').replace(/^\d+강\.\s*/,'');
+      html+='<div class="li"><span class="lnum">'+l.num+'</span><span class="ltitle">'+t+'</span></div>';
     });
   }
   if(showOld&&oldLecs.length){
     html+='<div style="font-size:10px;color:var(--amber);letter-spacing:.08em;text-transform:uppercase;padding:12px 2px 6px;grid-column:1/-1;border-top:1px solid var(--border);margin-top:8px">● 작년 강의</div>';
     oldLecs.forEach(l=>{
-      html+='<div class="li old"><span class="lnum">'+l.num+'</span><span class="ltitle">'+l.title+'<span class="old-badge">작년</span></span></div>';
+      const t = (l.title||'').replace(/^\d+강\.\s*/,'');
+      html+='<div class="li old"><span class="lnum">'+l.num+'</span><span class="ltitle">'+t+'<span class="old-badge">작년</span></span></div>';
     });
   }
   document.getElementById('lectureList').innerHTML=header+(html||'<div style="color:var(--text3);font-size:13px;padding:12px 0">강의가 없습니다.</div>');
