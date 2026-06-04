@@ -545,10 +545,9 @@ function buildGoogleCalendarPayload(){
       (week.items||[]).forEach((item, ii) => {
         const date = dateToCalendarDate(item.date);
         if(!date) return;
-        const title = `[${term}텀] ${item.subject||'스터디'}`;
+        const title = item.subject || '스터디';
         const desc = [
           `Term: ${term}`,
-          `Week: ${week.week||''}`,
           `Date: ${item.date||''} (${item.day||''})`,
           item.time ? `Time record: ${item.time}` : '',
           item.note ? `Note: ${item.note}` : ''
