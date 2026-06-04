@@ -1080,6 +1080,8 @@ const EXAM_STATUS_PAT = /\[([^\]]+)\]/;  // second bracket
 function parseExamLine(line){
   line = line.trim();
   if(!line) return null;
+  // 앞에 붙은 - / • / * 등 제거 (예: "- [2] [완료] ...")
+  line = line.replace(/^[-•*]\s*/, '');
   // [횟수] 추출
   const cm = line.match(/^\[([^\]]+)\]/);
   if(!cm) return null;
