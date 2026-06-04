@@ -119,6 +119,7 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 
   <div class="tabs">
     <button class="tab on" onclick="switchTab('schedule', this)">📅 스터디 일정</button>
+    <button class="tab" onclick="switchTab('timelog', this)">⏱ 스터디 기록</button>
     <button class="tab" onclick="switchTab('lectures', this)">📚 강의 목록</button>
     <button class="tab" onclick="switchTab('exams', this)">🎯 모의고사</button>
     <button class="tab" onclick="switchTab('notice', this)">📌 공지사항</button>
@@ -238,6 +239,28 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div style="margin-top:12px">
         <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
         <div class="ai-status" id="sc-push-status" style="margin-top:6px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELOG -->
+  <div class="panel" id="panel-timelog">
+    <div class="ai-box">
+      <div class="ai-title">⏱ 스터디 기록</div>
+      <div class="ai-desc">
+        각 일정의 <b>시간 기록</b>과 <b>비고</b>를 입력합니다.<br>
+        시간란: 숫자(예: <code style="font-family:monospace;background:var(--bg4);padding:1px 5px;border-radius:3px;font-size:11px">2:30</code>)를 입력하면 <span style="color:var(--teal)">[2:30]</span>으로, 텍스트(예: <code style="font-family:monospace;background:var(--bg4);padding:1px 5px;border-radius:3px;font-size:11px">PASS</code>)를 입력하면 <span style="color:var(--amber)">PASS</span>로 표시됩니다.
+      </div>
+      <div class="fgroup" style="margin-bottom:12px">
+        <label>텀 선택</label>
+        <select class="fi" id="tl2-term" style="max-width:140px" onchange="renderTimelogPanel()">
+          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option><option value="4">4텀</option>
+        </select>
+      </div>
+      <div id="tl2-list"></div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
+        <div class="ai-status" id="tl2-push-status" style="margin-top:0"></div>
       </div>
     </div>
   </div>
@@ -843,6 +866,115 @@ function delScheduleItem(term, wi, ii){
   renderCurrentSchedule(); updateRawEditor();
 }
 
+// ── TIMELOG PANEL ──
+function renderTimelogPanel(){
+  if(!DATA) return;
+  const term = parseInt(document.getElementById('tl2-term').value);
+  const weeks = DATA.schedule[term]||[];
+  const listEl = document.getElementById('tl2-list');
+  if(!listEl) return;
+
+  // Flatten and sort
+  const allItems = [];
+  weeks.forEach((w, wi) => (w.items||[]).forEach((item, ii) => {
+    if(item.date==='-') return;
+    allItems.push({item, wi, ii});
+  }));
+  allItems.sort((a,b) => dateToSortKey(a.item.date) - dateToSortKey(b.item.date));
+
+  if(!allItems.length){
+    listEl.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px">일정이 없습니다.</div>';
+    return;
+  }
+  listEl.innerHTML = '';
+
+  // D-day helper
+  const ddayParts = ((DATA.dday)||'2026-11-14').split('-');
+  const ddayDate = new Date(parseInt(ddayParts[0]), parseInt(ddayParts[1])-1, parseInt(ddayParts[2]));
+  function getMondayOf(d){ const day=d.getDay(); const diff=day===0?-6:1-day; const m=new Date(d); m.setDate(d.getDate()+diff); m.setHours(0,0,0,0); return m; }
+  function getDdayStr(mon){ mon.setHours(0,0,0,0); const diff=Math.ceil((ddayDate-mon)/864e5); return diff>0?'D-'+diff:diff===0?'D-DAY':'D+'+Math.abs(diff); }
+
+  let lastMonKey = null;
+
+  allItems.forEach(({item, wi, ii}) => {
+    const p = item.date.split('/');
+    const mo = parseInt(p[0]), da = parseInt(p[1]);
+    const yr = (mo>=6&&mo<=12)?2026:2027;
+    const dateObj = new Date(yr, mo-1, da);
+    dateObj.setHours(0,0,0,0);
+    const monday = getMondayOf(dateObj);
+    const monKey = monday.getTime();
+
+    if(monKey !== lastMonKey){
+      lastMonKey = monKey;
+      const dday = getDdayStr(new Date(monday));
+      const label = `${monday.getMonth()+1}/${monday.getDate()}`;
+      const divider = document.createElement('div');
+      divider.style.cssText = 'font-size:11px;color:var(--text3);font-family:"JetBrains Mono",monospace;letter-spacing:.05em;padding:10px 0 6px;border-top:1px solid var(--border);margin-top:4px;display:flex;gap:6px;align-items:center';
+      divider.innerHTML = `<span>— ${dday}</span><span style="color:var(--text4);font-size:10px">(${label}~)</span>`;
+      if(listEl.children.length === 0) divider.style.borderTop = 'none';
+      listEl.appendChild(divider);
+    }
+
+    const div = document.createElement('div');
+    div.className = 'cur-item';
+    div.style.cssText = 'display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center';
+
+    // Current values
+    const curTime = item.time || '';
+    const curNote = item.note || '';
+    const isTimeVal = /^\d+:\d+$/.test(curTime);
+
+    // Time display: numeric -> teal [x:xx], text -> amber text, empty -> --
+    let timeDisplay = '';
+    if(curTime){
+      if(/^\d+:\d+$/.test(curTime)) timeDisplay = `<span style="color:var(--teal);font-family:monospace;font-size:11px">[${curTime}]</span>`;
+      else timeDisplay = `<span style="color:var(--amber);font-size:11px">${escHtml(curTime)}</span>`;
+    }
+
+    div.innerHTML =
+      `<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);min-width:72px">${item.date}(${item.day})</span>`
+      +`<span style="font-size:13px;color:var(--text)">${escHtml(item.subject)}`
+        +(curNote?` <span style="color:var(--amber);font-size:11px">${escHtml(curNote)}</span>`:'')
+      +`</span>`
+      +`<input class="fi tl2-note-inp" placeholder="비고" value="${escHtml(curNote)}" style="width:110px;padding:4px 7px;font-size:12px;background:var(--bg4)">`
+      +`<input class="fi tl2-time-inp" placeholder="시간 (예: 2:30 또는 PASS)" value="${escHtml(curTime)}" style="width:140px;padding:4px 7px;font-size:12px;font-family:monospace;background:var(--bg4)">`;
+
+    // Save on blur/enter for note
+    const noteInp = div.querySelector('.tl2-note-inp');
+    const timeInp = div.querySelector('.tl2-time-inp');
+
+    function saveEntry(){
+      const newTime = timeInp.value.trim();
+      const newNote = noteInp.value.trim();
+      if(newTime) DATA.schedule[term][wi].items[ii].time = newTime;
+      else delete DATA.schedule[term][wi].items[ii].time;
+      if(newNote) DATA.schedule[term][wi].items[ii].note = newNote;
+      else delete DATA.schedule[term][wi].items[ii].note;
+      updateRawEditor();
+      // Live update subject span
+      const subjSpan = div.querySelector('span:nth-child(2)');
+      const noteVal = DATA.schedule[term][wi].items[ii].note||'';
+      const timeVal = DATA.schedule[term][wi].items[ii].time||'';
+      let timeHtml = '';
+      if(timeVal){
+        if(/^\d+:\d+$/.test(timeVal)) timeHtml = ` <span style="color:var(--teal);font-family:monospace;font-size:11px">[${timeVal}]</span>`;
+        else timeHtml = ` <span style="color:var(--amber);font-size:11px">${escHtml(timeVal)}</span>`;
+      }
+      subjSpan.innerHTML = escHtml(item.subject)
+        +(noteVal?` <span style="color:var(--amber);font-size:11px">${escHtml(noteVal)}</span>`:'')
+        +timeHtml;
+    }
+
+    [noteInp, timeInp].forEach(inp => {
+      inp.addEventListener('keydown', e => { if(e.key==='Enter') inp.blur(); });
+      inp.addEventListener('blur', saveEntry);
+    });
+
+    listEl.appendChild(div);
+  });
+}
+
 
 // ── LECTURES (규칙 기반 파서 — list.py 이식) ──────────────────────────────
 
@@ -1311,6 +1443,7 @@ function renderAll(){
   if(!DATA) return;
   buildSubjectSelects();
   renderCurrentSchedule();
+  renderTimelogPanel();
   renderCurrentLectures();
   renderTermPeriodInputs();
   renderSubjOrderList();
@@ -1533,6 +1666,7 @@ function switchTab(name, btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.getElementById('panel-'+name).classList.add('on');
   btn.classList.add('on');
+  if(name==='timelog') renderTimelogPanel();
 }
 
 // ── INIT ──

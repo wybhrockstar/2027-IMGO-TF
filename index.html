@@ -33,8 +33,6 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 .logo{font-weight:700;font-size:15px;color:var(--accent);letter-spacing:.04em}
 .hdr-right{display:flex;align-items:center;gap:10px}
 .dday{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--accent2);border:1px solid var(--accent);color:var(--accent);padding:3px 12px;border-radius:20px}
-.edit-btn{font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);color:var(--text3);background:none;transition:.15s}
-.edit-btn:hover,.edit-btn.on{border-color:var(--amber);color:var(--amber)}
 
 /* ── NAV ── */
 .nav{display:flex;gap:0;padding:0 16px;border-bottom:1px solid var(--border);background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
@@ -98,11 +96,13 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 .stab.on{background:rgba(110,181,255,.1);border-color:var(--blue);color:var(--blue)}
 .lec-list{display:grid;grid-template-columns:1fr;gap:5px}
 @media(min-width:560px){.lec-list{grid-template-columns:repeat(2,1fr)}}
-.li{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);transition:.12s}
-.li:hover{border-color:var(--border2)}
+.li{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);transition:.12s}
+.li:hover{border-color:var(--border3);background:var(--bg5)}
+.li.old{background:var(--bg3);border-color:var(--border)}
+.li.old:hover{border-color:var(--border2)}
 .li.old .lnum{color:var(--amber)}
-.lnum{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);white-space:nowrap;padding-top:2px;min-width:34px}
-.ltitle{font-size:12px;color:var(--text2);line-height:1.5}
+.lnum{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--teal);white-space:nowrap;padding-top:2px;min-width:34px}
+.ltitle{font-size:12px;color:var(--text);line-height:1.5}
 .old-badge{font-size:9px;background:rgba(255,179,71,.15);color:var(--amber);border:1px solid rgba(255,179,71,.3);padding:1px 6px;border-radius:10px;margin-left:6px;white-space:nowrap;vertical-align:middle}
 
 /* ── NOTICE ── */
@@ -122,53 +122,6 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 .ui-item{display:flex;align-items:center;gap:9px;padding:8px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--text2)}
 .ucnt{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);min-width:22px;text-align:center}
 
-/* ── EDIT MODE PANEL ── */
-.edit-panel{background:var(--bg2);border:1px solid rgba(255,179,71,.25);border-radius:var(--r);padding:18px;margin-bottom:18px}
-.ep-title{font-size:12px;color:var(--amber);font-weight:500;margin-bottom:14px;display:flex;align-items:center;gap:6px}
-.ep-title::before{content:'✏️';font-size:14px}
-.ep-tabs{display:flex;gap:5px;margin-bottom:16px;flex-wrap:wrap}
-.eptab{padding:5px 13px;font-size:12px;border-radius:20px;border:1px solid var(--border2);color:var(--text3);background:none;transition:.12s}
-.eptab:hover{border-color:var(--amber);color:var(--amber)}
-.eptab.on{background:rgba(255,179,71,.1);border-color:var(--amber);color:var(--amber)}
-.ep-section{display:none}.ep-section.on{display:block}
-.fgroup{margin-bottom:14px}
-.fgroup label{display:block;font-size:11px;color:var(--text3);margin-bottom:5px;letter-spacing:.04em}
-.fi{width:100%;padding:8px 10px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text);outline:none;transition:.12s}
-.fi:focus{border-color:var(--amber)}
-.fi-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.fi-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.btn{padding:8px 18px;border-radius:var(--rs);border:1px solid;font-size:13px;font-weight:500;transition:.12s}
-.btn-amber{border-color:var(--amber);color:var(--amber);background:rgba(255,179,71,.1)}
-.btn-amber:hover{background:rgba(255,179,71,.2)}
-.btn-red{border-color:var(--red);color:var(--red);background:rgba(255,95,95,.1)}
-.btn-red:hover{background:rgba(255,95,95,.2)}
-.btn-teal{border-color:var(--teal);color:var(--teal);background:rgba(94,207,176,.1)}
-.btn-teal:hover{background:rgba(94,207,176,.2)}
-.btn-sm{padding:5px 11px;font-size:11px}
-.ep-list{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;max-height:320px;overflow-y:auto}
-.ep-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);font-size:12px}
-.ep-item-text{flex:1;color:var(--text2);line-height:1.4}
-.ep-del{background:none;border:none;color:var(--text4);font-size:16px;padding:0 2px;line-height:1;transition:.1s}
-.ep-del:hover{color:var(--red)}
-.ep-edit-inline{background:none;border:none;color:var(--text4);font-size:13px;padding:0 4px;line-height:1;transition:.1s}
-.ep-edit-inline:hover{color:var(--amber)}
-.divider{height:1px;background:var(--border);margin:16px 0}
-.msg-ok{color:var(--teal);font-size:12px;padding:4px 0}
-.msg-err{color:var(--red);font-size:12px;padding:4px 0}
-.lec-old-toggle{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:13px;color:var(--text2)}
-.toggle-wrap{position:relative;width:36px;height:20px;cursor:pointer}
-.toggle-wrap input{opacity:0;width:0;height:0}
-.slider{position:absolute;inset:0;background:var(--bg4);border-radius:20px;border:1px solid var(--border2);transition:.2s}
-.slider::before{content:'';position:absolute;width:14px;height:14px;left:2px;top:2px;background:var(--text3);border-radius:50%;transition:.2s}
-.toggle-wrap input:checked+.slider{background:rgba(110,181,255,.15);border-color:var(--blue)}
-.toggle-wrap input:checked+.slider::before{transform:translateX(16px);background:var(--blue)}
-
-/* ── PASSWORD MODAL ── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center}
-.modal-bg.on{display:flex}
-.modal{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:28px;width:90%;max-width:320px}
-.modal h3{font-size:15px;font-weight:500;margin-bottom:16px;color:var(--text)}
-.modal-hint{font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.6}
 
 /* scrollbar */
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
@@ -191,19 +144,6 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 </head>
 <body>
 
-<!-- PASSWORD MODAL -->
-<div class="modal-bg" id="pwModal">
-<div class="modal">
-  <h3>✏️ 편집 모드 잠금 해제</h3>
-  <div class="modal-hint">비밀번호를 입력하세요.<br>처음 설정 시 원하는 번호로 자동 등록됩니다.</div>
-  <div class="fgroup"><input class="fi" type="password" id="pwInput" placeholder="비밀번호" maxlength="20" onkeydown="if(event.key==='Enter')tryPw()"></div>
-  <div id="pwMsg" style="font-size:12px;margin-bottom:12px"></div>
-  <div style="display:flex;gap:8px">
-    <button class="btn btn-amber" onclick="tryPw()">확인</button>
-    <button class="btn" style="border-color:var(--border2);color:var(--text3)" onclick="closePwModal()">취소</button>
-  </div>
-</div>
-</div>
 
 <!-- HEADER -->
 <div class="hdr">
@@ -211,7 +151,6 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
   <div class="hdr-right">
     <div class="dday" id="ddayBadge">D-?</div>
     <button class="theme-btn" id="themeToggleBtn" onclick="toggleTheme()" title="라이트/다크 전환">🌙</button>
-    <button class="edit-btn" id="editToggleBtn" onclick="onEditToggle()">편집 모드</button>
   </div>
 </div>
 
@@ -226,66 +165,8 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 <!-- ======= PAGE: SCHEDULE ======= -->
 <div class="page on main" id="page-schedule">
 
-  <!-- EDIT PANEL: SCHEDULE -->
-  <div class="edit-panel" id="ep-schedule" style="display:none">
-    <div class="ep-title">스터디 현황 편집</div>
-    <div class="ep-tabs">
-      <button class="eptab on" onclick="epTab('ep-add',this)">일정 추가</button>
-      <button class="eptab" onclick="epTab('ep-timelog',this)">시간 기록</button>
-      <button class="eptab" onclick="epTab('ep-settings',this)">텀 설정</button>
-      <button class="eptab" onclick="epTab('ep-del-sched',this)">일정 삭제</button>
-    </div>
 
-    <div class="ep-section on" id="ep-add">
-      <div class="fi-row3" style="margin-bottom:8px">
-        <div class="fgroup" style="margin-bottom:0"><label>날짜 (예: 8/11)</label><input class="fi" id="ea-date" placeholder="8/11"></div>
-        <div class="fgroup" style="margin-bottom:0"><label>요일</label>
-          <select class="fi" id="ea-day">
-            <option>월</option><option>화</option><option>수</option><option>목</option><option>금</option><option>토</option><option>일</option>
-          </select></div>
-        <div class="fgroup" style="margin-bottom:0"><label>텀</label>
-          <select class="fi" id="ea-term"><option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option></select></div>
-      </div>
-      <div class="fi-row" style="margin-bottom:8px">
-        <div class="fgroup" style="margin-bottom:0"><label>과목/내용</label><input class="fi" id="ea-subj" placeholder="국어 1~20"></div>
-        <div class="fgroup" style="margin-bottom:0"><label>주차 라벨</label><input class="fi" id="ea-week" placeholder="1주차"></div>
-      </div>
-      <div class="fi-row" style="margin-bottom:12px">
-        <div class="fgroup" style="margin-bottom:0"><label>시간 기록 (선택, 예: 2:30)</label><input class="fi" id="ea-time" placeholder="2:30"></div>
-        <div class="fgroup" style="margin-bottom:0"><label>비고 (선택)</label><input class="fi" id="ea-note" placeholder="PASS / 재언 PASS 등"></div>
-      </div>
-      <button class="btn btn-amber" onclick="addScheduleItem()">+ 일정 추가</button>
-      <div id="ea-msg" class="msg-ok" style="margin-top:8px"></div>
-    </div>
-
-    <div class="ep-section" id="ep-timelog">
-      <div style="font-size:12px;color:var(--text3);margin-bottom:12px">기존 일정에 시간을 기록하거나 수정합니다.</div>
-      <div class="fgroup"><label>텀 선택</label>
-        <select class="fi" id="tl-term" onchange="renderTimelogList()"><option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option></select></div>
-      <div class="ep-list" id="tl-list"></div>
-    </div>
-
-    <div class="ep-section" id="ep-settings">
-      <div class="fgroup"><label>D-DAY 날짜 (YYYY-MM-DD)</label><input class="fi" id="set-dday" placeholder="2027-11-14"></div>
-      <div class="fgroup"><label>텀 기간 표시</label>
-        <div class="fi-row">
-          <input class="fi" id="set-period-t" placeholder="텀 번호 (1~4)">
-          <input class="fi" id="set-period-v" placeholder="예: 2025.08.11 ~ 09.22">
-        </div>
-      </div>
-      <button class="btn btn-amber" onclick="saveSettings()" style="margin-right:8px">저장</button>
-      <div id="set-msg" class="msg-ok" style="margin-top:8px"></div>
-    </div>
-
-    <div class="ep-section" id="ep-del-sched">
-      <div class="fgroup"><label>텀 선택</label>
-        <select class="fi" id="ds-term" onchange="renderDelSchedList()"><option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option></select></div>
-      <div class="ep-list" id="ds-list"></div>
-      <div id="ds-msg" class="msg-ok"></div>
-    </div>
-  </div>
-
-  <div class="term-tabs" id="termTabs"></div>
+    <div class="term-tabs" id="termTabs"></div>
   <div class="stats" id="statsRow"></div>
   <div class="cal-wrap"><div class="sec-title">2주 캘린더</div><div id="calGrid"></div></div>
   <div class="sec-title">전체 일정</div>
@@ -294,44 +175,6 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 
 <!-- ======= PAGE: LECTURES ======= -->
 <div class="page main" id="page-lectures">
-
-  <div class="edit-panel" id="ep-lectures" style="display:none">
-    <div class="ep-title">강의 목록 편집</div>
-    <div class="ep-tabs">
-      <button class="eptab on" onclick="epTab('ep-lec-add',this)">강의 추가</button>
-      <button class="eptab" onclick="epTab('ep-lec-subj',this)">과목 관리</button>
-      <button class="eptab" onclick="epTab('ep-lec-del',this)">강의 삭제</button>
-    </div>
-
-    <div class="ep-section on" id="ep-lec-add">
-      <div class="fi-row" style="margin-bottom:8px">
-        <div class="fgroup" style="margin-bottom:0"><label>과목 선택</label>
-          <select class="fi" id="la-subj" onchange="renderLecDelList()"></select></div>
-        <div class="fgroup" style="margin-bottom:0"><label>강 번호 (예: 3강)</label><input class="fi" id="la-num" placeholder="3강"></div>
-      </div>
-      <div class="fgroup"><label>강의 제목</label><input class="fi" id="la-title" placeholder="국어 교수법 개요"></div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-        <label style="font-size:12px;color:var(--text3)">작년 강의 (구버전 표시)</label>
-        <label class="toggle-wrap"><input type="checkbox" id="la-old"><span class="slider"></span></label>
-      </div>
-      <button class="btn btn-amber" onclick="addLecture()">+ 추가</button>
-      <div id="la-msg" class="msg-ok" style="margin-top:8px"></div>
-    </div>
-
-    <div class="ep-section" id="ep-lec-subj">
-      <div class="fi-row" style="margin-bottom:10px">
-        <input class="fi" id="ls-name" placeholder="새 과목명">
-        <button class="btn btn-amber" onclick="addSubject()">과목 추가</button>
-      </div>
-      <div class="ep-list" id="ls-list"></div>
-    </div>
-
-    <div class="ep-section" id="ep-lec-del">
-      <div class="fgroup"><label>과목 선택</label><select class="fi" id="ld-subj" onchange="renderLecDelList2()"></select></div>
-      <div class="ep-list" id="ld-list"></div>
-    </div>
-  </div>
-
   <div class="sec-title">과목별 강의 목록</div>
   <div class="lec-old-toggle">
     <label class="toggle-wrap"><input type="checkbox" id="showOld" onchange="renderLectures()" checked><span class="slider"></span></label>
@@ -359,39 +202,8 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 <!-- ======= PAGE: NOTICE ======= -->
 <div class="page main" id="page-notice">
 
-  <div class="edit-panel" id="ep-notice" style="display:none">
-    <div class="ep-title">공지사항 편집</div>
-    <div class="ep-tabs">
-      <button class="eptab on" onclick="epTab('ep-nt-sched',this)">스터디 시간표</button>
-      <button class="eptab" onclick="epTab('ep-nt-fine',this)">벌금</button>
-      <button class="eptab" onclick="epTab('ep-nt-links',this)">링크</button>
-    </div>
 
-    <div class="ep-section on" id="ep-nt-sched">
-      <div id="nt-sched-list" class="ep-list" style="margin-bottom:10px"></div>
-      <div class="fi-row" style="margin-bottom:8px">
-        <input class="fi" id="ns-day" placeholder="요일 (예: 월~금)">
-        <input class="fi" id="ns-time" placeholder="12:00~13:30 모의고사">
-      </div>
-      <button class="btn btn-amber" onclick="addSchedRow()">+ 추가</button>
-    </div>
-    <div class="ep-section" id="ep-nt-fine">
-      <div id="nt-fine-list" class="ep-list" style="margin-bottom:10px"></div>
-      <div class="fi-row" style="margin-bottom:8px">
-        <input class="fi" id="fn-name" placeholder="미루기">
-        <input class="fi" id="fn-amt" placeholder="30000">
-      </div>
-      <button class="btn btn-amber" onclick="addFine()">+ 추가</button>
-    </div>
-    <div class="ep-section" id="ep-nt-links">
-      <div id="nt-link-list" class="ep-list" style="margin-bottom:10px"></div>
-      <div class="fgroup"><label>제목</label><input class="fi" id="lk-title" placeholder="2026 모의고사 자료"></div>
-      <div class="fgroup"><label>URL</label><input class="fi" id="lk-url" placeholder="https://..."></div>
-      <button class="btn btn-amber" onclick="addLink()">+ 추가</button>
-    </div>
-  </div>
-
-  <div class="nc"><div class="nc-stitle">스터디 시간표</div><div id="nt-sched-view"></div></div>
+    <div class="nc"><div class="nc-stitle">스터디 시간표</div><div id="nt-sched-view"></div></div>
   <div class="nc"><div class="nc-stitle">스터디 벌금</div><div id="nt-fine-view"></div></div>
   <div class="nc"><div class="nc-stitle">자료 링크</div><div id="nt-link-view"></div></div>
 
@@ -571,11 +383,8 @@ const DEFAULT = {
 
 // ==================== STATE ====================
 let S = {};
-let editMode = false;
 let currentTerm = 1;
 let currentSubject = '';
-const PW_KEY = 'study_pw';
-const DATA_KEY = 'study_data';
 
 async function loadData(){
   try{
@@ -588,58 +397,10 @@ async function loadData(){
   } catch(e){}
   // 로컬 fallback (로컬에서 테스트하거나 data.json 없을 때)
   try{
-    const raw = localStorage.getItem(DATA_KEY);
-    if(raw) S = JSON.parse(raw);
-    else S = JSON.parse(JSON.stringify(DEFAULT));
+    S = JSON.parse(JSON.stringify(DEFAULT));
   } catch(e){ S = JSON.parse(JSON.stringify(DEFAULT)); }
 }
-function saveData(){ /* data.json 방식에서는 admin.html에서 GitHub API로 저장 */ }
 
-// ==================== PASSWORD ====================
-function onEditToggle(){
-  if(editMode){ editMode=false; refreshEditPanels(); document.getElementById('editToggleBtn').classList.remove('on'); return; }
-  document.getElementById('pwModal').classList.add('on');
-  document.getElementById('pwInput').value='';
-  document.getElementById('pwMsg').textContent='';
-  setTimeout(()=>document.getElementById('pwInput').focus(),100);
-}
-function tryPw(){
-  const val = document.getElementById('pwInput').value.trim();
-  if(!val){document.getElementById('pwMsg').style.color='var(--red)';document.getElementById('pwMsg').textContent='비밀번호를 입력해주세요.';return;}
-  const stored = localStorage.getItem(PW_KEY);
-  if(!stored){
-    localStorage.setItem(PW_KEY, val);
-    document.getElementById('pwMsg').style.color='var(--teal)';
-    document.getElementById('pwMsg').textContent='✓ 비밀번호가 설정되었습니다.';
-    setTimeout(()=>{ closePwModal(); activateEdit(); }, 700);
-  } else if(stored === val){
-    closePwModal(); activateEdit();
-  } else {
-    document.getElementById('pwMsg').style.color='var(--red)';
-    document.getElementById('pwMsg').textContent='비밀번호가 틀렸습니다.';
-    document.getElementById('pwInput').select();
-  }
-}
-function closePwModal(){ document.getElementById('pwModal').classList.remove('on'); }
-function activateEdit(){ editMode=true; document.getElementById('editToggleBtn').classList.add('on'); refreshEditPanels(); }
-function refreshEditPanels(){
-  ['ep-schedule','ep-lectures','ep-notice'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.style.display = editMode ? 'block' : 'none';
-  });
-  if(editMode){
-    document.getElementById('set-dday').value = S.dday||'';
-    renderTimelogList(); renderDelSchedList(); renderNoticeEditPanels(); renderSubjectManage(); renderLecDelList2();
-  }
-}
-
-// ==================== EP TABS ====================
-function epTab(id, btn){
-  btn.closest('.edit-panel').querySelectorAll('.eptab').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  btn.closest('.edit-panel').querySelectorAll('.ep-section').forEach(s=>s.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
-}
 
 // ==================== D-DAY ====================
 function updateDday(){
@@ -786,89 +547,10 @@ function showTerm(n){
   currentTerm=n;
   document.querySelectorAll('.ttab').forEach((t,i)=>t.classList.toggle('on',i+1===n));
   buildStats(n);buildCalendar(n);buildSchedule(n);
-  if(editMode){renderTimelogList();renderDelSchedList();}
+
 }
 function buildTermTabs(){
   document.getElementById('termTabs').innerHTML=[1,2,3,4].map((n,i)=>`<button class="ttab${i===0?' on':''}" onclick="showTerm(${n})">${n===1?'1st':n===2?'2nd':n===3?'3rd':'4th'} Term</button>`).join('');
-}
-
-// ==================== ADD SCHEDULE ====================
-function addScheduleItem(){
-  const date=document.getElementById('ea-date').value.trim();
-  const day=document.getElementById('ea-day').value;
-  const t=parseInt(document.getElementById('ea-term').value);
-  const subj=document.getElementById('ea-subj').value.trim();
-  const week=document.getElementById('ea-week').value.trim()||'추가';
-  const time=document.getElementById('ea-time').value.trim();
-  const note=document.getElementById('ea-note').value.trim();
-  const msg=document.getElementById('ea-msg');
-  if(!date||!subj){msg.style.color='var(--red)';msg.textContent='날짜와 내용은 필수입니다.';return;}
-  if(!S.schedule[t])S.schedule[t]=[];
-  let wk=S.schedule[t].find(w=>w.week===week);
-  if(!wk){wk={week,items:[]};S.schedule[t].push(wk);}
-  const item={date,day,subject:subj};
-  if(time)item.time=time;
-  if(note)item.note=note;
-  wk.items.push(item);
-  saveData();
-  if(t===currentTerm){buildStats(t);buildCalendar(t);buildSchedule(t);}
-  msg.style.color='var(--teal)';msg.textContent='✓ 추가되었습니다.';
-  ['ea-date','ea-subj','ea-time','ea-note'].forEach(id=>document.getElementById(id).value='');
-  setTimeout(()=>msg.textContent='',2000);
-  if(editMode){renderTimelogList();renderDelSchedList();}
-}
-
-// ==================== TIMELOG ====================
-function renderTimelogList(){
-  const t=parseInt(document.getElementById('tl-term').value);
-  const td=S.schedule[t]||[];
-  let html='';
-  td.forEach((w,wi)=>w.items.forEach((it,ii)=>{
-    if(it.date==='-')return;
-    const curTime=it.time||'';
-    html+=`<div class="ep-item">
-      <div class="ep-item-text">${it.date}(${it.day}) ${it.subject}</div>
-      <input class="fi" style="width:72px;padding:4px 6px;font-size:12px" value="${curTime}" placeholder="2:30" id="tl-${t}-${wi}-${ii}" onchange="saveTimeLog(${t},${wi},${ii},this.value)">
-    </div>`;
-  }));
-  document.getElementById('tl-list').innerHTML=html||'<div style="color:var(--text3);font-size:12px;padding:8px 0">일정이 없습니다.</div>';
-}
-function saveTimeLog(t,wi,ii,val){
-  const v=val.trim();
-  if(v) S.schedule[t][wi].items[ii].time=v;
-  else delete S.schedule[t][wi].items[ii].time;
-  saveData();
-  if(t===currentTerm){buildStats(t);buildCalendar(t);buildSchedule(t);}
-}
-
-// ==================== DEL SCHEDULE ====================
-function renderDelSchedList(){
-  const t=parseInt(document.getElementById('ds-term').value);
-  const td=S.schedule[t]||[];
-  let html='';
-  td.forEach((w,wi)=>w.items.forEach((it,ii)=>{
-    html+=`<div class="ep-item"><div class="ep-item-text">${it.date}(${it.day}) ${it.subject}</div><button class="ep-del" onclick="delSchedItem(${t},${wi},${ii})">×</button></div>`;
-  }));
-  document.getElementById('ds-list').innerHTML=html||'<div style="color:var(--text3);font-size:12px;padding:8px 0">일정이 없습니다.</div>';
-}
-function delSchedItem(t,wi,ii){
-  S.schedule[t][wi].items.splice(ii,1);
-  if(S.schedule[t][wi].items.length===0)S.schedule[t].splice(wi,1);
-  saveData();
-  if(t===currentTerm){buildStats(t);buildCalendar(t);buildSchedule(t);}
-  renderDelSchedList();renderTimelogList();
-}
-
-// ==================== SETTINGS ====================
-function saveSettings(){
-  const dday=document.getElementById('set-dday').value.trim();
-  const pt=document.getElementById('set-period-t').value.trim();
-  const pv=document.getElementById('set-period-v').value.trim();
-  if(dday)S.dday=dday;
-  if(pt&&pv){if(!S.termPeriods)S.termPeriods={};S.termPeriods[parseInt(pt)]=pv;}
-  saveData();updateDday();buildStats(currentTerm);
-  const msg=document.getElementById('set-msg');msg.style.color='var(--teal)';msg.textContent='✓ 저장되었습니다.';
-  setTimeout(()=>msg.textContent='',2000);
 }
 
 // ==================== LECTURES ====================
@@ -931,56 +613,6 @@ function renderLectures(){
   }
   document.getElementById('lectureList').innerHTML=header+(html||'<div style="color:var(--text3);font-size:13px;padding:12px 0">강의가 없습니다.</div>');
 }
-function addLecture(){
-  const subj=document.getElementById('la-subj').value;
-  const num=document.getElementById('la-num').value.trim();
-  const title=document.getElementById('la-title').value.trim();
-  const isOld=document.getElementById('la-old').checked;
-  const msg=document.getElementById('la-msg');
-  if(!subj||!title){msg.style.color='var(--red)';msg.textContent='과목과 제목은 필수입니다.';return;}
-  if(!S.lectures[subj])S.lectures[subj]=[];
-  S.lectures[subj].push({num:num||'-',title,old:isOld});
-  saveData();
-  if(subj===currentSubject)renderLectures();
-  renderLecDelList2();
-  msg.style.color='var(--teal)';msg.textContent='✓ 추가되었습니다.';
-  document.getElementById('la-num').value='';document.getElementById('la-title').value='';document.getElementById('la-old').checked=false;
-  setTimeout(()=>msg.textContent='',2000);
-}
-function addSubject(){
-  const name=document.getElementById('ls-name').value.trim();
-  if(!name)return;
-  if(!S.lectures[name])S.lectures[name]=[];
-  saveData();buildSubjectTabs();renderSubjectManage();
-  document.getElementById('ls-name').value='';
-}
-function renderSubjectManage(){
-  const subjects=Object.keys(S.lectures||{});
-  document.getElementById('ls-list').innerHTML=subjects.map((s,i)=>`<div class="ep-item"><div class="ep-item-text">${s}</div><button class="ep-del" onclick="delSubject('${s}')">×</button></div>`).join('');
-}
-function delSubject(name){
-  if(!confirm(`'${name}' 과목을 삭제할까요? 강의 목록도 함께 삭제됩니다.`))return;
-  delete S.lectures[name];
-  if(currentSubject===name)currentSubject='';
-  saveData();buildSubjectTabs();renderSubjectManage();
-}
-function renderLecDelList(){
-  const subj=document.getElementById('la-subj').value;
-  renderLecDelListFor(subj,'ld-list');
-}
-function renderLecDelList2(){
-  const subj=document.getElementById('ld-subj')?.value;
-  if(subj)renderLecDelListFor(subj,'ld-list');
-}
-function renderLecDelListFor(subj,listId){
-  const lecs=S.lectures[subj]||[];
-  document.getElementById(listId).innerHTML=lecs.map((l,i)=>`<div class="ep-item"><div class="ep-item-text">${l.num} ${l.title}${l.old?' (작년)':''}</div><button class="ep-del" onclick="delLecture('${subj}',${i})">×</button></div>`).join('')||'<div style="color:var(--text3);font-size:12px">강의가 없습니다.</div>';
-}
-function delLecture(subj,i){
-  S.lectures[subj].splice(i,1);
-  saveData();if(subj===currentSubject)renderLectures();renderLecDelList2();
-}
-
 // ==================== NOTICE ====================
 function renderNoticeView(){
   // schedule
@@ -999,40 +631,6 @@ function renderNoticeView(){
   (S.notice.links||[]).forEach(l=>{lh+=`<a class="link-card" href="${l.url}" target="_blank"><div><div class="link-title">${l.title}</div><div class="link-url">${l.url.replace(/https?:\/\//,'').split('/')[0]}</div></div><div class="link-arr">↗</div></a>`;});
   document.getElementById('nt-link-view').innerHTML=lh;
 
-}
-function renderNoticeEditPanels(){
-  // sched
-  document.getElementById('nt-sched-list').innerHTML=(S.notice.schedule||[]).map((r,i)=>`<div class="ep-item"><div class="ep-item-text">${r.day} · ${r.time}</div><button class="ep-del" onclick="delNoticeItem('schedule',${i})">×</button></div>`).join('');
-  // fines
-  document.getElementById('nt-fine-list').innerHTML=(S.notice.fines||[]).map((f,i)=>`<div class="ep-item"><div class="ep-item-text">${f.name} · ${f.amount.toLocaleString()}원</div><button class="ep-del" onclick="delNoticeItem('fines',${i})">×</button></div>`).join('');
-  // links
-  document.getElementById('nt-link-list').innerHTML=(S.notice.links||[]).map((l,i)=>`<div class="ep-item"><div class="ep-item-text">${l.title}</div><button class="ep-del" onclick="delNoticeItem('links',${i})">×</button></div>`).join('');
-
-}
-function delNoticeItem(type,i){S.notice[type].splice(i,1);saveData();renderNoticeView();renderNoticeEditPanels();}
-function addSchedRow(){
-  const day=document.getElementById('ns-day').value.trim();
-  const time=document.getElementById('ns-time').value.trim();
-  if(!day||!time)return;
-  if(!S.notice.schedule)S.notice.schedule=[];
-  S.notice.schedule.push({day,time});saveData();renderNoticeView();renderNoticeEditPanels();
-  document.getElementById('ns-day').value='';document.getElementById('ns-time').value='';
-}
-function addFine(){
-  const name=document.getElementById('fn-name').value.trim();
-  const amt=parseInt(document.getElementById('fn-amt').value)||0;
-  if(!name)return;
-  if(!S.notice.fines)S.notice.fines=[];
-  S.notice.fines.push({name,amount:amt});saveData();renderNoticeView();renderNoticeEditPanels();
-  document.getElementById('fn-name').value='';document.getElementById('fn-amt').value='';
-}
-function addLink(){
-  const title=document.getElementById('lk-title').value.trim();
-  const url=document.getElementById('lk-url').value.trim();
-  if(!title||!url)return;
-  if(!S.notice.links)S.notice.links=[];
-  S.notice.links.push({title,url});saveData();renderNoticeView();renderNoticeEditPanels();
-  document.getElementById('lk-title').value='';document.getElementById('lk-url').value='';
 }
 
 
