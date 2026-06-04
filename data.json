@@ -929,16 +929,16 @@
             "date": "11/5",
             "day": "목",
             "subject": "쿠키넷F 3회"
-          },
+          }
+        ]
+      },
+      {
+        "week": "1주차",
+        "items": [
           {
-            "date": "11/6",
-            "day": "금",
-            "subject": "D-1"
-          },
-          {
-            "date": "11/7",
+            "date": "11/14",
             "day": "토",
-            "subject": "🌟 D-DAY"
+            "subject": "★D-DAY★"
           }
         ]
       }
