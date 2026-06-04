@@ -1304,93 +1304,253 @@
     ],
     "수학": [
       {
+        "num": "0강",
+        "title": "2027학년도 수학 OT",
+        "old": false
+      },
+      {
         "num": "1강",
-        "title": "2026학년도 수학 OT",
+        "title": "수학의 가치 ~ 수학적 사고",
         "old": false
       },
       {
         "num": "2강",
-        "title": "수학의 가치~수학적 사고",
-        "old": false
-      },
-      {
-        "num": "3강",
         "title": "수학적 지식의 형태와 특성",
         "old": false
       },
       {
-        "num": "4~6강",
-        "title": "수학 수업 모형",
+        "num": "3강",
+        "title": "수학 수업 모형 (1)",
         "old": false
       },
       {
-        "num": "7강",
+        "num": "4강",
+        "title": "수학 수업 모형 (2)",
+        "old": false
+      },
+      {
+        "num": "5강",
+        "title": "수학 수업 모형 (3)",
+        "old": false
+      },
+      {
+        "num": "6강",
         "title": "수학 교육 과정",
         "old": false
       },
       {
-        "num": "8~14강",
-        "title": "평면도형(1~7)",
+        "num": "7강",
+        "title": "평면도형 (1)",
+        "old": false
+      },
+      {
+        "num": "8강",
+        "title": "평면도형 (2)",
+        "old": false
+      },
+      {
+        "num": "9강",
+        "title": "평면도형 (3)",
+        "old": false
+      },
+      {
+        "num": "10강",
+        "title": "평면도형 (4)",
+        "old": false
+      },
+      {
+        "num": "11강",
+        "title": "평면도형 (5)",
+        "old": false
+      },
+      {
+        "num": "12강",
+        "title": "평면도형 (6)",
+        "old": false
+      },
+      {
+        "num": "13강",
+        "title": "평면도형 (7)",
+        "old": false
+      },
+      {
+        "num": "14강",
+        "title": "평면도형 (8)",
         "old": false
       },
       {
         "num": "15강",
-        "title": "평면도형(8), 입체도형(1)",
+        "title": "평면도형 (9)",
         "old": false
       },
       {
-        "num": "16~18강",
-        "title": "입체도형(2~4)",
+        "num": "16강",
+        "title": "평면도형 (10)",
+        "old": false
+      },
+      {
+        "num": "17강",
+        "title": "입체도형 (1)",
+        "old": false
+      },
+      {
+        "num": "18강",
+        "title": "입체도형 (2)",
         "old": false
       },
       {
         "num": "19강",
-        "title": "기본 이론-디에네스(개념학습 이론)",
+        "title": "입체도형 (3)",
         "old": false
       },
       {
-        "num": "20~21강",
-        "title": "반힐레",
+        "num": "20강",
+        "title": "입체도형 (4)",
+        "old": false
+      },
+      {
+        "num": "21강",
+        "title": "기본 이론 - 디에네스 (개념학습 이론)",
         "old": false
       },
       {
         "num": "22강",
-        "title": "도형 한판정리 안내",
+        "title": "반힐레 (1)",
         "old": false
       },
       {
-        "num": "23~33강",
-        "title": "측정",
+        "num": "23강",
+        "title": "반힐레 (2)",
         "old": false
       },
       {
-        "num": "34~56강",
-        "title": "수와 연산",
+        "num": "24강",
+        "title": "측정 (1)",
         "old": false
       },
       {
-        "num": "57강",
-        "title": "스켐프 ~ 피아제",
+        "num": "25강",
+        "title": "측정 (2)",
         "old": false
       },
       {
-        "num": "58~61강",
-        "title": "변화와 관계",
+        "num": "26강",
+        "title": "측정 (3)",
         "old": false
       },
       {
-        "num": "62~64강",
-        "title": "자료와 가능성",
+        "num": "27강",
+        "title": "측정 (4)",
         "old": false
       },
       {
-        "num": "65강",
-        "title": "프로이덴탈 ~ 오슈벨",
+        "num": "28강",
+        "title": "측정 (5)",
         "old": false
       },
       {
-        "num": "66강",
-        "title": "교수학적 변환론 ~ 초등학교 수학 학습에 대한 관점",
+        "num": "29강",
+        "title": "측정 (6)",
+        "old": false
+      },
+      {
+        "num": "30강",
+        "title": "측정 (7)",
+        "old": false
+      },
+      {
+        "num": "31강",
+        "title": "측정 (8)",
+        "old": false
+      },
+      {
+        "num": "32강",
+        "title": "측정 (9)",
+        "old": false
+      },
+      {
+        "num": "33강",
+        "title": "측정 (10)",
+        "old": false
+      },
+      {
+        "num": "34강",
+        "title": "측정 (11)",
+        "old": false
+      },
+      {
+        "num": "35강",
+        "title": "수와 연산 (1)",
+        "old": false
+      },
+      {
+        "num": "36강",
+        "title": "수와 연산 (2)",
+        "old": false
+      },
+      {
+        "num": "37강",
+        "title": "수와 연산 (3)",
+        "old": false
+      },
+      {
+        "num": "38강",
+        "title": "수와 연산 (4)",
+        "old": false
+      },
+      {
+        "num": "39강",
+        "title": "수와 연산 (5)",
+        "old": false
+      },
+      {
+        "num": "40강",
+        "title": "수와 연산 (6)",
+        "old": false
+      },
+      {
+        "num": "41강",
+        "title": "수와 연산 (7)",
+        "old": false
+      },
+      {
+        "num": "42강",
+        "title": "수와 연산 (8)",
+        "old": false
+      },
+      {
+        "num": "43강",
+        "title": "수와 연산 (9)",
+        "old": false
+      },
+      {
+        "num": "44강",
+        "title": "수와 연산 (10)",
+        "old": false
+      },
+      {
+        "num": "45강",
+        "title": "수와 연산 (11)",
+        "old": false
+      },
+      {
+        "num": "46강",
+        "title": "수와 연산 (12)",
+        "old": false
+      },
+      {
+        "num": "47강",
+        "title": "수와 연산 (13)",
+        "old": false
+      },
+      {
+        "num": "48강",
+        "title": "수와 연산 (14)",
+        "old": false
+      },
+      {
+        "num": "49강",
+        "title": "수와 연산 (15)",
         "old": false
       }
     ],
