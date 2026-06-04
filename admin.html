@@ -68,7 +68,7 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 .apply-btn:hover{background:rgba(94,207,176,.2)}
 .apply-btn:disabled{opacity:.4;cursor:not-allowed}
 .divider{height:1px;background:var(--border);margin:18px 0}
-.old-badge{font-size:10px;background:rgba(184,165,255,.15);color:var(--purple);border:1px solid rgba(184,165,255,.3);padding:1px 6px;border-radius:10px}
+.old-badge{font-size:10px;background:rgba(255,179,71,.15);color:var(--amber);border:1px solid rgba(255,179,71,.3);padding:1px 6px;border-radius:10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 .drag-handle{cursor:grab;color:var(--text3);font-size:18px;padding:0 4px;user-select:none;line-height:1;flex-shrink:0}
@@ -671,24 +671,55 @@ function parseStudyScheduleRule(){
   const input = document.getElementById('sc-study-input').value.trim();
   if(!input){ setStatus('sc-study-status','내용을 입력해주세요.','err'); return; }
 
-  const lines = input.split('\n').map(l => l.trim()).filter(l => l);
+  // Split only on lines that START with a date pattern (m/d)
+  // Join continuation lines (that don't start with date) to previous
+  const rawLines = input.split('\n');
+  const mergedLines = [];
+  for(const rawLine of rawLines){
+    const trimmed = rawLine.trim();
+    if(!trimmed) continue;
+    // Check if this line starts a new date entry
+    if(/^\d{1,2}\/\d{1,2}/.test(trimmed)){
+      mergedLines.push(trimmed);
+    } else if(mergedLines.length > 0){
+      // continuation: append to last line
+      mergedLines[mergedLines.length-1] += ' ' + trimmed;
+    }
+  }
+
   const items = [];
   const errors = [];
 
-  for(const line of lines){
-    // 패턴: m/d 제목 (요일이 있는 경우도 처리: m/d 요일 제목)
-    const m = line.match(/^(\d{1,2})\/(\d{1,2})\s+(?:([월화수목금토일])\s+)?(.+)$/);
-    if(!m){ errors.push(`파싱 실패: "${line}"`); continue; }
-    const month = parseInt(m[1]), day = parseInt(m[2]);
+  for(const line of mergedLines){
+    // Pattern: m/d [요일] content (* note)
+    const dateM = line.match(/^(\d{1,2})\/(\d{1,2})\s+(?:[월화수목금토일]\s+)?(.*)$/);
+    if(!dateM){ errors.push(`파싱 실패: "${line}"`); continue; }
+    const month = parseInt(dateM[1]), day = parseInt(dateM[2]);
     const calcDay = calcDayOfWeek(month, day);
-    const subject = m[4].trim();
-    items.push({ date: `${month}/${day}`, day: calcDay, subject });
+    let rest = dateM[3].trim();
+
+    // Extract (* ...) notes - these are inside parentheses with * prefix
+    // Pattern: (\* content) - extract all such patterns as notes
+    const notes = [];
+    rest = rest.replace(/\(\*([^)]+)\)/g, (_, noteContent) => {
+      notes.push(noteContent.trim());
+      return '';
+    });
+    rest = rest.trim();
+
+    // Clean up extra spaces
+    const subject = rest.replace(/\s+/g, ' ').trim();
+    const note = notes.join(' / ') || undefined;
+
+    const item = { date: `${month}/${day}`, day: calcDay, subject };
+    if(note) item.note = note;
+    items.push(item);
   }
 
   if(!items.length){ setStatus('sc-study-status',`파싱된 항목이 없습니다. ${errors.join(' / ')}`.trim(),'err'); return; }
 
   parsedStudyBuffer = items;
-  const previewLines = items.map(it => `${it.date.padEnd(5)}(${it.day})  ${it.subject}`);
+  const previewLines = items.map(it => `${it.date.padEnd(5)}(${it.day})  ${it.subject}${it.note ? '  [비고: '+it.note+']' : ''}`);
   if(errors.length) previewLines.push('', '⚠ 파싱 실패:', ...errors);
   document.getElementById('sc-study-preview').textContent = previewLines.join('\n');
   document.getElementById('sc-study-preview-wrap').style.display = 'block';
@@ -1470,7 +1501,7 @@ function renderCurrentExams(){
       <div class="cur-item-text">
         <span style="font-family:monospace;font-size:11px;color:${COUNT_COL[e.status]||'var(--text3)'};min-width:30px;display:inline-block">[${e.count}]</span>
         <span style="font-size:11px;padding:1px 7px;border-radius:8px;background:${STATUS_BG[e.status]||''};color:${STATUS_COL[e.status]||'var(--text3)'};">${e.status}</span>
-        <span style="margin-left:6px;font-size:13px">${e.name}</span>${e.essay?' <span style="font-size:10px;color:var(--purple);background:rgba(184,165,255,.15);border:1px solid rgba(184,165,255,.3);padding:1px 6px;border-radius:8px">논술有</span>':''}
+        <span style="margin-left:6px;font-size:13px">${e.name}</span>${e.essay?' <span style="font-size:10px;color:var(--amber);background:rgba(255,179,71,.15);border:1px solid rgba(255,179,71,.3);padding:1px 6px;border-radius:8px">논술有</span>':''}
       </div>
       <button class="del-btn" onclick="delExam(${i})">×</button>
     </div>`).join('');

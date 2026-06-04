@@ -85,6 +85,7 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 .sr-day{font-size:10px;color:var(--text3)}
 .sr-sub{font-size:13px;color:var(--text)}
 .sr-note{font-size:11px;color:var(--text3)}
+.sr-note-hi{font-size:11px;color:var(--amber)}
 .sr-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal);white-space:nowrap;text-align:right}
 .sr-time.pass{color:var(--text3)}
 .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:7px;vertical-align:middle;flex-shrink:0;margin-top:-1px}
@@ -99,10 +100,10 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 @media(min-width:560px){.lec-list{grid-template-columns:repeat(2,1fr)}}
 .li{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);transition:.12s}
 .li:hover{border-color:var(--border2)}
-.li.old .lnum{color:var(--text2)}
+.li.old .lnum{color:var(--amber)}
 .lnum{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);white-space:nowrap;padding-top:2px;min-width:34px}
 .ltitle{font-size:12px;color:var(--text2);line-height:1.5}
-.old-badge{font-size:9px;background:rgba(184,165,255,.15);color:var(--purple);border:1px solid rgba(184,165,255,.3);padding:1px 6px;border-radius:10px;margin-left:6px;white-space:nowrap;vertical-align:middle}
+.old-badge{font-size:9px;background:rgba(255,179,71,.15);color:var(--amber);border:1px solid rgba(255,179,71,.3);padding:1px 6px;border-radius:10px;margin-left:6px;white-space:nowrap;vertical-align:middle}
 
 /* ── NOTICE ── */
 .nc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px}
@@ -185,7 +186,7 @@ input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
 .exam-row:hover{border-color:var(--border2)}
 .exam-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);min-width:28px;text-align:right;padding-top:2px}
 .exam-name{font-size:13px;color:var(--text);flex:1;line-height:1.5}
-.exam-essay{font-size:10px;color:var(--purple);background:rgba(184,165,255,.15);border:1px solid rgba(184,165,255,.3);padding:1px 6px;border-radius:8px;white-space:nowrap;margin-left:4px;vertical-align:middle}
+.exam-essay{font-size:10px;color:var(--amber);background:rgba(255,179,71,.15);border:1px solid rgba(255,179,71,.3);padding:1px 6px;border-radius:8px;white-space:nowrap;margin-left:4px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -706,18 +707,77 @@ function buildCalendar(t){
 // ==================== SCHEDULE LIST ====================
 function buildSchedule(t){
   const td=S.schedule[t]||[];
-  let html='';
+  const ddayParts=(S.dday||'2026-11-14').split('-');
+  const ddayDate=new Date(parseInt(ddayParts[0]),parseInt(ddayParts[1])-1,parseInt(ddayParts[2]));
   const today=new Date();today.setHours(0,0,0,0);
-  td.forEach(w=>{
-    html+=`<div class="wdiv">— ${w.week}</div>`;
-    w.items.forEach(it=>{
-      if(it.date==='-'){html+=`<div class="sr"><div class="sr-sub" style="color:var(--text3);grid-column:1/-1">${it.subject}</div></div>`;return;}
-      const dc=dotColors[it.day]||'var(--teal)';
-      const timeH=it.time?`<div class="sr-time">[${it.time}]</div>`:it.note?`<div class="sr-time pass">${it.note}</div>`:`<div class="sr-time pass">—</div>`;
-      const noteH=it.note&&it.time?`<span class="sr-note"> · ${it.note}</span>`:'';
-      html+=`<div class="sr"><div class="sr-date"><span class="dot" style="background:${dc}"></span>${it.date}<span class="sr-day">(${it.day})</span></div><div class="sr-sub">${it.subject}${noteH}</div>${timeH}</div>`;
-    });
+
+  // Flatten all items with their date objects, sorted
+  const allItems=[];
+  td.forEach(w=>w.items.forEach(it=>{
+    if(it.date==='-'){allItems.push({item:it,dateObj:null});return;}
+    const p=it.date.split('/');
+    const mo=parseInt(p[0]),da=parseInt(p[1]);
+    const yr=(mo>=6&&mo<=12)?2026:2027;
+    const dateObj=new Date(yr,mo-1,da);
+    dateObj.setHours(0,0,0,0);
+    allItems.push({item:it,dateObj});
+  }));
+  allItems.sort((a,b)=>{
+    if(!a.dateObj) return 1;
+    if(!b.dateObj) return -1;
+    return a.dateObj-b.dateObj;
   });
+
+  // Compute D-day for upcoming Monday
+  function getDdayForMonday(mondayDate){
+    mondayDate.setHours(0,0,0,0);
+    const diff=Math.ceil((ddayDate-mondayDate)/(864e5));
+    return diff>0?'D-'+diff:diff===0?'D-DAY':'D+'+ Math.abs(diff);
+  }
+
+  let html='';
+  let lastWeekSunday=null; // tracks the Sunday of the current week
+
+  // Helper: get Monday of the week containing a date (Mon=start)
+  function getMondayOf(d){
+    const day=d.getDay(); // 0=Sun
+    const diff=day===0?-6:1-day;
+    const mon=new Date(d);
+    mon.setDate(d.getDate()+diff);
+    mon.setHours(0,0,0,0);
+    return mon;
+  }
+
+  for(const {item,dateObj} of allItems){
+    if(!dateObj){
+      html+=`<div class="sr"><div class="sr-sub" style="color:var(--text3);grid-column:1/-1">${item.subject}</div></div>`;
+      continue;
+    }
+    const monday=getMondayOf(dateObj);
+    const mondayKey=monday.getTime();
+
+    if(lastWeekSunday===null||mondayKey>lastWeekSunday){
+      // Insert week divider before this item
+      const dday=getDdayForMonday(new Date(monday));
+      const mondayLabel=`${monday.getMonth()+1}/${monday.getDate()}`;
+      html+=`<div class="wdiv">— ${dday} <span style="color:var(--text4);font-size:10px">(${mondayLabel}~)</span></div>`;
+      lastWeekSunday=mondayKey;
+    }
+
+    const dc=dotColors[item.day]||'var(--teal)';
+    const isToday=dateObj.getTime()===today.getTime();
+    const rowCls=isToday?' today-row':'';
+
+    // parse subject and note from item
+    // note is in item.note field (orange color)
+    const noteH=item.note&&item.time?`<span class="sr-note-hi"> · ${item.note}</span>`:
+                item.note&&!item.time?'':'';
+    const timeH=item.time?`<div class="sr-time">[${item.time}]</div>`:
+                item.note&&!item.time?`<div class="sr-time pass sr-note-hi">${item.note}</div>`:
+                `<div class="sr-time pass">—</div>`;
+
+    html+=`<div class="sr${rowCls}"><div class="sr-date"><span class="dot" style="background:${dc}"></span>${item.date}<span class="sr-day">(${item.day})</span></div><div class="sr-sub">${item.subject}${noteH}</div>${timeH}</div>`;
+  }
   document.getElementById('scheduleList').innerHTML=html||'<div style="color:var(--text3);padding:20px 0;font-size:13px">일정이 없습니다.</div>';
 }
 
@@ -863,7 +923,7 @@ function renderLectures(){
     });
   }
   if(showOld&&oldLecs.length){
-    html+='<div style="font-size:10px;color:var(--purple);letter-spacing:.08em;text-transform:uppercase;padding:12px 2px 6px;grid-column:1/-1;border-top:1px solid var(--border);margin-top:8px">● 작년 강의</div>';
+    html+='<div style="font-size:10px;color:var(--amber);letter-spacing:.08em;text-transform:uppercase;padding:12px 2px 6px;grid-column:1/-1;border-top:1px solid var(--border);margin-top:8px">● 작년 강의</div>';
     oldLecs.forEach(l=>{
       const t = (l.title||'').replace(/^\d+강\.\s*/,'');
       html+='<div class="li old"><span class="lnum">'+l.num+'</span><span class="ltitle">'+t+'<span class="old-badge">작년</span></span></div>';
