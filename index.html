@@ -586,18 +586,54 @@ let state = {
   reportSettings: {studyGoalHour:7, sleepMinHour:6, bedtimeLimit:'01:00', wakeTimeLimit:'07:30'}
 };
 
-// ─── HARDCODED CONSTANTS ─────────────────────────────────────────────────────
-const GH_TOKEN  = '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';
-const GH_REPO   = 'wybhrockstar/2027-Planner';
-const GH_BRANCH = 'main';
-const GH_PATH   = 'data.json';
+// ─── GITHUB SETTINGS (하드코딩 제거 및 저장소 연동) ───────────────────────────
+const GH_PATH = 'data.json';
 const ICAL_STUDY    = 'https://calendar.google.com/calendar/ical/3eac65694951b1627de968aa7a224edef1e384199b06e5f9d7e3aad77680b0d6%40group.calendar.google.com/public/basic.ics';
 const ICAL_PERSONAL = 'https://calendar.google.com/calendar/ical/unny0705%40gmail.com/public/basic.ics';
 
-// ─── GITHUB SETTINGS ─────────────────────────────────────────────────────────
-function getGhSettings() {
-  return { token: GH_TOKEN, repo: GH_REPO, branch: GH_BRANCH, path: GH_PATH };
+// 화면에 입력된 설정을 로컬스토리지에 저장하는 함수
+function saveGhSettings() {
+  const token = document.getElementById('input-gh-token').value.trim();
+  const repo = document.getElementById('input-gh-repo').value.trim();
+  const branch = document.getElementById('input-gh-branch').value.trim() || 'main';
+
+  if (!token || !repo) {
+    setGhStatus('❌ 토큰과 저장소를 모두 입력해주세요.', 'err');
+    return;
+  }
+
+  localStorage.setItem('gh_token', token);
+  localStorage.setItem('gh_repo', repo);
+  localStorage.setItem('gh_branch', branch);
+
+  setGhStatus('✓ 설정이 브라우저에 저장되었습니다.', 'ok');
+  if (typeof toast === 'function') toast('✓ 설정 저장 완료');
 }
+
+// 로컬스토리지에서 설정값을 가져오는 함수 (기존 push, pull 함수와 호환됨)
+function getGhSettings() {
+  return {
+    token: localStorage.getItem('gh_token') || '',
+    repo: localStorage.getItem('gh_repo') || '',
+    branch: localStorage.getItem('gh_branch') || 'main',
+    path: GH_PATH
+  };
+}
+
+// 페이지 로드 시 기존에 저장된 설정값이 있다면 UI에 채워주는 함수
+function initGhInputFields() {
+  const s = getGhSettings();
+  const tokenEl = document.getElementById('input-gh-token');
+  const repoEl = document.getElementById('input-gh-repo');
+  const branchEl = document.getElementById('input-gh-branch');
+
+  if (tokenEl && s.token) tokenEl.value = s.token;
+  if (repoEl && s.repo) repoEl.value = s.repo;
+  if (branchEl && s.branch) branchEl.value = s.branch;
+}
+
+// 대시보드나 페이지가 처음 켜질 때 실행하도록 설정 (기존 window.onload나 init 함수에 추가하면 좋습니다)
+document.addEventListener('DOMContentLoaded', initGhInputFields);
 
 function setGhStatus(msg, type) {
   const el = document.getElementById('gh-status');
