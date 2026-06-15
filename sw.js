@@ -1,83 +1,74 @@
-const CACHE_VERSION = 'imgo-v1';
+const CACHE = 'imgo-v1';
+
+// 앱 껍데기 — 설치 시 미리 캐시
 const PRECACHE = [
+  './',
   './index.html',
-  './admin.html',
   './manifest.json',
-  './manifest-admin.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon-192-maskable.png',
-  './icons/icon-512-maskable.png',
-  './icons/icon-admin-192.png',
-  './icons/icon-admin-512.png',
-  './icons/icon-admin-192-maskable.png',
-  './icons/icon-admin-512-maskable.png'
+  './icons/icon_192.png',
+  './icons/icon_512.png',
+  './icons/icon_192_maskable.png',
+  './icons/icon_512_maskable.png',
+  'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap'
 ];
 
-// 캐시하지 않고 항상 네트워크로 직접 보내야 하는 요청 (API, 인증 등)
-const NETWORK_ONLY_HOSTS = [
-  'api.github.com',
-  'www.googleapis.com',
-  'accounts.google.com'
+// 절대 캐시하지 않을 패턴 (항상 네트워크 직행)
+const BYPASS = [
+  /api\.github\.com/,
+  /raw\.githubusercontent\.com/,
+  /calendar\.googleapis\.com/,
+  /accounts\.google\.com/
 ];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_VERSION).then((cache) => cache.addAll(PRECACHE))
+// ── install ──────────────────────────────────────────────
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE)
+      .then(c => c.addAll(PRECACHE))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_VERSION) return caches.delete(key);
-        })
-      )
-    )
+// ── activate ─────────────────────────────────────────────
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  const url = new URL(req.url);
+// ── fetch ─────────────────────────────────────────────────
+self.addEventListener('fetch', e => {
+  const url = e.request.url;
 
-  // GET 요청만 처리
-  if (req.method !== 'GET') return;
+  // API 등 — 캐시 우회
+  if (BYPASS.some(p => p.test(url))) return;
 
-  // GitHub / Google API 등은 캐시하지 않고 네트워크로 직행
-  if (NETWORK_ONLY_HOSTS.includes(url.hostname)) return;
-
-  // HTML 문서: network-first (최신 버전 우선, 오프라인 시 캐시로 대체)
-  if (req.mode === 'navigate' || req.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put(req, copy));
+  // HTML — network-first (최신 우선, 오프라인 시 캐시 fallback)
+  if (e.request.mode === 'navigate' || /\.html$/.test(url)) {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
           return res;
         })
-        .catch(() => caches.match(req).then((cached) => cached || caches.match('./index.html')))
+        .catch(() => caches.match(e.request))
     );
     return;
   }
 
-  // 그 외 정적 자원: cache-first, 백그라운드에서 갱신 (stale-while-revalidate)
-  event.respondWith(
-    caches.match(req).then((cached) => {
-      const fetchPromise = fetch(req)
-        .then((res) => {
-          if (res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE_VERSION).then((cache) => cache.put(req, copy));
-          }
+  // 정적 자원 — stale-while-revalidate
+  e.respondWith(
+    caches.open(CACHE).then(c =>
+      c.match(e.request).then(cached => {
+        const network = fetch(e.request).then(res => {
+          c.put(e.request, res.clone());
           return res;
-        })
-        .catch(() => cached);
-      return cached || fetchPromise;
-    })
+        }).catch(() => {});
+        return cached || network;
+      })
+    )
   );
 });
