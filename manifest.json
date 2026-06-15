@@ -1,7 +1,7 @@
 {
-  "name": "2027 IMGO Planner",
-  "short_name": "2027 IMGO",
-  "description": "2027 IMGO TF 스터디 플래너",
+  "name": "2027 IMGO TF",
+  "short_name": "2027 TF",
+  "description": "2027 IMGO TF",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1a1a",
