@@ -72,7 +72,7 @@ body.light .sec-title{color:var(--text3)}
 .cal-wrap{margin-bottom:26px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .cal-hd{text-align:center;font-size:11px;color:var(--text2);padding:6px 2px;font-weight:500}
-.cc{background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:6px 5px;min-height:64px}
+.cc{background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:6px 5px;min-height:64px;height:auto}
 .cc.today{border-color:var(--accent);background:var(--accent3)}
 .cc.sday{border-color:rgba(94,207,176,.3)}
 .cc.empty{background:transparent;border-color:transparent}
@@ -81,7 +81,7 @@ body.light .cal-hd{color:var(--text3)}
 body.light .cc{background:var(--bg3);border-color:var(--border)}
 body.light .cd{color:var(--text3)}
 .cc.today .cd{color:var(--accent);font-weight:500}
-.cc-sub{font-size:9px;color:var(--teal);line-height:1.35}
+.cc-sub{font-size:9px;color:var(--teal);line-height:1.35;word-break:keep-all;overflow-wrap:break-word}
 .cc-time{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);margin-top:1px}
 
 /* ── SCHEDULE ── */
@@ -488,8 +488,7 @@ function buildCalendar(t){
     let cls='cc'+(isT?' today':info?' sday':'');
     html+=`<div class="${cls}"><div class="cd">${d.getMonth()+1}/${d.getDate()}</div>`;
     if(info){
-      const sh=info.subject.length>10?info.subject.slice(0,9)+'…':info.subject;
-      html+=`<div class="cc-sub">${sh}</div>`;
+      html+=`<div class="cc-sub">${info.subject}</div>`;
       if(info.time){
         const cls=isStudyTimeValue(info.time)?'cc-time':'cc-time sr-note-hi';
         html+=`<div class="${cls}">${info.time}</div>`;
