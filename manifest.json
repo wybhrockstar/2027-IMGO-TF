@@ -3,7 +3,7 @@
   "short_name": "2027 TF",
   "description": "2027 IMGO TF",
   "start_url": "./index.html",
-  "scope": "./",
+  "scope": "./index.html",
   "display": "standalone",
   "background_color": "#1a1a1a",
   "theme_color": "#c8f060",
