@@ -1408,11 +1408,10 @@ function renderCurrentLectures(){
 
     div.innerHTML =
       '<span class="drag-handle" title="드래그로 순서 변경">⠿</span>'
-      +'<div class="cur-item-text">'
-        +'<span style="font-family:monospace;font-size:11px;color:var(--text2);min-width:50px;display:inline-block">'+(l.num||'')+'</span> '
-        +'<span class="lc-title-text" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px" title="클릭하여 제목 편집">'+(l.title||'')+'</span>'
-        +'<input class="edit-title-input fi" style="display:none;font-size:12px;padding:2px 6px;margin-left:4px" value="'+(l.title||'').replace(/"/g,'&quot;')+'">'
-        +(isOld?' <span class="old-badge">작년</span>':'')
+      +'<div class="cur-item-text" style="display:flex;align-items:flex-start;gap:4px">'
+        +'<span style="font-family:monospace;font-size:11px;color:var(--text2);min-width:50px;flex-shrink:0;padding-top:1px">'+(l.num||'')+'</span>'
+        +'<span class="lc-title-text" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;flex:1;word-break:break-word" title="클릭하여 제목 편집">'+(l.title||'')+(isOld?' <span class="old-badge">작년</span>':'')+'</span>'
+        +'<input class="edit-title-input fi" style="display:none;font-size:12px;padding:2px 6px;flex:1" value="'+(l.title||'').replace(/"/g,'&quot;')+'">'
       +'</div>'
       +'<button class="'+toggleClass+'" title="올해/작년 전환">'+toggleLabel+'</button>'
       +'<button class="del-btn">×</button>';
@@ -1460,6 +1459,14 @@ function renderCurrentLectures(){
     div.addEventListener('drop', lecDrop);
     div.addEventListener('dragleave', lecDragLeave);
     div.addEventListener('dragend', lecDragEnd);
+    addTouchDrag(div, (from, to)=>{
+      if(from===to) return;
+      const subj = currentSubject;
+      const lecs = DATA.lectures[subj];
+      const moved = lecs.splice(from,1)[0];
+      lecs.splice(to>from?to-1:to, 0, moved);
+      renderCurrentLectures(); updateRawEditor();
+    });
     return div;
   }
 
@@ -1635,6 +1642,17 @@ function renderSubjOrderList(){
     div.addEventListener('drop', subjDrop);
     div.addEventListener('dragleave', subjDragLeave);
     div.addEventListener('dragend', subjDragEnd);
+    addTouchDrag(div, (from, to)=>{
+      if(from===to) return;
+      const subjects = Object.keys(DATA.lectures);
+      const arr = subjects.slice();
+      const moved = arr.splice(from,1)[0];
+      arr.splice(to>from?to-1:to, 0, moved);
+      const reordered = {};
+      arr.forEach(k=>{ reordered[k]=DATA.lectures[k]; });
+      DATA.lectures = reordered;
+      renderSubjOrderList(); buildSubjectSelects(); updateRawEditor();
+    });
     listEl.appendChild(div);
   });
 }
@@ -1800,6 +1818,47 @@ function switchTab(name, btn){
 // ── INIT ──
 loadConfig();
 if(cfg.token && cfg.repo) loadDataFromGithub();
+
+// ==================== TOUCH DRAG UTIL ====================
+function addTouchDrag(el, onDrop){
+  let startY, dragEl, placeholder, startIdx;
+  el.addEventListener('touchstart', e=>{
+    dragEl = e.currentTarget;
+    startY = e.touches[0].clientY;
+    const items = Array.from(dragEl.parentNode.children).filter(c=>c.classList.contains('cur-item'));
+    startIdx = items.indexOf(dragEl);
+    dragEl.classList.add('dragging');
+    placeholder = document.createElement('div');
+    placeholder.style.cssText = 'height:'+dragEl.offsetHeight+'px;background:var(--accent2);border:1px dashed var(--accent);border-radius:6px;margin-bottom:4px';
+    e.preventDefault();
+  },{passive:false});
+  el.addEventListener('touchmove', e=>{
+    if(!dragEl) return;
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    const all = Array.from(dragEl.parentNode.children).filter(c=>c.classList.contains('cur-item')&&c!==dragEl);
+    let target = null;
+    for(const c of all){
+      const r = c.getBoundingClientRect();
+      if(y < r.top + r.height/2){ target = c; break; }
+    }
+    if(target) dragEl.parentNode.insertBefore(placeholder, target);
+    else dragEl.parentNode.appendChild(placeholder);
+    dragEl.style.cssText = 'position:fixed;z-index:999;left:0;right:0;opacity:.85;pointer-events:none;background:var(--bg3);border:1px solid var(--accent);border-radius:6px;padding:8px 12px;margin:0 16px;top:'+(y-30)+'px';
+  },{passive:false});
+  el.addEventListener('touchend', e=>{
+    if(!dragEl) return;
+    dragEl.style.cssText = '';
+    dragEl.classList.remove('dragging');
+    if(placeholder&&placeholder.parentNode){
+      const finalItems = Array.from(placeholder.parentNode.children).filter(c=>c.classList.contains('cur-item')||c===placeholder);
+      const toIdx = finalItems.indexOf(placeholder);
+      placeholder.parentNode.removeChild(placeholder);
+      onDrop(startIdx, toIdx);
+    }
+    dragEl = null; placeholder = null;
+  });
+}
 
 </script>
 <script>
