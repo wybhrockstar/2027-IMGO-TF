@@ -12,13 +12,13 @@
   "lang": "ko",
   "icons": [
     {
-      "src": "icons/icon-admin-192.png",
+      "src": "icons/icon_admin_192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-admin-512.png",
+      "src": "icons/icon_admin_512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
