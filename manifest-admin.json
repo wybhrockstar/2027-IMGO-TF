@@ -4,7 +4,7 @@
   "description": "2027 IMGO TF Admin",
   "id": "/admin.html",
   "start_url": "./admin.html",
-  "scope": "./admin.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0d0d0d",
