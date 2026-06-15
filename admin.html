@@ -1396,7 +1396,7 @@ function renderCurrentLectures(){
   function makeDragItem(l, i, allLecs){
     const div = document.createElement('div');
     div.className = 'cur-item';
-    div.draggable = true;
+    div.draggable = false;
     div.dataset.idx = i;
     div.dataset.subj = subj;
     div.dataset.realIdx = lecs.indexOf(l);
@@ -1454,6 +1454,7 @@ function renderCurrentLectures(){
     });
 
     div.querySelector('.del-btn').addEventListener('click', function(){ delLecture(subj, parseInt(div.dataset.realIdx)); });
+    div.querySelector('.drag-handle').addEventListener('mousedown', ()=>{ div.draggable=true; });
     div.addEventListener('dragstart', lecDragStart);
     div.addEventListener('dragover', lecDragOver);
     div.addEventListener('drop', lecDrop);
@@ -1504,7 +1505,7 @@ function lecDragOver(e){
   e.currentTarget.classList.add('drag-over');
 }
 function lecDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
-function lecDragEnd(e){ e.currentTarget.classList.remove('dragging'); }
+function lecDragEnd(e){ e.currentTarget.classList.remove('dragging'); e.currentTarget.draggable=false; }
 function lecDrop(e){
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
@@ -1632,11 +1633,12 @@ function renderSubjOrderList(){
   subjects.forEach(function(s,i){
     const div = document.createElement('div');
     div.className = 'cur-item';
-    div.draggable = true;
+    div.draggable = false;
     div.dataset.idx = i;
     div.innerHTML = '<span class="drag-handle" title="드래그로 순서 변경">⠿</span>'
       +'<div class="cur-item-text" style="font-size:13px;font-weight:500">'+s+'</div>'
       +'<span style="font-family:monospace;font-size:11px;color:var(--text3)">'+(DATA.lectures[s]||[]).length+'강</span>';
+    div.querySelector('.drag-handle').addEventListener('mousedown', ()=>{ div.draggable=true; });
     div.addEventListener('dragstart', subjDragStart);
     div.addEventListener('dragover', subjDragOver);
     div.addEventListener('drop', subjDrop);
@@ -1667,7 +1669,7 @@ function subjDragOver(e){
   e.currentTarget.classList.add('drag-over');
 }
 function subjDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
-function subjDragEnd(e){ e.currentTarget.classList.remove('dragging'); }
+function subjDragEnd(e){ e.currentTarget.classList.remove('dragging'); e.currentTarget.draggable=false; }
 function subjDrop(e){
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
@@ -1821,9 +1823,12 @@ if(cfg.token && cfg.repo) loadDataFromGithub();
 
 // ==================== TOUCH DRAG UTIL ====================
 function addTouchDrag(el, onDrop){
-  let startY, dragEl, placeholder, startIdx;
-  el.addEventListener('touchstart', e=>{
-    dragEl = e.currentTarget;
+  let startY, dragEl, placeholder, startIdx, active=false;
+  const handle = el.querySelector('.drag-handle');
+  if(!handle) return;
+  handle.addEventListener('touchstart', e=>{
+    active = true;
+    dragEl = el;
     startY = e.touches[0].clientY;
     const items = Array.from(dragEl.parentNode.children).filter(c=>c.classList.contains('cur-item'));
     startIdx = items.indexOf(dragEl);
@@ -1832,8 +1837,8 @@ function addTouchDrag(el, onDrop){
     placeholder.style.cssText = 'height:'+dragEl.offsetHeight+'px;background:var(--accent2);border:1px dashed var(--accent);border-radius:6px;margin-bottom:4px';
     e.preventDefault();
   },{passive:false});
-  el.addEventListener('touchmove', e=>{
-    if(!dragEl) return;
+  handle.addEventListener('touchmove', e=>{
+    if(!active||!dragEl) return;
     e.preventDefault();
     const y = e.touches[0].clientY;
     const all = Array.from(dragEl.parentNode.children).filter(c=>c.classList.contains('cur-item')&&c!==dragEl);
@@ -1846,8 +1851,9 @@ function addTouchDrag(el, onDrop){
     else dragEl.parentNode.appendChild(placeholder);
     dragEl.style.cssText = 'position:fixed;z-index:999;left:0;right:0;opacity:.85;pointer-events:none;background:var(--bg3);border:1px solid var(--accent);border-radius:6px;padding:8px 12px;margin:0 16px;top:'+(y-30)+'px';
   },{passive:false});
-  el.addEventListener('touchend', e=>{
-    if(!dragEl) return;
+  handle.addEventListener('touchend', e=>{
+    if(!active||!dragEl) return;
+    active = false;
     dragEl.style.cssText = '';
     dragEl.classList.remove('dragging');
     if(placeholder&&placeholder.parentNode){
