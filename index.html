@@ -62,8 +62,7 @@ body.light .sec-title{color:var(--text3)}
 .ttab.on{background:var(--accent2);border-color:var(--accent);color:var(--accent)}
 
 /* ── STATS ── */
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:22px}
-@media(min-width:500px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:22px}
 .sc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px}
 .sc-label{font-size:11px;color:var(--text3);margin-bottom:5px}
 .sc-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500}
@@ -148,11 +147,9 @@ body.light .nc-stitle{color:var(--text3)}
 .ucnt{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--amber);min-width:22px;text-align:center}
 
 
-/* ── MOBILE ZOOM ── */
-@media(max-width:767px){body{zoom:0.75}}
-
 /* scrollbar */
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+@media(max-width:767px){body{zoom:0.75}}
 
 /* ── EXAMS ── */
 .exam-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;letter-spacing:.03em;white-space:nowrap}
@@ -457,7 +454,7 @@ function buildStats(t){
     if(isStudyTimeValue(it.time)){done++;totalMins+=studyTimeMins(it.time);}
   }));
   const h=Math.floor(totalMins/60),m=totalMins%60;
-  const period = (S.termPeriods&&S.termPeriods[t])||'미정';
+  const period = ((S.termPeriods&&S.termPeriods[t])||'미정').replace(' ~ ','<br>~ ');
   document.getElementById('statsRow').innerHTML=`
     <div class="sc"><div class="sc-label">기간</div><div class="sc-val" style="font-size:11px;padding-top:5px;color:var(--text2);line-height:1.4">${period}</div><div class="sc-sub">&nbsp;</div></div>
     <div class="sc"><div class="sc-label">전체 회차</div><div class="sc-val">${total}</div><div class="sc-sub">회</div></div>
