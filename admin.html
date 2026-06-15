@@ -23,12 +23,10 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
-@media(max-width:767px){body{zoom:0.75}}
 .hdr{border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:100}
 .logo{font-weight:700;font-size:15px;color:var(--amber);letter-spacing:.04em}
 .back-btn{font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);color:var(--text3);background:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:.15s}
 .back-btn:hover{border-color:var(--accent);color:var(--accent)}
-.setup-banner{background:var(--amber2);border:1px solid rgba(255,179,71,.3);border-radius:var(--r);padding:16px 20px;margin:20px 20px 0}
 .setup-title{font-size:13px;font-weight:600;color:var(--amber);margin-bottom:8px}
 .setup-desc{font-size:12px;color:var(--text2);line-height:1.8}
 .setup-desc code{font-family:'JetBrains Mono',monospace;background:var(--bg4);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--amber)}
@@ -89,29 +87,35 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 .old-toggle-btn:hover{background:rgba(255,179,71,.15)}
 .old-toggle-btn.is-current{border-color:rgba(94,207,176,.3);color:var(--teal)}
 .old-toggle-btn.is-current:hover{background:rgba(94,207,176,.1)}
-</style>
+
+/* ── CONFIG MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.hidden{display:none}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:600px;max-height:90vh;overflow-y:auto;padding:24px}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.modal-title{font-size:14px;font-weight:700;color:var(--amber)}
+.modal-close{background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;line-height:1;padding:2px 6px}
+.modal-close:hover{color:var(--text)}
+.cfg-open-btn{font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);color:var(--text3);background:none;cursor:pointer;transition:.15s}
+.cfg-open-btn:hover{border-color:var(--amber);color:var(--amber)}</style>
 </head>
 <body>
 
 <div class="hdr">
   <div class="logo">⚙️ 관리자 패널</div>
-  <a class="back-btn" href="index.html">← 사이트로</a>
-</div>
-
-<div class="setup-banner" id="setupBanner" style="display:none">
-  <div class="setup-title">⚡ 최초 설정 필요</div>
-  <div class="setup-desc">
-    아래 <b>설정</b>에 GitHub 정보를 입력해주세요.<br>
-    • <b>GitHub Token</b>: github.com → Settings → Developer settings → Personal access tokens → <code>repo</code> 권한 체크 후 생성<br>
-    • <b>저장소 정보</b>: <code>유저명/저장소명</code> 형식 (예: <code>hong/imgo-study</code>)<br>
-    한 번만 입력하면 이후엔 자동 저장됩니다.
+  <div style="display:flex;gap:8px;align-items:center">
+    <button class="cfg-open-btn" onclick="document.getElementById('cfgModal').classList.remove('hidden')">⚙️ 설정</button>
+    <a class="back-btn" href="index.html">← 사이트로</a>
   </div>
 </div>
 
-<div class="main">
-
-  <div class="config-box">
-    <div class="config-title">⚙️ 설정</div>
+<!-- CONFIG MODAL -->
+<div class="modal-overlay hidden" id="cfgModal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-title">⚙️ 설정</div>
+      <button class="modal-close" onclick="document.getElementById('cfgModal').classList.add('hidden')">✕</button>
+    </div>
     <div class="cfg-row">
       <div class="fgroup"><label>GitHub Token</label><input class="fi fi-mono" id="cfg-token" type="password" placeholder="ghp_xxxxxxxxxxxx"></div>
       <div class="fgroup"><label>저장소 (유저명/저장소명)</label><input class="fi fi-mono" id="cfg-repo" placeholder="hong/imgo-study"></div>
@@ -127,6 +131,10 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
     <button class="save-cfg-btn" onclick="saveConfig()">저장</button>
     <div class="cfg-status" id="cfg-status"></div>
   </div>
+</div>
+
+
+<div class="main">
 
   <div class="tabs">
     <button class="tab on" onclick="switchTab('schedule', this)">📅 스터디 일정</button>
@@ -472,7 +480,7 @@ function loadConfig(){
   if(cfg.repo)      document.getElementById('cfg-repo').value      = cfg.repo;
   if(cfg.geminiKey) document.getElementById('cfg-gemini-key').value = cfg.geminiKey;
   if(cfg.gcalUrl)   document.getElementById('cfg-gcal-url').value   = cfg.gcalUrl;
-  if(!cfg.token || !cfg.repo) document.getElementById('setupBanner').style.display = 'block';
+  if(!cfg.token || !cfg.repo){ document.getElementById('cfgModal').classList.remove('hidden'); }
 }
 function saveConfig(){
   cfg.token     = document.getElementById('cfg-token').value.trim();
@@ -482,7 +490,7 @@ function saveConfig(){
   localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
   const s = document.getElementById('cfg-status');
   s.style.color='var(--teal)'; s.textContent='✓ 저장되었습니다.';
-  document.getElementById('setupBanner').style.display='none';
+  
   setTimeout(()=>s.textContent='', 2000);
   loadDataFromGithub();
 }
@@ -1054,7 +1062,7 @@ function renderTimelogPanel(){
 
     const div = document.createElement('div');
     div.className = 'cur-item';
-    div.style.cssText = 'display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center';
+    div.style.cssText = 'display:grid;grid-template-columns:auto 1fr 1fr auto;gap:8px;align-items:center';
 
     // Current values
     const curTime = item.time || '';
@@ -1064,12 +1072,9 @@ function renderTimelogPanel(){
 
     div.innerHTML =
       `<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);min-width:72px">${item.date}(${item.day})</span>`
-      +`<span style="font-size:13px;color:var(--text)">${escHtml(item.subject)}`
-        +(curNote?` <span style="color:var(--amber);font-size:11px">${escHtml(curNote)}</span>`:'')
-        +(timeDisplay?` ${timeDisplay}`:'')
-      +`</span>`
-      +`<input class="fi tl2-note-inp" placeholder="비고" value="${escHtml(curNote)}" style="width:110px;padding:4px 7px;font-size:12px;background:var(--bg4)">`
-      +`<input class="fi tl2-time-inp" placeholder="시간 (예: 2:30 또는 PASS)" value="${escHtml(curTime)}" style="width:140px;padding:4px 7px;font-size:12px;font-family:monospace;background:var(--bg4)">`;
+      +`<span style="font-size:13px;color:var(--text)">${escHtml(item.subject)}</span>`
+      +`<input class="fi tl2-note-inp" placeholder="비고" value="${escHtml(curNote)}" style="width:100%;padding:4px 7px;font-size:12px;background:var(--bg4)">`
+      +`<input class="fi tl2-time-inp" placeholder="시간" value="${escHtml(curTime)}" style="width:52px;padding:4px 7px;font-size:12px;font-family:monospace;background:var(--bg4)">`;
 
     // Save on blur/enter for note
     const noteInp = div.querySelector('.tl2-note-inp');
@@ -1085,12 +1090,7 @@ function renderTimelogPanel(){
       updateRawEditor();
       // Live update subject span
       const subjSpan = div.querySelector('span:nth-child(2)');
-      const noteVal = DATA.schedule[term][wi].items[ii].note||'';
-      const timeVal = DATA.schedule[term][wi].items[ii].time||'';
-      const timeHtml = formatStudyTimeDisplay(timeVal);
-      subjSpan.innerHTML = escHtml(item.subject)
-        +(noteVal?` <span style="color:var(--amber);font-size:11px">${escHtml(noteVal)}</span>`:'')
-        +(timeHtml?` ${timeHtml}`:'');
+      subjSpan.innerHTML = escHtml(item.subject);
     }
 
     [noteInp, timeInp].forEach(inp => {
@@ -1799,7 +1799,7 @@ function switchTab(name, btn){
 // ── INIT ──
 loadConfig();
 if(cfg.token && cfg.repo) loadDataFromGithub();
-else document.getElementById('setupBanner').style.display='block';
+
 </script>
 <script>
   if ('serviceWorker' in navigator) {
