@@ -3,8 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2027 IMGO TF Admin</title>
-<link rel="icon" type="image/png" href="favicon2.png"> 
+<title>임고 스터디 — 관리자</title>
+<link rel="manifest" href="manifest-admin.json">
+<link rel="apple-touch-icon" href="icons/icon-admin-192.png">
+<meta name="theme-color" content="#0d0d0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="IMGO Admin">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1794,6 +1799,15 @@ function switchTab(name, btn){
 loadConfig();
 if(cfg.token && cfg.repo) loadDataFromGithub();
 else document.getElementById('setupBanner').style.display='block';
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(r => console.log('✓ SW 등록됨', r.scope))
+        .catch(e => console.warn('SW 등록 실패', e));
+    });
+  }
 </script>
 </body>
 </html>
