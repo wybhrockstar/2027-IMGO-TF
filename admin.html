@@ -1123,10 +1123,13 @@ function applyNaming(raw){
   t = t.replace(FORBIDDEN_RE, '');
   // 숫자~숫자 범위 보호 (예: 1~3 → 임시치환)
   t = t.replace(/(\d)~(\d)/g, '$1\x00$2');
+  // 숫자-숫자 범위 보호 (예: 01-02 → 임시치환)
+  t = t.replace(/(\d)-(\d)/g, '$1\x01$2');
   t = t.replace(/(?<!\s)\(/g, ' (');
   t = t.replace(/\s*~\s*/g, ' ~ ');
   t = t.replace(/(?<=[^\s])-(?=[^\s])/g, ' - ');
   t = t.replaceAll('\x00', '~');
+  t = t.replaceAll('\x01', '-');
   return t.replace(/  +/g, ' ').trim();
 }
 
