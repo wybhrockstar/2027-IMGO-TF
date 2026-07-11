@@ -531,13 +531,16 @@ async function pushToGithub(){
     localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
     ['sc','tl2','lc','nt','raw'].forEach(p=>setStatus(p+'-push-status','✓ GitHub 저장 완료!','ok'));
     setStatus('term-period-status','✓ GitHub 저장 완료!','ok');
+    setStatus('so-status','✓ GitHub 저장 완료!','ok');
     setTimeout(()=>{
       ['sc','tl2','lc','nt','raw'].forEach(p=>setStatus(p+'-push-status','',''));
       setStatus('term-period-status','','');
+      setStatus('so-status','','');
     }, 3000);
   } catch(e){
     ['sc','tl2','lc','nt','raw'].forEach(p=>setStatus(p+'-push-status','⚠ '+e.message,'err'));
     setStatus('term-period-status','⚠ '+e.message,'err');
+    setStatus('so-status','⚠ '+e.message,'err');
   }
 }
 
@@ -1633,11 +1636,11 @@ function renderSubjOrderList(){
   });
 }
 // (구 네이티브 Drag&Drop 핸들러들은 addDragReorder로 대체되어 제거됨)
-function saveSubjOrder(){
+async function saveSubjOrder(){
   updateRawEditor();
-  pushToGithub();
-  setStatus('so-status','✓ 저장 후 GitHub에 반영 중...','ok');
-  setTimeout(function(){ setStatus('so-status','',''); }, 4000);
+  setStatus('so-status','저장 중...','loading');
+  await pushToGithub();
+  // pushToGithub가 성공/실패 메시지를 so-status에 직접 반영하므로 여기서 덮어쓰지 않음
 }
 
 // ── EXAMS ──
