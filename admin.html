@@ -1468,6 +1468,7 @@ function renderCurrentLectures(){
     div.querySelector('.del-btn').addEventListener('click', function(){ delLecture(subj, parseInt(div.dataset.realIdx)); });
     div.querySelector('.drag-handle').addEventListener('mousedown', ()=>{ div.draggable=true; });
     div.addEventListener('dragstart', lecDragStart);
+    div.addEventListener('dragenter', lecDragOver);
     div.addEventListener('dragover', lecDragOver);
     div.addEventListener('drop', lecDrop);
     div.addEventListener('dragleave', lecDragLeave);
@@ -1510,6 +1511,7 @@ function lecDragStart(e){
   lecDragSrc = parseInt(e.currentTarget.dataset.realIdx);
   e.currentTarget.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', String(lecDragSrc));
 }
 function lecDragOver(e){
   e.preventDefault();
@@ -1526,8 +1528,7 @@ function lecDrop(e){
   if(lecDragSrc === null || lecDragSrc === targetRealIdx) return;
   const lecs = DATA.lectures[subj];
   const moved = lecs.splice(lecDragSrc, 1)[0];
-  const insertAt = lecDragSrc < targetRealIdx ? targetRealIdx : targetRealIdx;
-  lecs.splice(insertAt, 0, moved);
+  lecs.splice(targetRealIdx, 0, moved);
   lecDragSrc = null;
   renderCurrentLectures();
   updateRawEditor();
@@ -1652,6 +1653,7 @@ function renderSubjOrderList(){
       +'<span style="font-family:monospace;font-size:11px;color:var(--text3)">'+(DATA.lectures[s]||[]).length+'강</span>';
     div.querySelector('.drag-handle').addEventListener('mousedown', ()=>{ div.draggable=true; });
     div.addEventListener('dragstart', subjDragStart);
+    div.addEventListener('dragenter', subjDragOver);
     div.addEventListener('dragover', subjDragOver);
     div.addEventListener('drop', subjDrop);
     div.addEventListener('dragleave', subjDragLeave);
@@ -1674,6 +1676,7 @@ function subjDragStart(e){
   subjDragSrc = parseInt(e.currentTarget.dataset.idx);
   e.currentTarget.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', String(subjDragSrc));
 }
 function subjDragOver(e){
   e.preventDefault();
