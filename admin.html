@@ -1466,14 +1466,7 @@ function renderCurrentLectures(){
     });
 
     div.querySelector('.del-btn').addEventListener('click', function(){ delLecture(subj, parseInt(div.dataset.realIdx)); });
-    div.querySelector('.drag-handle').addEventListener('mousedown', ()=>{ div.draggable=true; });
-    div.addEventListener('dragstart', lecDragStart);
-    div.addEventListener('dragenter', lecDragOver);
-    div.addEventListener('dragover', lecDragOver);
-    div.addEventListener('drop', lecDrop);
-    div.addEventListener('dragleave', lecDragLeave);
-    div.addEventListener('dragend', lecDragEnd);
-    addTouchDrag(div, (from, to)=>{
+    addDragReorder(div, (from, to)=>{
       if(from===to) return;
       const subj = currentSubject;
       const lecs = DATA.lectures[subj];
@@ -1506,33 +1499,8 @@ function delLecture(subj, i){
   DATA.lectures[subj].splice(i,1);
   renderCurrentLectures(); updateRawEditor();
 }
-var lecDragSrc = null;
-function lecDragStart(e){
-  lecDragSrc = parseInt(e.currentTarget.dataset.realIdx);
-  e.currentTarget.classList.add('dragging');
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', String(lecDragSrc));
-}
-function lecDragOver(e){
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  e.currentTarget.classList.add('drag-over');
-}
-function lecDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
-function lecDragEnd(e){ e.currentTarget.classList.remove('dragging'); e.currentTarget.draggable=false; }
-function lecDrop(e){
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  const targetRealIdx = parseInt(e.currentTarget.dataset.realIdx);
-  const subj = e.currentTarget.dataset.subj;
-  if(lecDragSrc === null || lecDragSrc === targetRealIdx) return;
-  const lecs = DATA.lectures[subj];
-  const moved = lecs.splice(lecDragSrc, 1)[0];
-  lecs.splice(targetRealIdx, 0, moved);
-  lecDragSrc = null;
-  renderCurrentLectures();
-  updateRawEditor();
-}
+// (구 네이티브 Drag&Drop 핸들러는 addDragReorder로 대체되어 제거됨)
+// (구 네이티브 Drag&Drop 핸들러들은 addDragReorder로 대체되어 제거됨)
 
 // ── NOTICE ──
 const NT_SYSTEM = `당신은 스터디 공지사항 파싱 전문가입니다.
@@ -1635,7 +1603,6 @@ function saveTermPeriods(){
 }
 
 // ── SUBJECT ORDER ──
-var subjDragSrc = null;
 function renderSubjOrderList(){
   if(!DATA) return;
   const subjects = Object.keys(DATA.lectures||{});
@@ -1651,14 +1618,7 @@ function renderSubjOrderList(){
     div.innerHTML = '<span class="drag-handle" title="드래그로 순서 변경">⠿</span>'
       +'<div class="cur-item-text" style="font-size:13px;font-weight:500">'+s+'</div>'
       +'<span style="font-family:monospace;font-size:11px;color:var(--text3)">'+(DATA.lectures[s]||[]).length+'강</span>';
-    div.querySelector('.drag-handle').addEventListener('mousedown', ()=>{ div.draggable=true; });
-    div.addEventListener('dragstart', subjDragStart);
-    div.addEventListener('dragenter', subjDragOver);
-    div.addEventListener('dragover', subjDragOver);
-    div.addEventListener('drop', subjDrop);
-    div.addEventListener('dragleave', subjDragLeave);
-    div.addEventListener('dragend', subjDragEnd);
-    addTouchDrag(div, (from, to)=>{
+    addDragReorder(div, (from, to)=>{
       if(from===to) return;
       const subjects = Object.keys(DATA.lectures);
       const arr = subjects.slice();
@@ -1672,36 +1632,7 @@ function renderSubjOrderList(){
     listEl.appendChild(div);
   });
 }
-function subjDragStart(e){
-  subjDragSrc = parseInt(e.currentTarget.dataset.idx);
-  e.currentTarget.classList.add('dragging');
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', String(subjDragSrc));
-}
-function subjDragOver(e){
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  e.currentTarget.classList.add('drag-over');
-}
-function subjDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
-function subjDragEnd(e){ e.currentTarget.classList.remove('dragging'); e.currentTarget.draggable=false; }
-function subjDrop(e){
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  const targetIdx = parseInt(e.currentTarget.dataset.idx);
-  if(subjDragSrc === null || subjDragSrc === targetIdx) return;
-  const subjects = Object.keys(DATA.lectures);
-  const reordered = {};
-  const arr = subjects.slice();
-  const moved = arr.splice(subjDragSrc, 1)[0];
-  arr.splice(targetIdx, 0, moved);
-  arr.forEach(function(k){ reordered[k] = DATA.lectures[k]; });
-  DATA.lectures = reordered;
-  subjDragSrc = null;
-  renderSubjOrderList();
-  buildSubjectSelects();
-  updateRawEditor();
-}
+// (구 네이티브 Drag&Drop 핸들러들은 addDragReorder로 대체되어 제거됨)
 function saveSubjOrder(){
   updateRawEditor();
   pushToGithub();
@@ -1836,26 +1767,27 @@ function switchTab(name, btn){
 loadConfig();
 if(cfg.token && cfg.repo) loadDataFromGithub();
 
-// ==================== TOUCH DRAG UTIL ====================
-function addTouchDrag(el, onDrop){
+// ==================== DRAG REORDER UTIL (마우스 + 터치 겸용) ====================
+// 기존엔 데스크탑=네이티브 HTML5 Drag&Drop, 모바일=커스텀 터치 로직 이렇게 이원화되어 있었는데,
+// 네이티브 Drag&Drop이 Chrome에서 dragover(accent 표시)까지는 되고 drop이 씹히는 문제가 있어
+// 모바일에서 이미 안정적으로 동작하던 커스텀 로직을 마우스에도 그대로 적용하도록 통합함.
+function addDragReorder(el, onDrop){
   let startY, dragEl, placeholder, startIdx, active=false;
   const handle = el.querySelector('.drag-handle');
   if(!handle) return;
-  handle.addEventListener('touchstart', e=>{
+
+  function dragStart(y){
     active = true;
     dragEl = el;
-    startY = e.touches[0].clientY;
+    startY = y;
     const items = Array.from(dragEl.parentNode.children).filter(c=>c.classList.contains('cur-item'));
     startIdx = items.indexOf(dragEl);
     dragEl.classList.add('dragging');
     placeholder = document.createElement('div');
     placeholder.style.cssText = 'height:'+dragEl.offsetHeight+'px;background:var(--accent2);border:1px dashed var(--accent);border-radius:6px;margin-bottom:4px';
-    e.preventDefault();
-  },{passive:false});
-  handle.addEventListener('touchmove', e=>{
+  }
+  function dragMove(y){
     if(!active||!dragEl) return;
-    e.preventDefault();
-    const y = e.touches[0].clientY;
     const all = Array.from(dragEl.parentNode.children).filter(c=>c.classList.contains('cur-item')&&c!==dragEl);
     let target = null;
     for(const c of all){
@@ -1865,8 +1797,8 @@ function addTouchDrag(el, onDrop){
     if(target) dragEl.parentNode.insertBefore(placeholder, target);
     else dragEl.parentNode.appendChild(placeholder);
     dragEl.style.cssText = 'position:fixed;z-index:999;left:0;right:0;opacity:.85;pointer-events:none;background:var(--bg3);border:1px solid var(--accent);border-radius:6px;padding:8px 12px;margin:0 16px;top:'+(y-30)+'px';
-  },{passive:false});
-  handle.addEventListener('touchend', e=>{
+  }
+  function dragEnd(){
     if(!active||!dragEl) return;
     active = false;
     dragEl.style.cssText = '';
@@ -1878,8 +1810,30 @@ function addTouchDrag(el, onDrop){
       onDrop(startIdx, toIdx);
     }
     dragEl = null; placeholder = null;
+  }
+
+  // 터치 (모바일)
+  handle.addEventListener('touchstart', e=>{ dragStart(e.touches[0].clientY); e.preventDefault(); },{passive:false});
+  handle.addEventListener('touchmove', e=>{ e.preventDefault(); dragMove(e.touches[0].clientY); },{passive:false});
+  handle.addEventListener('touchend', dragEnd);
+
+  // 마우스 (데스크탑) — document 레벨에서 move/up을 잡아야 핸들 밖으로 나가도 계속 추적됨
+  handle.addEventListener('mousedown', e=>{
+    if(e.button !== 0) return; // 좌클릭만
+    e.preventDefault();
+    dragStart(e.clientY);
+    function onMove(ev){ dragMove(ev.clientY); }
+    function onUp(){
+      dragEnd();
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
   });
 }
+// 이전 이름으로 호출하는 곳이 남아있어도 동작하도록 별칭 유지
+const addTouchDrag = addDragReorder;
 
 </script>
 <script>
