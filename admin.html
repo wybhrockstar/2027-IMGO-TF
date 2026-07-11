@@ -1159,7 +1159,10 @@ function parseLecturesFromText(rawText){
   const PAT_C_SECTION = /^\[([^\]]+)\]\s*\n((?:\d+강\.[^\n]*\n?)+)/gm;
   for(const sec of text.matchAll(PAT_C_SECTION)){
     const rawSub = sec[1].trim();
-    const sub = FILE_TO_INT_MAP[rawSub] || rawSub;
+    let sub = FILE_TO_INT_MAP[rawSub] || rawSub;
+    let engLabelC = null;
+    if(sub==='영어 복습'||sub==='영어 심화'){ engLabelC = sub.replace('영어 ',''); sub = '영어 심화'; }
+    const engTagC = engLabelC ? `[${engLabelC}] ` : '';
     const lines = sec[2].split('\n').filter(l=>l.trim());
     for(const line of lines){
       const lm = line.match(/^(\d+)강\.\s*(.+)/);
@@ -1168,7 +1171,7 @@ function parseLecturesFromText(rawText){
       let title = applyNaming(lm[2].trim());
       // 63강처럼 쉼표로 두 강이 묶인 경우 첫 번째 내용만 취함
       // (사용자가 분리해서 입력해야 하나, 일단 그대로 보존)
-      const display = `${k}강. ${title}`;
+      const display = `${k}강. ${engTagC}${title}`;
       oldResults.push({n: k, k, subject: sub, title, duration: null, display, old: true});
     }
   }
@@ -1190,10 +1193,13 @@ function parseLecturesFromText(rawText){
     const key = `${n},${k}`;
     let sub, title, duration;
 
+    let engLabel = null;
     if(foundA[key]){
       const r = foundA[key];
       sub = FILE_TO_INT_MAP[r.sub] || r.sub;
       if(n===k && sub==='과학') sub = '과학 개념';
+      if(n===k && (sub==='복습'||sub==='심화')){ engLabel = sub; sub = '영어 심화'; }
+      else if(sub==='영어 복습'||sub==='영어 심화'){ engLabel = sub.replace('영어 ',''); sub = '영어 심화'; }
       title = applyNaming(stripMeta(r.title_raw));
       duration = r.duration;
     } else {
@@ -1206,13 +1212,16 @@ function parseLecturesFromText(rawText){
       title = applyNaming(title_raw);
       sub = FILE_TO_INT_MAP[m.groups.sub.trim()] || m.groups.sub.trim();
       if(n===k && sub==='과학') sub = '과학 개념';
+      if(n===k && (sub==='복습'||sub==='심화')){ engLabel = sub; sub = '영어 심화'; }
+      else if(sub==='영어 복습'||sub==='영어 심화'){ engLabel = sub.replace('영어 ',''); sub = '영어 심화'; }
     }
 
     const isOld = /\(작년\)|\(구\)|작년/.test(title);
     if(isOld) title = title.replace(/\s*\(?작년\)?|\s*\(?구\)?/g,'').trim();
 
     const durStr = duration ? ` [${duration}분]` : '';
-    const display = `${k}강. ${title}${durStr}`;
+    const engTag = engLabel ? `[${engLabel}] ` : '';
+    const display = `${k}강. ${engTag}${title}${durStr}`;
 
     results[key] = {n, k, subject: sub, title, duration, display, old: isOld};
   }
