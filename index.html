@@ -246,6 +246,9 @@ body.light .nc-stitle{color:var(--text3)}
           <div class="subj-tabs" id="modeTabs" style="margin:0"></div>
         </div>
       </div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <div class="subj-tabs" id="avgTabs" style="margin:0"></div>
+      </div>
       <div style="overflow-x:auto">
         <div style="position:relative;height:220px">
           <canvas id="examTrendChart"></canvas>
@@ -255,14 +258,14 @@ body.light .nc-stitle{color:var(--text3)}
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#b8a5ff;display:inline-block"></span>총점</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#5b8dee;display:inline-block"></span>A형</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#3ecf8e;display:inline-block"></span>B형</span>
-        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#ff5a5a;display:inline-block"></span>총점 평균</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#fff;border:1px solid var(--border2);display:inline-block"></span>평균 (선택 시 표시)</span>
       </div>
     </div>
 
     <div class="nc" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0;flex-wrap:wrap;gap:8px">
         <div class="nc-stitle" style="margin:0">세부 점수 추이</div>
-        <button class="stab" id="subjToggleAllBtn" onclick="toggleAllSubjects()"></button>
+        <button class="stab" id="subjToggleAllBtn" style="border-color:var(--accent);color:var(--accent)" onclick="toggleAllSubjects()"></button>
       </div>
       <div class="subj-tabs" id="examSubjectTabs" style="margin:10px 0"></div>
       <div style="overflow-x:auto">
@@ -274,12 +277,13 @@ body.light .nc-stitle{color:var(--text3)}
 
     <div class="nc">
       <div class="nc-stitle" style="margin-bottom:10px">오답 기록</div>
-      <div style="display:flex;gap:8px;margin-bottom:8px">
+      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+        <span style="font-size:11px;color:var(--text3);flex-shrink:0;width:64px">회차로 조회</span>
         <select id="wrongExamBase" onchange="onWrongBaseChange()" style="flex:1"></select>
         <select id="wrongExamRound" onchange="renderWrongList()" style="flex:1"></select>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-        <span style="font-size:11px;color:var(--text3);flex-shrink:0">또는 과목으로 조회</span>
+        <span style="font-size:11px;color:var(--text3);flex-shrink:0;width:64px">과목으로 조회</span>
         <select id="wrongSubjectSelect" onchange="renderWrongList()" style="flex:1">
           <option value="">전체 (회차 선택 사용)</option>
         </select>
@@ -825,6 +829,7 @@ const AVG_COLOR = '#ff5a5a';
 let examData = { scores:[], averages:[], wrongAnswers:[] };
 let examPerson = null;
 let examSeriesActive = new Set(['total']);
+let examAvgActive = new Set();
 let examMode = 'score';
 let activeSubjects = new Set(SUBJECT_META.map(s=>s.name));
 let examTrendChart = null;
@@ -909,6 +914,17 @@ function buildExamControls(){
     const on = examMode===m;
     return `<button class="stab${on?' on':''}" style="${on?'border-color:var(--accent);color:var(--accent);background:var(--accent3)':''}" onclick="setExamMode('${m}',this)">${label}</button>`;
   }).join('');
+  const avgEl = document.getElementById('avgTabs');
+  avgEl.innerHTML = ['total','A','B'].map(s=>{
+    const label = s==='total'?'총점 평균':s==='A'?'A형 평균':'B형 평균';
+    const on = examAvgActive.has(s);
+    return `<button class="stab${on?' on':''}" style="${on?'border-color:#fff;color:#fff;background:rgba(255,255,255,.12)':''}" onclick="toggleExamAvg('${s}',this)">${label}</button>`;
+  }).join('');
+}
+function toggleExamAvg(s,btn){
+  if(examAvgActive.has(s)) examAvgActive.delete(s); else examAvgActive.add(s);
+  buildExamControls();
+  renderExamTrend();
 }
 function syncSubjectsWithSeries(){
   const types = new Set();
@@ -937,7 +953,7 @@ function mmdd(dateStr){
   if(!dateStr) return '';
   const d = new Date(dateStr);
   if(isNaN(d)) return dateStr;
-  return String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
+  return (d.getMonth()+1)+'/'+d.getDate();
 }
 function multiLineLabel(examName, dateStr){
   const { title, round } = splitExamLabel(examName);
@@ -992,9 +1008,12 @@ function examTrendPoints(seriesKey){
 function allExamLabelsForActiveSeries(){
   const set = new Set();
   [...examSeriesActive].forEach(s=>{ Object.keys(examTrendPoints(s)).forEach(n=>set.add(n)); });
+  examAvgActive.forEach(s=>{
+    examData.averages.forEach(a=>{ if(s==='total' || a.type===s) set.add(a.examName); });
+  });
   return [...set].sort((a,b)=>{
-    const da = examData.scores.find(r=>r.examName===a)?.examDate;
-    const db = examData.scores.find(r=>r.examName===b)?.examDate;
+    const da = examData.scores.find(r=>r.examName===a)?.examDate || examData.averages.find(r=>r.examName===a)?.examDate;
+    const db = examData.scores.find(r=>r.examName===b)?.examDate || examData.averages.find(r=>r.examName===b)?.examDate;
     return new Date(da) - new Date(db);
   });
 }
@@ -1004,9 +1023,10 @@ function renderExamTrend(){
   const labelsRaw = allExamLabelsForActiveSeries();
   const dateOf = {};
   examData.scores.forEach(r=>{ dateOf[r.examName]=r.examDate; });
+  examData.averages.forEach(a=>{ if(!dateOf[a.examName]) dateOf[a.examName]=a.examDate; });
   const labels = labelsRaw.map(n=>multiLineLabel(n, dateOf[n]));
 
-  // 회차별 재언이 기록한 A/B 평균 (총점평균 = A평균+B평균)
+  // 회차별 재언이 기록한 A/B 평균 (총점 평균 = A형 평균+B형 평균)
   const avgByExam = {};
   examData.averages.forEach(a=>{
     if(!avgByExam[a.examName]) avgByExam[a.examName] = {A:null,B:null};
@@ -1020,6 +1040,7 @@ function renderExamTrend(){
     if(rec.A===null && rec.B===null) return null;
     return (rec.A||0)+(rec.B||0);
   }
+  const avgLabelOf = { total:'총점 평균', A:'A형 평균', B:'B형 평균' };
 
   const datasets = [...examSeriesActive].map(s=>{
     const pts = examTrendPoints(s);
@@ -1036,13 +1057,17 @@ function renderExamTrend(){
     };
   });
 
-  // 평균: 총점평균만 선 없이 빨간 점으로 표시 (A/B평균은 툴팁에서만)
-  const avgTotalRaw = labelsRaw.map(n=>avgFor(n,'total'));
-  const avgData = avgTotalRaw.map(v=> v===null?null: (examMode==='score'? v : Math.round(v/80*1000)/10));
-  datasets.push({
-    label:'총점평균', isAvgDataset:true, data:avgData, avgTotalRaw,
-    avgARaw: labelsRaw.map(n=>avgFor(n,'A')), avgBRaw: labelsRaw.map(n=>avgFor(n,'B')),
-    showLine:false, pointBackgroundColor:AVG_COLOR, pointBorderColor:AVG_COLOR, pointRadius:5, pointStyle:'circle'
+  // 사용자가 직접 켠 평균만 흰색 점(선 없음)으로 표시
+  [...examAvgActive].forEach(s=>{
+    const max = seriesMax(s);
+    const rawScores = labelsRaw.map(n=>avgFor(n,s));
+    const data = rawScores.map(v=> v===null?null: (examMode==='score'? v : Math.round(v/max*1000)/10));
+    datasets.push({
+      seriesKey:s, isAvgDataset:true, label: avgLabelOf[s],
+      data, rawScores, maxScore:max,
+      showLine:false, pointBackgroundColor:'#fff', pointBorderColor:'#fff', pointRadius:5, pointStyle:'circle',
+      borderColor:'#fff'
+    });
   });
 
   const ctx = document.getElementById('examTrendChart');
@@ -1058,19 +1083,13 @@ function renderExamTrend(){
           title:(items)=> labelsRaw[items[0].dataIndex],
           label:(c)=>{
             const ds = c.dataset;
-            if(ds.isAvgDataset){
-              const i = c.dataIndex;
-              const lines = [];
-              if(ds.avgTotalRaw[i]!==null && ds.avgTotalRaw[i]!==undefined) lines.push('총점평균: '+fmtBoth(ds.avgTotalRaw[i],80));
-              if(ds.avgARaw[i]!==null && ds.avgARaw[i]!==undefined) lines.push('A형평균: '+fmtBoth(ds.avgARaw[i],39));
-              if(ds.avgBRaw[i]!==null && ds.avgBRaw[i]!==undefined) lines.push('B형평균: '+fmtBoth(ds.avgBRaw[i],41));
-              return lines;
-            }
             const i = c.dataIndex;
+            if(ds.isAvgDataset){
+              return ds.label+': '+fmtBoth(ds.rawScores[i], ds.maxScore);
+            }
             const lines = [ ds.label+': '+fmtBoth(ds.rawScores[i], ds.maxScore) ];
-            const avgLabel = ds.seriesKey==='total'?'총점평균':ds.seriesKey==='A'?'A형평균':'B형평균';
             const avgMax = ds.seriesKey==='total'?80:ds.seriesKey==='A'?39:41;
-            if(ds.avgRaw[i]!==null && ds.avgRaw[i]!==undefined) lines.push(avgLabel+': '+fmtBoth(ds.avgRaw[i],avgMax));
+            if(ds.avgRaw[i]!==null && ds.avgRaw[i]!==undefined) lines.push(avgLabelOf[ds.seriesKey]+': '+fmtBoth(ds.avgRaw[i],avgMax));
             return lines;
           }
         } } },
@@ -1086,10 +1105,13 @@ function fitChartWidth(canvasId, count){
   wrapper.style.width = w+'px';
 }
 
+function subjectBtnStyle(active,color){
+  return active ? `border-color:${color};color:${color}` : `border-color:var(--border2);color:var(--text3)`;
+}
 function renderExamSubjectTabs(){
   const el = document.getElementById('examSubjectTabs');
   el.innerHTML = SUBJECT_META.map(s=>
-    `<button class="stab${activeSubjects.has(s.name)?' on':''}" style="border-color:${activeSubjects.has(s.name)?s.color:''};${activeSubjects.has(s.name)?'color:'+s.color:''}" onclick="toggleSubject('${s.name}',this)">${s.name} ${s.max}점</button>`
+    `<button class="stab${activeSubjects.has(s.name)?' on':''}" style="${subjectBtnStyle(activeSubjects.has(s.name),s.color)}" onclick="toggleSubject('${s.name}',this)">${s.name} ${s.max}점</button>`
   ).join('');
   const allBtn = document.getElementById('subjToggleAllBtn');
   if(allBtn){
@@ -1100,7 +1122,10 @@ function renderExamSubjectTabs(){
 }
 function toggleSubject(name,btn){
   if(activeSubjects.has(name)) activeSubjects.delete(name); else activeSubjects.add(name);
-  btn.classList.toggle('on');
+  const s = SUBJECT_META.find(x=>x.name===name);
+  const active = activeSubjects.has(name);
+  btn.classList.toggle('on', active);
+  btn.setAttribute('style', subjectBtnStyle(active, s.color));
   const allBtn = document.getElementById('subjToggleAllBtn');
   if(allBtn){
     const allOn = activeSubjects.size===SUBJECT_META.length;
