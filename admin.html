@@ -127,7 +127,7 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
     </div>
     <div class="cfg-row">
       <div class="fgroup"><label>Google Calendar Sync URL</label><input class="fi fi-mono" id="cfg-gcal-url" placeholder="Google Apps Script 웹앱 URL"></div>
-      <div class="fgroup" style="display:flex;align-items:flex-end"><div style="font-size:11px;color:var(--text3);line-height:1.7">Apps Script 배포 URL을 입력하면<br>1~4텀 전체 일정을 캘린더와 동기화합니다.</div></div>
+      <div class="fgroup" style="display:flex;align-items:flex-end"><div style="font-size:11px;color:var(--text3);line-height:1.7">Apps Script 배포 URL을 입력하면<br>1~3텀 전체 일정을 캘린더와 동기화합니다.</div></div>
     </div>
     <button class="save-cfg-btn" onclick="saveConfig()">저장</button>
     <div class="cfg-status" id="cfg-status"></div>
@@ -174,7 +174,7 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div class="fgroup" style="margin-bottom:10px">
         <label>추가할 텀 선택</label>
         <select class="fi" id="sc-study-term" style="max-width:140px">
-          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option><option value="4">4텀</option>
+          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option>
         </select>
       </div>
       <div class="fgroup" style="margin-bottom:12px">
@@ -224,7 +224,7 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div class="fgroup" style="margin-bottom:10px">
         <label>텀 선택</label>
         <select class="fi" id="sc-term" style="max-width:140px">
-          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option><option value="4">4텀</option>
+          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option>
         </select>
       </div>
       <div class="fgroup" style="margin-bottom:12px">
@@ -252,7 +252,7 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div class="fgroup" style="margin-bottom:12px">
         <label>텀 선택</label>
         <select class="fi" id="sc-view-term" style="max-width:140px" onchange="renderCurrentSchedule()">
-          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option><option value="4">4텀</option>
+          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option>
         </select>
       </div>
       <div id="sc-current-list"></div>
@@ -276,7 +276,7 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div class="fgroup" style="margin-bottom:12px">
         <label>텀 선택</label>
         <select class="fi" id="tl2-term" style="max-width:140px" onchange="renderTimelogPanel()">
-          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option><option value="4">4텀</option>
+          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option>
         </select>
       </div>
       <div id="tl2-list"></div>
@@ -1584,7 +1584,7 @@ function renderTermPeriodInputs(){
   if(!DATA) return;
   const tp = DATA.termPeriods || {};
   let h = '';
-  [1,2,3,4].forEach(function(t){
+  [1,2,3].forEach(function(t){
     const v = tp[t]||'';
     h += '<div style="display:grid;grid-template-columns:60px 1fr;gap:8px;align-items:center">'
        + '<label style="margin-bottom:0;color:var(--amber);font-weight:600">'+t+'텀</label>'
@@ -1596,7 +1596,7 @@ function renderTermPeriodInputs(){
 function saveTermPeriods(){
   if(!DATA){ setStatus('term-period-status','데이터가 없습니다.','err'); return; }
   if(!DATA.termPeriods) DATA.termPeriods = {};
-  [1,2,3,4].forEach(function(t){
+  [1,2,3].forEach(function(t){
     const el = document.getElementById('tp-'+t);
     if(el && el.value.trim()) DATA.termPeriods[t] = el.value.trim();
   });
