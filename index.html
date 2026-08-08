@@ -256,7 +256,7 @@ body.light .nc-stitle{color:var(--text3)}
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#b8a5ff;display:inline-block"></span>총점</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#5b8dee;display:inline-block"></span>A형</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#3ecf8e;display:inline-block"></span>B형</span>
-        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:transparent;border:2px solid var(--text3);display:inline-block"></span>평균 (선택 시 표시, 테두리는 테마색)</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:transparent;border:2px solid var(--text3);display:inline-block"></span>평균</span>
       </div>
     </div>
 
@@ -927,7 +927,7 @@ function buildExamControls(){
     const label = s==='total'?'총점 평균':s==='A'?'A형 평균':'B형 평균';
     const on = examAvgActive.has(s);
     const c = SERIES_COLOR[s];
-    return `<button class="stab${on?' on':''}" style="border-color:${c};color:#fff;${on?`background:${c}2a`:''}" onclick="toggleExamAvg('${s}',this)">${label}</button>`;
+    return `<button class="stab${on?' on':''}" style="border-color:${on?c:'var(--border2)'};color:#fff;${on?`background:${c}2a`:''}" onclick="toggleExamAvg('${s}',this)">${label}</button>`;
   }).join('');
 }
 function toggleExamAvg(s,btn){
@@ -1207,13 +1207,14 @@ function renderAvgRateChart(){
   });
   const labels = ['총점','A형','B형', ...SUBJECT_META.map(s=>s.name)];
   const data = [totalRate(), typeRate('A',39), typeRate('B',41), ...subjRates];
-  const colors = [SERIES_COLOR.total, '#5b8dee','#3ecf8e', ...SUBJECT_META.map(s=>s.color)];
+  const bgColors = ['#fff','#fff','#fff', ...SUBJECT_META.map(s=>s.color)];
+  const borderColors = [SERIES_COLOR.total, '#5b8dee','#3ecf8e', ...SUBJECT_META.map(s=>s.color)];
 
   const ctx = document.getElementById('avgRateChart');
   if(avgRateChart) avgRateChart.destroy();
   avgRateChart = new Chart(ctx, {
     type:'bar',
-    data:{ labels, datasets:[{ data, backgroundColor:colors, borderRadius:4, hideLabel:false, borderColor:colors,
+    data:{ labels, datasets:[{ data, backgroundColor:bgColors, borderRadius:4, hideLabel:false, borderColor:borderColors, borderWidth:2,
       rawScores:data, maxScore:100 }] },
     plugins:[valueLabelBarPlugin],
     options:{ responsive:true, maintainAspectRatio:false,
