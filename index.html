@@ -230,7 +230,6 @@ body.light .nc-stitle{color:var(--text3)}
 
     <div class="nc"><div class="nc-stitle">스터디 시간표</div><div id="nt-sched-view"></div></div>
   <div class="nc"><div class="nc-stitle">스터디 벌금</div><div id="nt-fine-view"></div></div>
-  <div class="nc"><div class="nc-stitle">자료 링크</div><div id="nt-link-view"></div></div>
 
 </div>
 
@@ -390,9 +389,6 @@ const DEFAULT = {
     fines:[
       {name:'미루기',amount:30000},
       {name:'파토 / 노쇼',amount:50000}
-    ],
-    links:[
-      {title:'📁 2026 모의고사 자료',url:'https://drive.google.com/drive/folders/1BgKi5dsFW4PLhFr4g95MYuEX7Zmni_bQ?usp=sharing'}
     ],
     unable:[
       {count:3,name:'백구 전년도 1~3회'},
@@ -662,11 +658,6 @@ function renderNoticeView(){
     fh+=`<div class="fine-row"><div class="fine-icon" style="background:${f.amount>=50000?'rgba(255,95,95,.15)':'rgba(255,179,71,.15)'}">💸</div><div class="fine-name">${f.name}</div><div class="fine-amt" style="color:${col}">${f.amount.toLocaleString()}원</div></div>`;
   });
   document.getElementById('nt-fine-view').innerHTML=fh;
-  // links
-  let lh='';
-  (S.notice.links||[]).forEach(l=>{lh+=`<a class="link-card" href="${l.url}" target="_blank"><div><div class="link-title">${l.title}</div><div class="link-url">${l.url.replace(/https?:\/\//,'').split('/')[0]}</div></div><div class="link-arr">↗</div></a>`;});
-  document.getElementById('nt-link-view').innerHTML=lh;
-
 }
 
 

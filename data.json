@@ -1002,6 +1002,76 @@
         "week": "24주차",
         "items": [
           {
+            "date": "10/31",
+            "day": "토",
+            "subject": "마무리"
+          }
+        ]
+      },
+      {
+        "week": "25주차",
+        "items": [
+          {
+            "date": "11/1",
+            "day": "일",
+            "subject": "마무리"
+          }
+        ]
+      },
+      {
+        "week": "26주차",
+        "items": [
+          {
+            "date": "11/2",
+            "day": "월",
+            "subject": "마무리"
+          }
+        ]
+      },
+      {
+        "week": "27주차",
+        "items": [
+          {
+            "date": "11/3",
+            "day": "화",
+            "subject": "마무리"
+          }
+        ]
+      },
+      {
+        "week": "28주차",
+        "items": [
+          {
+            "date": "11/4",
+            "day": "수",
+            "subject": "마무리"
+          }
+        ]
+      },
+      {
+        "week": "29주차",
+        "items": [
+          {
+            "date": "11/5",
+            "day": "목",
+            "subject": "마무리"
+          }
+        ]
+      },
+      {
+        "week": "30주차",
+        "items": [
+          {
+            "date": "11/6",
+            "day": "금",
+            "subject": "마무리"
+          }
+        ]
+      },
+      {
+        "week": "31주차",
+        "items": [
+          {
             "date": "11/7",
             "day": "토",
             "subject": "★D-DAY★",
@@ -3540,12 +3610,6 @@
       {
         "name": "파토 / 노쇼",
         "amount": 50000
-      }
-    ],
-    "links": [
-      {
-        "title": "📁 2026 모의고사 자료",
-        "url": "https://drive.google.com/drive/folders/1BgKi5dsFW4PLhFr4g95MYuEX7Zmni_bQ?usp=sharing"
       }
     ],
     "unable": [

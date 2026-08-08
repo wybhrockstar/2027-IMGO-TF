@@ -565,7 +565,7 @@ function buildGoogleCalendarPayload(){
   if(!DATA) return null;
   const eventsById = new Map();
   const schedule = DATA.schedule || {};
-  [1,2,3,4].forEach(term => {
+  [1,2,3].forEach(term => {
     (schedule[term]||[]).forEach((week, wi) => {
       (week.items||[]).forEach((item, ii) => {
         const date = dateToCalendarDate(item.date);
@@ -584,7 +584,7 @@ function buildGoogleCalendarPayload(){
           date,
           title,
           description: desc,
-          color: term===1?'10':term===2?'9':term===3?'5':'6'
+          color: term===1?'10':term===2?'9':'5'
         });
       });
     });
