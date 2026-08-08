@@ -212,17 +212,90 @@ body.light .nc-stitle{color:var(--text3)}
 
 <!-- ======= PAGE: EXAMS ======= -->
 <div class="page main" id="page-exams">
-  <div class="sec-title" id="exam-updated-label" style="margin-bottom:18px"></div>
 
-  <!-- 현황 범례 -->
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
-    <span style="font-size:11px;color:var(--text3)">현황:</span>
-    <span class="exam-badge badge-complete">완료</span>
-    <span class="exam-badge badge-plan">예정</span>
-    <span class="exam-badge badge-unknown">미정</span>
+  <div class="ttab-wrap" id="examPersonTabs" style="display:flex;gap:8px;margin-bottom:18px">
+    <button class="ttab on" onclick="showExamPerson('status',this)">현황</button>
+    <button class="ttab" onclick="showExamPerson('재언',this)">재언</button>
+    <button class="ttab" onclick="showExamPerson('태현',this)">태현</button>
   </div>
 
-  <div id="examList"></div>
+  <div id="examPanel-status">
+    <div class="sec-title" id="exam-updated-label" style="margin-bottom:18px"></div>
+
+    <!-- 현황 범례 -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+      <span style="font-size:11px;color:var(--text3)">현황:</span>
+      <span class="exam-badge badge-complete">완료</span>
+      <span class="exam-badge badge-plan">예정</span>
+      <span class="exam-badge badge-unknown">미정</span>
+    </div>
+
+    <div id="examList"></div>
+  </div>
+
+  <div id="examPanel-person" style="display:none">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+      <button class="apply-btn" onclick="openRecordModal()">+ 기록</button>
+    </div>
+
+    <div class="nc" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div class="nc-stitle" style="margin:0">점수 추이</div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap">
+          <div class="subj-tabs" id="seriesTabs" style="margin:0"></div>
+          <div class="subj-tabs" id="modeTabs" style="margin:0"></div>
+        </div>
+      </div>
+      <div style="position:relative;height:220px">
+        <canvas id="examTrendChart"></canvas>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">점선: 재언이 기록한 회차 평균 (양쪽 화면 공통 표시)</div>
+    </div>
+
+    <div class="nc" style="margin-bottom:16px">
+      <div class="nc-stitle">세부 점수 추이</div>
+      <div class="subj-tabs" id="examSubjectTabs" style="margin:10px 0"></div>
+      <div style="position:relative;height:180px">
+        <canvas id="examSubjectChart"></canvas>
+      </div>
+    </div>
+
+    <div class="nc">
+      <div class="nc-stitle" style="margin-bottom:10px">오답 기록</div>
+      <select id="wrongExamSelect" onchange="renderWrongList()" style="width:100%;margin-bottom:10px"></select>
+      <div id="wrongAnswerList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= RECORD MODAL ======= -->
+<div id="recordModalBg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--bg2,#fff);max-width:420px;width:92%;max-height:82vh;overflow:auto;border-radius:14px;padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="nc-stitle" style="margin:0" id="recordModalTitle">기록 추가</div>
+      <button onclick="closeRecordModal()" style="border:none;background:none;font-size:18px;color:var(--text3)">×</button>
+    </div>
+
+    <div class="subj-tabs" id="recordModeTabs" style="margin-bottom:14px"></div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px">
+      <select id="rec-examName"></select>
+      <div class="subj-tabs" id="rec-typeTabs"></div>
+      <input type="date" id="rec-examDate">
+    </div>
+
+    <div id="rec-scoreFields"></div>
+    <div id="rec-wrongFields" style="display:none"></div>
+
+    <div id="rec-avgField" style="display:none;margin-top:10px">
+      <label style="font-size:12px;color:var(--text3)">이번 회차 응시자 평균 (총점)</label>
+      <input type="number" id="rec-avgScore" style="width:100%;margin-top:4px">
+    </div>
+
+    <div id="record-status" style="font-size:12px;margin-top:10px;color:var(--text3)"></div>
+
+    <button class="apply-btn" style="width:100%;margin-top:14px" onclick="submitRecord()">저장</button>
+  </div>
 </div>
 <!-- ======= PAGE: NOTICE ======= -->
 <div class="page main" id="page-notice">
@@ -233,6 +306,7 @@ body.light .nc-stitle{color:var(--text3)}
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 // ==================== DEFAULT DATA ====================
 const DEFAULT = {
@@ -607,7 +681,7 @@ function buildSubjectTabs(){
   renderLectures();
 }
 function showSubject(name,btn){
-  if(btn){document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));btn.classList.add('on');}
+  if(btn){document.querySelectorAll('#subjectTabs .stab').forEach(t=>t.classList.remove('on'));btn.classList.add('on');}
   currentSubject=name;renderLectures();
 }
 function calcLectureMins(lecs){
@@ -693,6 +767,282 @@ function goPage(name,btn){
   btn.classList.add('on');
   if(name==='lectures')buildSubjectTabs();
   if(name==='exams')renderExams();
+}
+
+// ==================== MOCK EXAM RECORD (재언/태현) ====================
+const MOCK_EXAM_API_URL = 'https://script.google.com/macros/s/AKfycbxjq2WVkjDo_2zPtVaHmi_a1vn9od4AC2yqp7b5tIPWCcNE2AxHKdxej-x4ZHo5jdfPSw/exec';
+
+const EXAM_SUBJECTS = {
+  A: [['국어',11],['영어',7],['총론·창체',2],['사회',9],['도덕',5],['실과',5]],
+  B: [['수학',11],['미술',5],['통합교과',3],['과학',9],['음악',5],['체육',8]]
+};
+
+let examData = { scores:[], averages:[], wrongAnswers:[] };
+let examPerson = null;
+let examSeries = 'total';
+let examMode = 'score';
+let examSubjectType = 'A';
+let examSubjectIdx = 0;
+let examTrendChart = null;
+let examSubjectChart = null;
+let examLoaded = false;
+let recordMode = 'score';
+
+function expandExamNames(raw){
+  const name = raw.trim();
+  let m = name.match(/^(.*?)(\d+)~(\d+)\?*회$/);
+  if(m){
+    const out=[]; for(let i=+m[2];i<=+m[3];i++) out.push(`${m[1]}${i}회`);
+    return out;
+  }
+  m = name.match(/^(.*?)([\d,]+)월$/);
+  if(m && m[2].includes(',')){
+    return m[2].split(',').map(n=>`${m[1]}${n.trim()}월`);
+  }
+  m = name.match(/^(.*?)([\d,]+)회$/);
+  if(m && m[2].includes(',')){
+    return m[2].split(',').map(n=>`${m[1]}${n.trim()}회`);
+  }
+  if(name.includes('?')) return [name];
+  return [name];
+}
+
+function allExamOptions(){
+  const list = [];
+  (S.exams||[]).forEach(e=>{ expandExamNames(e.name).forEach(n=>list.push(n)); });
+  return list;
+}
+
+async function fetchExamData(){
+  try{
+    const res = await fetch(MOCK_EXAM_API_URL+'?target=all');
+    const json = await res.json();
+    if(json.ok){
+      examData = { scores: json.scores||[], averages: json.averages||[], wrongAnswers: json.wrongAnswers||[] };
+      examLoaded = true;
+    }
+  }catch(e){
+    console.error('exam data fetch failed', e);
+  }
+}
+
+async function showExamPerson(who, btn){
+  document.querySelectorAll('#examPersonTabs .ttab').forEach(t=>t.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  examPerson = who==='status' ? null : who;
+  document.getElementById('examPanel-status').style.display = who==='status' ? '' : 'none';
+  document.getElementById('examPanel-person').style.display = who==='status' ? 'none' : '';
+  if(who==='status') return;
+  if(!examLoaded) await fetchExamData();
+  buildExamControls();
+  renderExamTrend();
+  renderExamSubjectTabs();
+  buildWrongExamSelect();
+  renderWrongList();
+}
+
+function buildExamControls(){
+  const seriesEl = document.getElementById('seriesTabs');
+  seriesEl.innerHTML = ['total','A','B'].map(s=>{
+    const label = s==='total'?'총점':s==='A'?'A형':'B형';
+    return `<button class="stab${examSeries===s?' on':''}" onclick="setExamSeries('${s}',this)">${label}</button>`;
+  }).join('');
+  const modeEl = document.getElementById('modeTabs');
+  modeEl.innerHTML = ['score','rate'].map(m=>{
+    const label = m==='score'?'점수':'정답률';
+    return `<button class="stab${examMode===m?' on':''}" onclick="setExamMode('${m}',this)">${label}</button>`;
+  }).join('');
+}
+function setExamSeries(s,btn){
+  examSeries=s;
+  document.querySelectorAll('#seriesTabs .stab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  if(s!=='total') examSubjectType = s;
+  renderExamTrend();
+  renderExamSubjectTabs();
+}
+function setExamMode(m,btn){
+  examMode=m;
+  document.querySelectorAll('#modeTabs .stab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderExamTrend();
+  renderExamSubjectChart();
+}
+
+function personScores(){ return examData.scores.filter(r=>r.author===examPerson); }
+
+function examTrendPoints(){
+  const rows = personScores();
+  const byExam = {};
+  rows.forEach(r=>{
+    if(examSeries!=='total' && r.type!==examSeries) return;
+    if(!byExam[r.examName]) byExam[r.examName] = { score:0, max:0, date:r.examDate };
+    byExam[r.examName].score += Number(r.score)||0;
+    byExam[r.examName].max += Number(r.maxScore)||0;
+  });
+  const labels = Object.keys(byExam).sort((a,b)=> new Date(byExam[a].date) - new Date(byExam[b].date));
+  const values = labels.map(l=> examMode==='score' ? byExam[l].score : (byExam[l].max? Math.round(byExam[l].score/byExam[l].max*100):0));
+  const avgMap = {};
+  examData.averages.forEach(a=>{ if(examSeries==='total' || a.type===examSeries) avgMap[a.examName]=(avgMap[a.examName]||0)+Number(a.averageScore||0); });
+  const avgValues = labels.map(l=> avgMap[l] ?? null);
+  return { labels, values, avgValues };
+}
+
+function renderExamTrend(){
+  const { labels, values, avgValues } = examTrendPoints();
+  const ctx = document.getElementById('examTrendChart');
+  if(examTrendChart) examTrendChart.destroy();
+  examTrendChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:examSeries==='total'?'총점':examSeries==='A'?'A형':'B형', data:values, borderColor:'#7F77DD', backgroundColor:'#7F77DD', tension:.2, pointRadius:4 },
+      { label:'평균', data:avgValues, borderColor:'#888780', borderDash:[4,4], pointRadius:0, tension:.2 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=> c.dataset.label+': '+c.formattedValue+(examMode==='rate'?'%':'점') } } },
+      scales:{ y:{ beginAtZero:true }, x:{ grid:{display:false} } } }
+  });
+}
+
+function renderExamSubjectTabs(){
+  const subs = EXAM_SUBJECTS[examSubjectType];
+  const el = document.getElementById('examSubjectTabs');
+  el.innerHTML = subs.map((s,i)=>`<button class="stab${examSubjectIdx===i?' on':''}" onclick="setExamSubjectIdx(${i},this)">${s[0]} ${s[1]}점</button>`).join('');
+  if(examSubjectIdx>=subs.length) examSubjectIdx=0;
+  renderExamSubjectChart();
+}
+function setExamSubjectIdx(i,btn){
+  examSubjectIdx=i;
+  document.querySelectorAll('#examSubjectTabs .stab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderExamSubjectChart();
+}
+function renderExamSubjectChart(){
+  const subs = EXAM_SUBJECTS[examSubjectType];
+  const [subjName, max] = subs[examSubjectIdx];
+  const rows = personScores().filter(r=>r.type===examSubjectType && r.subject===subjName);
+  const sorted = rows.slice().sort((a,b)=> new Date(a.examDate)-new Date(b.examDate));
+  const labels = sorted.map(r=>r.examName);
+  const values = sorted.map(r=> examMode==='score' ? Number(r.score) : Math.round(Number(r.score)/Number(r.maxScore||max)*100));
+  const ctx = document.getElementById('examSubjectChart');
+  if(examSubjectChart) examSubjectChart.destroy();
+  examSubjectChart = new Chart(ctx,{
+    type:'line',
+    data:{ labels, datasets:[{ label:subjName, data:values, borderColor:'#5DCAA5', backgroundColor:'#5DCAA5', tension:.2, pointRadius:4 }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=> c.formattedValue+(examMode==='rate'?'%':'점') } } },
+      scales:{ y:{ beginAtZero:true, max: examMode==='rate'?100:max }, x:{ grid:{display:false} } } }
+  });
+}
+
+function buildWrongExamSelect(){
+  const sel = document.getElementById('wrongExamSelect');
+  const options = allExamOptions();
+  sel.innerHTML = options.map(n=>`<option value="${n}">${n}</option>`).join('');
+}
+function renderWrongList(){
+  const examName = document.getElementById('wrongExamSelect').value;
+  const rows = examData.wrongAnswers.filter(r=>r.author===examPerson && r.examName===examName);
+  const order = [...EXAM_SUBJECTS.A.map(s=>s[0]), ...EXAM_SUBJECTS.B.map(s=>s[0])];
+  const bySubject = {};
+  rows.forEach(r=>{ (bySubject[r.subject]=bySubject[r.subject]||[]).push(r.note); });
+  const el = document.getElementById('wrongAnswerList');
+  const items = order.filter(s=>bySubject[s]).map(s=>
+    `<div style="display:flex;gap:8px;padding:8px 10px;background:var(--bg3,rgba(127,119,221,.06));border-radius:8px;font-size:13px;margin-bottom:6px"><span style="font-weight:600;min-width:64px;color:var(--text2)">${s}</span><span>${bySubject[s].join(' / ')}</span></div>`
+  ).join('');
+  el.innerHTML = items || '<div style="font-size:13px;color:var(--text3)">기록된 오답이 없습니다.</div>';
+}
+
+// ---- record modal ----
+function openRecordModal(){
+  if(!examPerson) return;
+  document.getElementById('recordModalTitle').textContent = examPerson+' 기록 추가';
+  document.getElementById('recordModeTabs').innerHTML = ['score','wrong'].map(m=>
+    `<button class="stab${recordMode===m?' on':''}" onclick="setRecordMode('${m}',this)">${m==='score'?'점수 기록':'오답 기록'}</button>`
+  ).join('');
+  const examSel = document.getElementById('rec-examName');
+  examSel.innerHTML = allExamOptions().map(n=>`<option value="${n}">${n}</option>`).join('');
+  document.getElementById('rec-typeTabs').innerHTML = ['A','B'].map(t=>
+    `<button class="stab" data-t="${t}" onclick="setRecType('${t}',this)">${t==='A'?'A형':'B형'}</button>`
+  ).join('');
+  setRecType('A', document.querySelector('#rec-typeTabs .stab'));
+  document.getElementById('rec-examDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('record-status').textContent='';
+  setRecordMode('score');
+  document.getElementById('recordModalBg').style.display='flex';
+}
+function closeRecordModal(){ document.getElementById('recordModalBg').style.display='none'; }
+function setRecordMode(m,btn){
+  recordMode=m;
+  document.querySelectorAll('#recordModeTabs .stab').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on'); else document.querySelector('#recordModeTabs .stab').classList.add('on');
+  document.getElementById('rec-scoreFields').style.display = m==='score'?'':'none';
+  document.getElementById('rec-wrongFields').style.display = m==='wrong'?'':'none';
+  document.getElementById('rec-avgField').style.display = (m==='score' && examPerson==='재언')?'':'none';
+  buildRecordFields();
+}
+function setRecType(t,btn){
+  document.querySelectorAll('#rec-typeTabs .stab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('rec-typeTabs').dataset.type=t;
+  buildRecordFields();
+}
+function buildRecordFields(){
+  const type = document.getElementById('rec-typeTabs').dataset.type || 'A';
+  const subs = EXAM_SUBJECTS[type];
+  if(recordMode==='score'){
+    document.getElementById('rec-scoreFields').innerHTML = subs.map(([name,max],i)=>
+      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <label style="flex:1;font-size:13px">${name} <span style="color:var(--text3)">(${max}점)</span></label>
+        <input type="number" min="0" max="${max}" id="rec-score-${i}" style="width:80px">
+      </div>`
+    ).join('');
+  } else {
+    document.getElementById('rec-wrongFields').innerHTML = subs.map(([name],i)=>
+      `<div style="margin-bottom:8px">
+        <label style="font-size:13px;color:var(--text2)">${name}</label>
+        <input type="text" id="rec-wrong-${i}" placeholder="오답 내용 간략히" style="width:100%;margin-top:2px">
+      </div>`
+    ).join('');
+  }
+}
+async function submitRecord(){
+  const statusEl = document.getElementById('record-status');
+  const examName = document.getElementById('rec-examName').value;
+  const type = document.getElementById('rec-typeTabs').dataset.type || 'A';
+  const examDate = document.getElementById('rec-examDate').value;
+  if(!examName || !examDate){ statusEl.textContent='회차와 날짜를 확인해주세요.'; return; }
+  statusEl.textContent='저장 중...';
+  try{
+    if(recordMode==='score'){
+      const subs = EXAM_SUBJECTS[type];
+      const items = subs.map(([name,max],i)=>({ subject:name, score:Number(document.getElementById('rec-score-'+i).value||0), maxScore:max }));
+      await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({
+        target:'scores', author:examPerson, examName, type, examDate, items
+      })});
+      if(examPerson==='재언'){
+        const avgVal = document.getElementById('rec-avgScore').value;
+        if(avgVal){
+          await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({
+            target:'averages', examName, type, examDate, averageScore:Number(avgVal)
+          })});
+        }
+      }
+    } else {
+      const subs = EXAM_SUBJECTS[type];
+      const items = subs.map(([name],i)=>({ subject:name, note:document.getElementById('rec-wrong-'+i).value })).filter(it=>it.note && it.note.trim());
+      if(items.length){
+        await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({
+          target:'wrongAnswers', author:examPerson, examName, type, examDate, items
+        })});
+      }
+    }
+    await fetchExamData();
+    renderExamTrend(); renderExamSubjectTabs(); buildWrongExamSelect(); renderWrongList();
+    closeRecordModal();
+  }catch(e){
+    statusEl.textContent='저장 실패: '+e;
+  }
 }
 
 // ==================== THEME ====================
