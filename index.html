@@ -246,8 +246,10 @@ body.light .nc-stitle{color:var(--text3)}
           <div class="subj-tabs" id="modeTabs" style="margin:0"></div>
         </div>
       </div>
-      <div style="position:relative;height:220px">
-        <canvas id="examTrendChart"></canvas>
+      <div style="overflow-x:auto">
+        <div style="position:relative;height:220px">
+          <canvas id="examTrendChart"></canvas>
+        </div>
       </div>
       <div style="font-size:11px;color:var(--text3);margin-top:8px">점선: 재언이 기록한 회차 평균 (양쪽 화면 공통 표시)</div>
     </div>
@@ -255,14 +257,19 @@ body.light .nc-stitle{color:var(--text3)}
     <div class="nc" style="margin-bottom:16px">
       <div class="nc-stitle">세부 점수 추이</div>
       <div class="subj-tabs" id="examSubjectTabs" style="margin:10px 0"></div>
-      <div style="position:relative;height:180px">
-        <canvas id="examSubjectChart"></canvas>
+      <div style="overflow-x:auto">
+        <div style="position:relative;height:180px">
+          <canvas id="examSubjectChart"></canvas>
+        </div>
       </div>
     </div>
 
     <div class="nc">
       <div class="nc-stitle" style="margin-bottom:10px">오답 기록</div>
-      <select id="wrongExamSelect" onchange="renderWrongList()" style="width:100%;margin-bottom:10px"></select>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <select id="wrongExamBase" onchange="onWrongBaseChange()" style="flex:1"></select>
+        <select id="wrongExamRound" onchange="renderWrongList()" style="flex:1"></select>
+      </div>
       <div id="wrongAnswerList"></div>
     </div>
   </div>
@@ -279,8 +286,10 @@ body.light .nc-stitle{color:var(--text3)}
     <div class="subj-tabs" id="recordModeTabs" style="margin-bottom:14px"></div>
 
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px">
-      <select id="rec-examName"></select>
-      <div class="subj-tabs" id="rec-typeTabs"></div>
+      <div style="display:flex;gap:8px">
+        <select id="rec-examBase" onchange="onRecBaseChange()" style="flex:1"></select>
+        <select id="rec-examRound" onchange="prefillRecordFields()" style="flex:1"></select>
+      </div>
       <input type="date" id="rec-examDate">
     </div>
 
@@ -772,45 +781,63 @@ function goPage(name,btn){
 // ==================== MOCK EXAM RECORD (재언/태현) ====================
 const MOCK_EXAM_API_URL = 'https://script.google.com/macros/s/AKfycbxjq2WVkjDo_2zPtVaHmi_a1vn9od4AC2yqp7b5tIPWCcNE2AxHKdxej-x4ZHo5jdfPSw/exec';
 
-const EXAM_SUBJECTS = {
-  A: [['국어',11],['영어',7],['총론·창체',2],['사회',9],['도덕',5],['실과',5]],
-  B: [['수학',11],['미술',5],['통합교과',3],['과학',9],['음악',5],['체육',8]]
-};
+const SUBJECT_META = [
+  {name:'국어',type:'A',max:11,color:'#ff5a5a'},
+  {name:'영어',type:'A',max:7,color:'#ff8c42'},
+  {name:'총론·창체',type:'A',max:2,color:'#f5c542'},
+  {name:'사회',type:'A',max:9,color:'#a8e063'},
+  {name:'도덕',type:'A',max:5,color:'#3ecf8e'},
+  {name:'실과',type:'A',max:5,color:'#00c9cc'},
+  {name:'수학',type:'B',max:11,color:'#4fb3e8'},
+  {name:'미술',type:'B',max:5,color:'#5b8dee'},
+  {name:'통합교과',type:'B',max:3,color:'#9b7fe8'},
+  {name:'과학',type:'B',max:9,color:'#cc7ee8'},
+  {name:'음악',type:'B',max:5,color:'#e870b8'},
+  {name:'체육',type:'B',max:8,color:'#e8407a'}
+];
+const SERIES_COLOR = { total:'#b8a5ff', A:'#5b8dee', B:'#3ecf8e' };
+const RATE_COLOR = '#c8f060';
+const AVG_COLOR = '#ff5a5a';
 
 let examData = { scores:[], averages:[], wrongAnswers:[] };
 let examPerson = null;
-let examSeries = 'total';
+let examSeriesActive = new Set(['total']);
 let examMode = 'score';
-let examSubjectType = 'A';
-let examSubjectIdx = 0;
+let activeSubjects = new Set(SUBJECT_META.map(s=>s.name));
 let examTrendChart = null;
 let examSubjectChart = null;
 let examLoaded = false;
 let recordMode = 'score';
 
-function expandExamNames(raw){
+// ---- exam name parsing: base 이름 + 회차 분리 ----
+function parseExamEntry(raw){
   const name = raw.trim();
   let m = name.match(/^(.*?)(\d+)~(\d+)\?*회$/);
-  if(m){
-    const out=[]; for(let i=+m[2];i<=+m[3];i++) out.push(`${m[1]}${i}회`);
-    return out;
-  }
+  if(m){ const rounds=[]; for(let i=+m[2];i<=+m[3];i++) rounds.push(i+'회'); return {base:m[1].trim(), rounds}; }
   m = name.match(/^(.*?)([\d,]+)월$/);
-  if(m && m[2].includes(',')){
-    return m[2].split(',').map(n=>`${m[1]}${n.trim()}월`);
-  }
+  if(m && m[2].includes(',')) return {base:m[1].trim(), rounds:m[2].split(',').map(n=>n.trim()+'월')};
   m = name.match(/^(.*?)([\d,]+)회$/);
-  if(m && m[2].includes(',')){
-    return m[2].split(',').map(n=>`${m[1]}${n.trim()}회`);
-  }
-  if(name.includes('?')) return [name];
-  return [name];
+  if(m && m[2].includes(',')) return {base:m[1].trim(), rounds:m[2].split(',').map(n=>n.trim()+'회')};
+  return {base:name, rounds:['']};
 }
-
-function allExamOptions(){
-  const list = [];
-  (S.exams||[]).forEach(e=>{ expandExamNames(e.name).forEach(n=>list.push(n)); });
-  return list;
+function examTree(){
+  const map = {};
+  (S.exams||[]).forEach(e=>{
+    if(e.status==='현황') return;
+    const {base, rounds} = parseExamEntry(e.name);
+    if(!map[base]) map[base]=new Set();
+    rounds.forEach(r=>map[base].add(r));
+  });
+  return Object.keys(map).map(b=>({base:b, rounds:[...map[b]]}));
+}
+function fullExamName(base, round){ return round ? (base+' '+round) : base; }
+function splitExamLabel(examName){
+  const tree = examTree();
+  for(const t of tree){
+    if(examName===t.base) return { title:t.base, round:'' };
+    if(examName.startsWith(t.base+' ')) return { title:t.base, round:examName.slice(t.base.length+1) };
+  }
+  return { title:examName, round:'' };
 }
 
 async function fetchExamData(){
@@ -821,9 +848,14 @@ async function fetchExamData(){
       examData = { scores: json.scores||[], averages: json.averages||[], wrongAnswers: json.wrongAnswers||[] };
       examLoaded = true;
     }
-  }catch(e){
-    console.error('exam data fetch failed', e);
-  }
+  }catch(e){ console.error('exam data fetch failed', e); }
+}
+
+// 최신 기록이 남아있는 (author, examName, type, subject) 조합만 남기고 나머지는 버림 -> 재입력=수정처럼 동작
+function dedupeLatest(rows, keyFn){
+  const map = {};
+  rows.forEach(r=>{ map[keyFn(r)] = r; });
+  return Object.values(map);
 }
 
 async function showExamPerson(who, btn){
@@ -837,7 +869,7 @@ async function showExamPerson(who, btn){
   buildExamControls();
   renderExamTrend();
   renderExamSubjectTabs();
-  buildWrongExamSelect();
+  buildWrongExamSelects();
   renderWrongList();
 }
 
@@ -845,7 +877,7 @@ function buildExamControls(){
   const seriesEl = document.getElementById('seriesTabs');
   seriesEl.innerHTML = ['total','A','B'].map(s=>{
     const label = s==='total'?'총점':s==='A'?'A형':'B형';
-    return `<button class="stab${examSeries===s?' on':''}" onclick="setExamSeries('${s}',this)">${label}</button>`;
+    return `<button class="stab${examSeriesActive.has(s)?' on':''}" onclick="toggleExamSeries('${s}',this)">${label}</button>`;
   }).join('');
   const modeEl = document.getElementById('modeTabs');
   modeEl.innerHTML = ['score','rate'].map(m=>{
@@ -853,13 +885,12 @@ function buildExamControls(){
     return `<button class="stab${examMode===m?' on':''}" onclick="setExamMode('${m}',this)">${label}</button>`;
   }).join('');
 }
-function setExamSeries(s,btn){
-  examSeries=s;
-  document.querySelectorAll('#seriesTabs .stab').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  if(s!=='total') examSubjectType = s;
+function toggleExamSeries(s,btn){
+  const turningOn = !examSeriesActive.has(s);
+  if(turningOn) examSeriesActive.add(s); else examSeriesActive.delete(s);
+  btn.classList.toggle('on', turningOn);
+  if(turningOn && s==='total'){ activeSubjects = new Set(SUBJECT_META.map(x=>x.name)); renderExamSubjectTabs(); }
   renderExamTrend();
-  renderExamSubjectTabs();
 }
 function setExamMode(m,btn){
   examMode=m;
@@ -871,84 +902,205 @@ function setExamMode(m,btn){
 
 function personScores(){ return examData.scores.filter(r=>r.author===examPerson); }
 
-function examTrendPoints(){
-  const rows = personScores();
-  const byExam = {};
-  rows.forEach(r=>{
-    if(examSeries!=='total' && r.type!==examSeries) return;
-    if(!byExam[r.examName]) byExam[r.examName] = { score:0, max:0, date:r.examDate };
-    byExam[r.examName].score += Number(r.score)||0;
-    byExam[r.examName].max += Number(r.maxScore)||0;
-  });
-  const labels = Object.keys(byExam).sort((a,b)=> new Date(byExam[a].date) - new Date(byExam[b].date));
-  const values = labels.map(l=> examMode==='score' ? byExam[l].score : (byExam[l].max? Math.round(byExam[l].score/byExam[l].max*100):0));
-  const avgMap = {};
-  examData.averages.forEach(a=>{ if(examSeries==='total' || a.type===examSeries) avgMap[a.examName]=(avgMap[a.examName]||0)+Number(a.averageScore||0); });
-  const avgValues = labels.map(l=> avgMap[l] ?? null);
-  return { labels, values, avgValues };
+function mmdd(dateStr){
+  if(!dateStr) return '';
+  const d = new Date(dateStr);
+  if(isNaN(d)) return dateStr;
+  return String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
+}
+function multiLineLabel(examName, dateStr){
+  const { title, round } = splitExamLabel(examName);
+  const lines = [mmdd(dateStr)];
+  title.split(' ').forEach(w=>lines.push(w));
+  if(round) lines.push(round);
+  return lines;
+}
+function fmtVal(v){
+  if(v===null || v===undefined) return '';
+  return examMode==='rate' ? (Math.round(v*10)/10).toFixed(1)+'%' : Math.round(v)+'점';
 }
 
+// 점 위에 값 라벨을 직접 그려주는 경량 플러그인 (외부 CDN 의존 없이 처리)
+const valueLabelPlugin = {
+  id:'valueLabelPlugin',
+  afterDatasetsDraw(chart){
+    const ctx = chart.ctx;
+    chart.data.datasets.forEach((ds,di)=>{
+      if(ds.hideLabel) return;
+      const meta = chart.getDatasetMeta(di);
+      if(meta.hidden) return;
+      meta.data.forEach((point,i)=>{
+        const v = ds.data[i];
+        if(v===null || v===undefined) return;
+        ctx.save();
+        ctx.font = '10px sans-serif';
+        ctx.fillStyle = ds.borderColor || '#888';
+        ctx.textAlign = 'center';
+        ctx.fillText(fmtVal(v), point.x, point.y - 8);
+        ctx.restore();
+      });
+    });
+  }
+};
+
+function examTrendPoints(seriesKey){
+  const rows = dedupeLatest(personScores().filter(r=> seriesKey==='total' || r.type===seriesKey),
+    r=>r.author+'|'+r.examName+'|'+r.type+'|'+r.subject);
+  const byExam = {};
+  rows.forEach(r=>{
+    if(!byExam[r.examName]) byExam[r.examName] = { score:0, date:r.examDate };
+    byExam[r.examName].score += Number(r.score)||0;
+  });
+  return byExam;
+}
+function allExamLabelsForActiveSeries(){
+  const set = new Set();
+  [...examSeriesActive].forEach(s=>{ Object.keys(examTrendPoints(s)).forEach(n=>set.add(n)); });
+  return [...set].sort((a,b)=>{
+    const da = examData.scores.find(r=>r.examName===a)?.examDate;
+    const db = examData.scores.find(r=>r.examName===b)?.examDate;
+    return new Date(da) - new Date(db);
+  });
+}
+function seriesMax(s){ return s==='total'?80:s==='A'?39:41; }
+
 function renderExamTrend(){
-  const { labels, values, avgValues } = examTrendPoints();
+  const labelsRaw = allExamLabelsForActiveSeries();
+  const dateOf = {};
+  examData.scores.forEach(r=>{ dateOf[r.examName]=r.examDate; });
+  const labels = labelsRaw.map(n=>multiLineLabel(n, dateOf[n]));
+
+  const datasets = [...examSeriesActive].map(s=>{
+    const pts = examTrendPoints(s);
+    const max = seriesMax(s);
+    const data = labelsRaw.map(n=>{
+      if(!pts[n]) return null;
+      return examMode==='score' ? pts[n].score : Math.round(pts[n].score/max*1000)/10;
+    });
+    return {
+      label: s==='total'?'총점':s==='A'?'A형':'B형',
+      data, borderColor: SERIES_COLOR[s], backgroundColor: SERIES_COLOR[s],
+      tension:.2, pointRadius:4, spanGaps:true
+    };
+  });
+
+  // 평균: 회차별 재언이 기록한 평균을 선 없이 빨간 점으로만 표시
+  const avgByExam = {};
+  examData.averages.forEach(a=>{ avgByExam[a.examName] = (avgByExam[a.examName]||0) + Number(a.averageScore||0); });
+  const hasTotalOnly = examSeriesActive.size===1 && examSeriesActive.has('total');
+  const avgData = labelsRaw.map(n=>{
+    if(avgByExam[n]===undefined) return null;
+    const max = hasTotalOnly ? 80 : 80;
+    return examMode==='score' ? avgByExam[n] : Math.round(avgByExam[n]/max*1000)/10;
+  });
+  datasets.push({ label:'평균', data:avgData, showLine:false, pointBackgroundColor:AVG_COLOR, pointBorderColor:AVG_COLOR, pointRadius:5, pointStyle:'circle' });
+
   const ctx = document.getElementById('examTrendChart');
   if(examTrendChart) examTrendChart.destroy();
+  fitChartWidth('examTrendChart', labels.length);
   examTrendChart = new Chart(ctx, {
     type:'line',
-    data:{ labels, datasets:[
-      { label:examSeries==='total'?'총점':examSeries==='A'?'A형':'B형', data:values, borderColor:'#7F77DD', backgroundColor:'#7F77DD', tension:.2, pointRadius:4 },
-      { label:'평균', data:avgValues, borderColor:'#888780', borderDash:[4,4], pointRadius:0, tension:.2 }
-    ]},
+    data:{ labels, datasets },
+    plugins:[valueLabelPlugin],
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=> c.dataset.label+': '+c.formattedValue+(examMode==='rate'?'%':'점') } } },
-      scales:{ y:{ beginAtZero:true }, x:{ grid:{display:false} } } }
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{
+          title:(items)=> labelsRaw[items[0].dataIndex],
+          label:(c)=> c.dataset.label+': '+fmtVal(c.raw)
+        } } },
+      scales:{ y:{ beginAtZero:true, max: examMode==='rate'?100:undefined }, x:{ grid:{display:false} } } }
   });
+}
+
+function fitChartWidth(canvasId, count){
+  const canvas = document.getElementById(canvasId);
+  const wrapper = canvas.parentElement;
+  const minW = wrapper.parentElement.clientWidth || 600;
+  const w = Math.max(minW, count*56);
+  wrapper.style.width = w+'px';
 }
 
 function renderExamSubjectTabs(){
-  const subs = EXAM_SUBJECTS[examSubjectType];
   const el = document.getElementById('examSubjectTabs');
-  el.innerHTML = subs.map((s,i)=>`<button class="stab${examSubjectIdx===i?' on':''}" onclick="setExamSubjectIdx(${i},this)">${s[0]} ${s[1]}점</button>`).join('');
-  if(examSubjectIdx>=subs.length) examSubjectIdx=0;
+  el.innerHTML = SUBJECT_META.map(s=>
+    `<button class="stab${activeSubjects.has(s.name)?' on':''}" style="border-color:${activeSubjects.has(s.name)?s.color:''};${activeSubjects.has(s.name)?'color:'+s.color:''}" onclick="toggleSubject('${s.name}',this)">${s.name} ${s.max}점</button>`
+  ).join('');
   renderExamSubjectChart();
 }
-function setExamSubjectIdx(i,btn){
-  examSubjectIdx=i;
-  document.querySelectorAll('#examSubjectTabs .stab').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
+function toggleSubject(name,btn){
+  if(activeSubjects.has(name)) activeSubjects.delete(name); else activeSubjects.add(name);
+  btn.classList.toggle('on');
   renderExamSubjectChart();
 }
 function renderExamSubjectChart(){
-  const subs = EXAM_SUBJECTS[examSubjectType];
-  const [subjName, max] = subs[examSubjectIdx];
-  const rows = personScores().filter(r=>r.type===examSubjectType && r.subject===subjName);
-  const sorted = rows.slice().sort((a,b)=> new Date(a.examDate)-new Date(b.examDate));
-  const labels = sorted.map(r=>r.examName);
-  const values = sorted.map(r=> examMode==='score' ? Number(r.score) : Math.round(Number(r.score)/Number(r.maxScore||max)*100));
+  const rows = dedupeLatest(personScores(), r=>r.author+'|'+r.examName+'|'+r.type+'|'+r.subject);
+  const activeList = SUBJECT_META.filter(s=>activeSubjects.has(s.name));
+  const examNames = [...new Set(rows.filter(r=>activeSubjects.has(r.subject)).map(r=>r.examName))];
+  const dateOf = {}; rows.forEach(r=>{ dateOf[r.examName]=r.examDate; });
+  examNames.sort((a,b)=> new Date(dateOf[a]) - new Date(dateOf[b]));
+  const labels = examNames.map(n=>multiLineLabel(n, dateOf[n]));
+
+  const datasets = activeList.map(s=>{
+    const data = examNames.map(n=>{
+      const row = rows.find(r=>r.examName===n && r.subject===s.name);
+      if(!row) return null;
+      return examMode==='score' ? Number(row.score) : Math.round(Number(row.score)/s.max*1000)/10;
+    });
+    const color = examMode==='rate' ? RATE_COLOR : s.color;
+    return { label:s.name, data, borderColor:color, backgroundColor:color, tension:.2, pointRadius:4, spanGaps:true };
+  });
+
   const ctx = document.getElementById('examSubjectChart');
   if(examSubjectChart) examSubjectChart.destroy();
+  fitChartWidth('examSubjectChart', labels.length);
   examSubjectChart = new Chart(ctx,{
     type:'line',
-    data:{ labels, datasets:[{ label:subjName, data:values, borderColor:'#5DCAA5', backgroundColor:'#5DCAA5', tension:.2, pointRadius:4 }]},
+    data:{ labels, datasets },
+    plugins:[valueLabelPlugin],
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=> c.formattedValue+(examMode==='rate'?'%':'점') } } },
-      scales:{ y:{ beginAtZero:true, max: examMode==='rate'?100:max }, x:{ grid:{display:false} } } }
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{
+          title:(items)=> examNames[items[0].dataIndex],
+          label:(c)=> c.dataset.label+': '+fmtVal(c.raw)
+        } } },
+      scales:{ y:{ beginAtZero:true, max: examMode==='rate'?100:undefined }, x:{ grid:{display:false} } } }
   });
 }
 
-function buildWrongExamSelect(){
-  const sel = document.getElementById('wrongExamSelect');
-  const options = allExamOptions();
-  sel.innerHTML = options.map(n=>`<option value="${n}">${n}</option>`).join('');
+// ---- 오답 기록: 이름+회차 드롭다운 ----
+function buildWrongExamSelects(){
+  const tree = examTree();
+  const baseSel = document.getElementById('wrongExamBase');
+  baseSel.innerHTML = tree.map(t=>`<option value="${t.base}">${t.base}</option>`).join('');
+  onWrongBaseChange();
+}
+function onWrongBaseChange(){
+  const base = document.getElementById('wrongExamBase').value;
+  const tree = examTree();
+  const t = tree.find(x=>x.base===base);
+  const roundSel = document.getElementById('wrongExamRound');
+  if(!t || (t.rounds.length===1 && t.rounds[0]==='')){
+    roundSel.innerHTML = '<option value="">-</option>';
+  } else {
+    roundSel.innerHTML = t.rounds.map(r=>`<option value="${r}">${r}</option>`).join('');
+  }
+  renderWrongList();
+}
+function currentWrongExamName(){
+  const base = document.getElementById('wrongExamBase').value;
+  const round = document.getElementById('wrongExamRound').value;
+  return fullExamName(base, round);
 }
 function renderWrongList(){
-  const examName = document.getElementById('wrongExamSelect').value;
+  const examName = currentWrongExamName();
   const rows = examData.wrongAnswers.filter(r=>r.author===examPerson && r.examName===examName);
-  const order = [...EXAM_SUBJECTS.A.map(s=>s[0]), ...EXAM_SUBJECTS.B.map(s=>s[0])];
   const bySubject = {};
-  rows.forEach(r=>{ (bySubject[r.subject]=bySubject[r.subject]||[]).push(r.note); });
+  rows.forEach(r=>{ bySubject[r.subject]=r.note; });
   const el = document.getElementById('wrongAnswerList');
-  const items = order.filter(s=>bySubject[s]).map(s=>
-    `<div style="display:flex;gap:8px;padding:8px 10px;background:var(--bg3,rgba(127,119,221,.06));border-radius:8px;font-size:13px;margin-bottom:6px"><span style="font-weight:600;min-width:64px;color:var(--text2)">${s}</span><span>${bySubject[s].join(' / ')}</span></div>`
+  const items = SUBJECT_META.filter(s=>bySubject[s.name]).map(s=>
+    `<div style="display:flex;gap:8px;padding:8px 10px;background:var(--bg3,rgba(127,119,221,.06));border-radius:8px;font-size:13px;margin-bottom:6px">
+      <span style="font-weight:600;min-width:78px;flex-shrink:0;color:${s.color}">${s.name}</span><span>${bySubject[s.name]}</span>
+    </div>`
   ).join('');
   el.innerHTML = items || '<div style="font-size:13px;color:var(--text3)">기록된 오답이 없습니다.</div>';
 }
@@ -960,18 +1112,32 @@ function openRecordModal(){
   document.getElementById('recordModeTabs').innerHTML = ['score','wrong'].map(m=>
     `<button class="stab${recordMode===m?' on':''}" onclick="setRecordMode('${m}',this)">${m==='score'?'점수 기록':'오답 기록'}</button>`
   ).join('');
-  const examSel = document.getElementById('rec-examName');
-  examSel.innerHTML = allExamOptions().map(n=>`<option value="${n}">${n}</option>`).join('');
-  document.getElementById('rec-typeTabs').innerHTML = ['A','B'].map(t=>
-    `<button class="stab" data-t="${t}" onclick="setRecType('${t}',this)">${t==='A'?'A형':'B형'}</button>`
-  ).join('');
-  setRecType('A', document.querySelector('#rec-typeTabs .stab'));
+  const tree = examTree();
+  document.getElementById('rec-examBase').innerHTML = tree.map(t=>`<option value="${t.base}">${t.base}</option>`).join('');
+  onRecBaseChange();
   document.getElementById('rec-examDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('record-status').textContent='';
   setRecordMode('score');
   document.getElementById('recordModalBg').style.display='flex';
 }
 function closeRecordModal(){ document.getElementById('recordModalBg').style.display='none'; }
+function onRecBaseChange(){
+  const base = document.getElementById('rec-examBase').value;
+  const tree = examTree();
+  const t = tree.find(x=>x.base===base);
+  const roundSel = document.getElementById('rec-examRound');
+  if(!t || (t.rounds.length===1 && t.rounds[0]==='')){
+    roundSel.innerHTML = '<option value="">-</option>';
+  } else {
+    roundSel.innerHTML = t.rounds.map(r=>`<option value="${r}">${r}</option>`).join('');
+  }
+  prefillRecordFields();
+}
+function currentRecExamName(){
+  const base = document.getElementById('rec-examBase').value;
+  const round = document.getElementById('rec-examRound').value;
+  return fullExamName(base, round);
+}
 function setRecordMode(m,btn){
   recordMode=m;
   document.querySelectorAll('#recordModeTabs .stab').forEach(b=>b.classList.remove('on'));
@@ -980,65 +1146,95 @@ function setRecordMode(m,btn){
   document.getElementById('rec-wrongFields').style.display = m==='wrong'?'':'none';
   document.getElementById('rec-avgField').style.display = (m==='score' && examPerson==='재언')?'':'none';
   buildRecordFields();
-}
-function setRecType(t,btn){
-  document.querySelectorAll('#rec-typeTabs .stab').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  document.getElementById('rec-typeTabs').dataset.type=t;
-  buildRecordFields();
+  prefillRecordFields();
 }
 function buildRecordFields(){
-  const type = document.getElementById('rec-typeTabs').dataset.type || 'A';
-  const subs = EXAM_SUBJECTS[type];
   if(recordMode==='score'){
-    document.getElementById('rec-scoreFields').innerHTML = subs.map(([name,max],i)=>
+    document.getElementById('rec-scoreFields').innerHTML = SUBJECT_META.map((s,i)=>
       `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <label style="flex:1;font-size:13px">${name} <span style="color:var(--text3)">(${max}점)</span></label>
-        <input type="number" min="0" max="${max}" id="rec-score-${i}" style="width:80px">
+        <label style="width:78px;flex-shrink:0;font-size:13px;color:${s.color}">${s.name}</label>
+        <span style="font-size:11px;color:var(--text3);width:32px;flex-shrink:0">${s.max}점</span>
+        <input type="number" min="0" max="${s.max}" id="rec-score-${i}" style="flex:1">
       </div>`
     ).join('');
   } else {
-    document.getElementById('rec-wrongFields').innerHTML = subs.map(([name],i)=>
-      `<div style="margin-bottom:8px">
-        <label style="font-size:13px;color:var(--text2)">${name}</label>
-        <input type="text" id="rec-wrong-${i}" placeholder="오답 내용 간략히" style="width:100%;margin-top:2px">
+    document.getElementById('rec-wrongFields').innerHTML = SUBJECT_META.map((s,i)=>
+      `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <label style="width:78px;flex-shrink:0;font-size:13px;color:${s.color}">${s.name}</label>
+        <input type="text" id="rec-wrong-${i}" placeholder="오답 내용 간략히" style="flex:1">
       </div>`
     ).join('');
   }
 }
+function prefillRecordFields(){
+  const examName = currentRecExamName();
+  if(!examName) return;
+  if(recordMode==='score'){
+    const rows = dedupeLatest(personScores().filter(r=>r.examName===examName), r=>r.subject);
+    SUBJECT_META.forEach((s,i)=>{
+      const el = document.getElementById('rec-score-'+i);
+      if(!el) return;
+      const row = rows.find(r=>r.subject===s.name);
+      el.value = row ? row.score : '';
+    });
+    if(examPerson==='재언'){
+      const avgA = examData.averages.filter(a=>a.examName===examName && a.type==='A').slice(-1)[0];
+      const avgB = examData.averages.filter(a=>a.examName===examName && a.type==='B').slice(-1)[0];
+      const avgEl = document.getElementById('rec-avgScore');
+      const sum = (avgA?Number(avgA.averageScore):0) + (avgB?Number(avgB.averageScore):0);
+      avgEl.value = (avgA||avgB) ? sum : '';
+    }
+    const scoreRows = personScores().filter(r=>r.examName===examName);
+    if(scoreRows.length) document.getElementById('rec-examDate').value = scoreRows[scoreRows.length-1].examDate;
+  } else {
+    const rows = examData.wrongAnswers.filter(r=>r.author===examPerson && r.examName===examName);
+    SUBJECT_META.forEach((s,i)=>{
+      const el = document.getElementById('rec-wrong-'+i);
+      if(!el) return;
+      const row = rows.slice().reverse().find(r=>r.subject===s.name);
+      el.value = row ? row.note : '';
+    });
+  }
+}
 async function submitRecord(){
   const statusEl = document.getElementById('record-status');
-  const examName = document.getElementById('rec-examName').value;
-  const type = document.getElementById('rec-typeTabs').dataset.type || 'A';
+  const examName = currentRecExamName();
   const examDate = document.getElementById('rec-examDate').value;
   if(!examName || !examDate){ statusEl.textContent='회차와 날짜를 확인해주세요.'; return; }
   statusEl.textContent='저장 중...';
   try{
     if(recordMode==='score'){
-      const subs = EXAM_SUBJECTS[type];
-      const items = subs.map(([name,max],i)=>({ subject:name, score:Number(document.getElementById('rec-score-'+i).value||0), maxScore:max }));
-      await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({
-        target:'scores', author:examPerson, examName, type, examDate, items
-      })});
+      const itemsA = SUBJECT_META.filter(s=>s.type==='A').map((s,idx)=>{
+        const i = SUBJECT_META.indexOf(s);
+        return { subject:s.name, score:Number(document.getElementById('rec-score-'+i).value||0), maxScore:s.max };
+      });
+      const itemsB = SUBJECT_META.filter(s=>s.type==='B').map((s)=>{
+        const i = SUBJECT_META.indexOf(s);
+        return { subject:s.name, score:Number(document.getElementById('rec-score-'+i).value||0), maxScore:s.max };
+      });
+      await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({ target:'scores', author:examPerson, examName, type:'A', examDate, items:itemsA })});
+      await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({ target:'scores', author:examPerson, examName, type:'B', examDate, items:itemsB })});
       if(examPerson==='재언'){
         const avgVal = document.getElementById('rec-avgScore').value;
         if(avgVal){
-          await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({
-            target:'averages', examName, type, examDate, averageScore:Number(avgVal)
-          })});
+          await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({ target:'averages', examName, type:'A', examDate, averageScore:Math.round(Number(avgVal)*39/80) })});
+          await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({ target:'averages', examName, type:'B', examDate, averageScore:Math.round(Number(avgVal)*41/80) })});
         }
       }
     } else {
-      const subs = EXAM_SUBJECTS[type];
-      const items = subs.map(([name],i)=>({ subject:name, note:document.getElementById('rec-wrong-'+i).value })).filter(it=>it.note && it.note.trim());
-      if(items.length){
-        await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({
-          target:'wrongAnswers', author:examPerson, examName, type, examDate, items
-        })});
-      }
+      const itemsA = SUBJECT_META.filter(s=>s.type==='A').map((s)=>{
+        const i = SUBJECT_META.indexOf(s);
+        return { subject:s.name, note:document.getElementById('rec-wrong-'+i).value };
+      }).filter(it=>it.note && it.note.trim());
+      const itemsB = SUBJECT_META.filter(s=>s.type==='B').map((s)=>{
+        const i = SUBJECT_META.indexOf(s);
+        return { subject:s.name, note:document.getElementById('rec-wrong-'+i).value };
+      }).filter(it=>it.note && it.note.trim());
+      if(itemsA.length) await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({ target:'wrongAnswers', author:examPerson, examName, type:'A', examDate, items:itemsA })});
+      if(itemsB.length) await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({ target:'wrongAnswers', author:examPerson, examName, type:'B', examDate, items:itemsB })});
     }
     await fetchExamData();
-    renderExamTrend(); renderExamSubjectTabs(); buildWrongExamSelect(); renderWrongList();
+    renderExamTrend(); renderExamSubjectTabs(); buildWrongExamSelects(); renderWrongList();
     closeRecordModal();
   }catch(e){
     statusEl.textContent='저장 실패: '+e;
