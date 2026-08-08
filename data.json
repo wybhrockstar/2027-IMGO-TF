@@ -3659,15 +3659,15 @@
       "essay": false
     },
     {
-      "count": "3",
+      "count": "1",
       "status": "완료",
-      "name": "엑시트 1~3회",
+      "name": "엑시트 1회",
       "essay": false
     },
     {
-      "count": "2",
+      "count": "1",
       "status": "완료",
-      "name": "임고온 1~2회",
+      "name": "임고온 1회",
       "essay": false
     },
     {
@@ -3683,9 +3683,9 @@
       "essay": false
     },
     {
-      "count": "1",
+      "count": "3",
       "status": "완료",
-      "name": "초임공 1회",
+      "name": "초임공 1~3회",
       "essay": true
     },
     {
@@ -3697,13 +3697,31 @@
     {
       "count": "5",
       "status": "완료",
-      "name": "테크니컬 파이널 1~5회",
+      "name": "테크니컬 신규 1~2회",
       "essay": false
     },
     {
       "count": "2",
       "status": "예정",
       "name": "뉴로직 파이널 1~2회",
+      "essay": false
+    },
+    {
+      "count": "2",
+      "status": "예정",
+      "name": "늘봄 1~2회",
+      "essay": false
+    },
+    {
+      "count": "2",
+      "status": "예정",
+      "name": "엑시트 2~3회",
+      "essay": false
+    },
+    {
+      "count": "1",
+      "status": "예정",
+      "name": "임고온 2회",
       "essay": false
     },
     {
@@ -3743,9 +3761,9 @@
       "essay": false
     },
     {
-      "count": "5",
+      "count": "3",
       "status": "예정",
-      "name": "초임공 2~6회",
+      "name": "초임공 4~6회",
       "essay": true
     },
     {
@@ -3761,11 +3779,17 @@
       "essay": false
     },
     {
+      "count": "3",
+      "status": "예정",
+      "name": "테크니컬 신규 3~5회",
+      "essay": false
+    },
+    {
       "count": "3?",
       "status": "미정",
       "name": "튼실튼실 모의고사 1~3?회",
       "essay": true
     }
   ],
-  "examsUpdated": "2026.06.01."
+  "examsUpdated": "2026.07.18."
 }
