@@ -234,23 +234,21 @@ body.light .nc-stitle{color:var(--text3)}
   </div>
 
   <div id="examPanel-person" style="display:none">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <div class="subj-tabs" id="modeTabs" style="margin:0"></div>
       <button class="apply-btn" onclick="openRecordModal()">+ 기록</button>
     </div>
 
     <div class="nc" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
         <div class="nc-stitle" style="margin:0">점수 추이</div>
-        <div style="display:flex;gap:14px;flex-wrap:wrap">
-          <div class="subj-tabs" id="seriesTabs" style="margin:0"></div>
-          <div class="subj-tabs" id="modeTabs" style="margin:0"></div>
-        </div>
+        <div class="subj-tabs" id="seriesTabs" style="margin:0"></div>
       </div>
       <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
         <div class="subj-tabs" id="avgTabs" style="margin:0"></div>
       </div>
       <div style="overflow-x:auto">
-        <div style="position:relative;height:220px">
+        <div style="position:relative;height:330px">
           <canvas id="examTrendChart"></canvas>
         </div>
       </div>
@@ -269,8 +267,17 @@ body.light .nc-stitle{color:var(--text3)}
       </div>
       <div class="subj-tabs" id="examSubjectTabs" style="margin:10px 0"></div>
       <div style="overflow-x:auto">
-        <div style="position:relative;height:180px">
+        <div style="position:relative;height:270px">
           <canvas id="examSubjectChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="nc" style="margin-bottom:16px">
+      <div class="nc-stitle" style="margin-bottom:10px">평균 정답률</div>
+      <div style="overflow-x:auto">
+        <div style="position:relative;height:220px">
+          <canvas id="avgRateChart"></canvas>
         </div>
       </div>
     </div>
@@ -897,6 +904,7 @@ async function showExamPerson(who, btn){
   buildExamControls();
   renderExamTrend();
   renderExamSubjectTabs();
+  renderAvgRateChart();
   buildWrongExamSelects();
   renderWrongList();
 }
@@ -904,7 +912,7 @@ async function showExamPerson(who, btn){
 function buildExamControls(){
   const seriesEl = document.getElementById('seriesTabs');
   seriesEl.innerHTML = ['total','A','B'].map(s=>{
-    const label = s==='total'?'총점':s==='A'?'A형':'B형';
+    const label = s==='total'?'총점 80점':s==='A'?'A형 39점':'B형 41점';
     const on = examSeriesActive.has(s);
     return `<button class="stab${on?' on':''}" style="${on?`border-color:${SERIES_COLOR[s]};color:${SERIES_COLOR[s]};background:${SERIES_COLOR[s]}1a`:''}" onclick="toggleExamSeries('${s}',this)">${label}</button>`;
   }).join('');
@@ -1053,7 +1061,7 @@ function renderExamTrend(){
       label: s==='total'?'총점':s==='A'?'A형':'B형',
       data, rawScores, maxScore:max, avgRaw,
       borderColor: SERIES_COLOR[s], backgroundColor: SERIES_COLOR[s],
-      tension:.2, pointRadius:4, spanGaps:true
+      tension:.2, pointRadius:4, pointHitRadius:20, spanGaps:true
     };
   });
 
@@ -1065,7 +1073,7 @@ function renderExamTrend(){
     datasets.push({
       seriesKey:s, isAvgDataset:true, label: avgLabelOf[s],
       data, rawScores, maxScore:max,
-      showLine:false, pointBackgroundColor:'#fff', pointBorderColor:'#fff', pointRadius:5, pointStyle:'circle',
+      showLine:false, pointBackgroundColor:'#fff', pointBorderColor:'#fff', pointRadius:5, pointHitRadius:20, pointStyle:'circle',
       borderColor:'#fff'
     });
   });
@@ -1073,11 +1081,14 @@ function renderExamTrend(){
   const ctx = document.getElementById('examTrendChart');
   if(examTrendChart) examTrendChart.destroy();
   fitChartWidth('examTrendChart', labels.length);
+  const activeTypes = new Set([...examSeriesActive, ...examAvgActive]);
+  const yMax = examMode==='rate' ? 100 : (activeTypes.size ? Math.max(...[...activeTypes].map(seriesMax)) : undefined);
   examTrendChart = new Chart(ctx, {
     type:'line',
     data:{ labels, datasets },
     plugins:[valueLabelPlugin],
-    options:{ responsive:true, maintainAspectRatio:false,
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:'nearest', intersect:false, axis:'x' },
+      layout:{ padding:{ top:24 } },
       plugins:{ legend:{display:false},
         tooltip:{ callbacks:{
           title:(items)=> labelsRaw[items[0].dataIndex],
@@ -1093,7 +1104,7 @@ function renderExamTrend(){
             return lines;
           }
         } } },
-      scales:{ y:{ beginAtZero:true, max: examMode==='rate'?100:undefined }, x:{ grid:{display:false} } } }
+      scales:{ y:{ beginAtZero:true, max:yMax }, x:{ grid:{display:false} } } }
   });
 }
 
@@ -1152,7 +1163,7 @@ function renderExamSubjectChart(){
       return row ? Number(row.score) : null;
     });
     const data = rawScores.map(v=> v===null?null: (examMode==='score' ? v : Math.round(v/s.max*1000)/10));
-    return { label:s.name, data, rawScores, maxScore:s.max, borderColor:s.color, backgroundColor:s.color, tension:.2, pointRadius:4, spanGaps:true };
+    return { label:s.name, data, rawScores, maxScore:s.max, borderColor:s.color, backgroundColor:s.color, tension:.2, pointRadius:4, pointHitRadius:20, spanGaps:true };
   });
 
   const ctx = document.getElementById('examSubjectChart');
@@ -1162,7 +1173,8 @@ function renderExamSubjectChart(){
     type:'line',
     data:{ labels, datasets },
     plugins:[valueLabelPlugin],
-    options:{ responsive:true, maintainAspectRatio:false,
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:'nearest', intersect:false, axis:'x' },
+      layout:{ padding:{ top:24 } },
       plugins:{ legend:{display:false},
         tooltip:{ callbacks:{
           title:(items)=> examNames[items[0].dataIndex],
@@ -1171,6 +1183,64 @@ function renderExamSubjectChart(){
       scales:{ y:{ beginAtZero:true, max: examMode==='rate'?100:undefined }, x:{ grid:{display:false} } } }
   });
 }
+
+// ---- 평균 정답률 (막대그래프) ----
+let avgRateChart = null;
+function renderAvgRateChart(){
+  const rows = dedupeLatest(personScores(), r=>r.author+'|'+r.examName+'|'+r.type+'|'+r.subject);
+  function typeRate(type,max){
+    const byExam = {};
+    rows.filter(r=>r.type===type).forEach(r=>{ byExam[r.examName]=(byExam[r.examName]||0)+Number(r.score); });
+    const exams = Object.values(byExam);
+    if(!exams.length) return null;
+    const avg = exams.reduce((a,b)=>a+b,0)/exams.length;
+    return Math.round(avg/max*1000)/10;
+  }
+  const subjRates = SUBJECT_META.map(s=>{
+    const rs = rows.filter(r=>r.subject===s.name);
+    if(!rs.length) return null;
+    const avg = rs.reduce((a,r)=>a+Number(r.score),0)/rs.length;
+    return Math.round(avg/s.max*1000)/10;
+  });
+  const labels = ['A형','B형', ...SUBJECT_META.map(s=>s.name)];
+  const data = [typeRate('A',39), typeRate('B',41), ...subjRates];
+  const colors = ['#5b8dee','#3ecf8e', ...SUBJECT_META.map(s=>s.color)];
+
+  const ctx = document.getElementById('avgRateChart');
+  if(avgRateChart) avgRateChart.destroy();
+  avgRateChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor:colors, borderRadius:4, hideLabel:false, borderColor:colors,
+      rawScores:data, maxScore:100 }] },
+    plugins:[valueLabelBarPlugin],
+    options:{ responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:24 } },
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{
+          label:(c)=> (c.raw===null||c.raw===undefined) ? '기록 없음' : c.raw.toFixed(1)+'%'
+        } } },
+      scales:{ y:{ beginAtZero:true, max:100 }, x:{ grid:{display:false}, ticks:{ font:{ size:10 } } } } }
+  });
+}
+const valueLabelBarPlugin = {
+  id:'valueLabelBarPlugin',
+  afterDatasetsDraw(chart){
+    const ctx = chart.ctx;
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta = chart.getDatasetMeta(di);
+      meta.data.forEach((bar,i)=>{
+        const v = ds.data[i];
+        if(v===null || v===undefined) return;
+        ctx.save();
+        ctx.font = '10px sans-serif';
+        ctx.fillStyle = Array.isArray(ds.backgroundColor) ? ds.backgroundColor[i] : (ds.backgroundColor||'#888');
+        ctx.textAlign = 'center';
+        ctx.fillText(v.toFixed(1)+'%', bar.x, bar.y - 6);
+        ctx.restore();
+      });
+    });
+  }
+};
 
 // ---- 오답 기록: 이름+회차 드롭다운 ----
 function buildWrongExamSelects(){
@@ -1360,7 +1430,7 @@ async function submitRecord(){
       if(itemsB.length) await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({ target:'wrongAnswers', author:examPerson, examName, type:'B', examDate, items:itemsB })});
     }
     await fetchExamData();
-    renderExamTrend(); renderExamSubjectTabs(); buildWrongExamSelects(); renderWrongList();
+    renderExamTrend(); renderExamSubjectTabs(); renderAvgRateChart(); buildWrongExamSelects(); renderWrongList();
     closeRecordModal();
   }catch(e){
     statusEl.textContent='저장 실패: '+e;
