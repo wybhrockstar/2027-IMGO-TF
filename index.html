@@ -256,7 +256,7 @@ body.light .nc-stitle{color:var(--text3)}
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#b8a5ff;display:inline-block"></span>총점</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#5b8dee;display:inline-block"></span>A형</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#3ecf8e;display:inline-block"></span>B형</span>
-        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#fff;border:1px solid var(--border2);display:inline-block"></span>평균 (선택 시 표시)</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:transparent;border:2px solid var(--text3);display:inline-block"></span>평균 (선택 시 표시, 테두리는 테마색)</span>
       </div>
     </div>
 
@@ -292,7 +292,7 @@ body.light .nc-stitle{color:var(--text3)}
       <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
         <span style="font-size:11px;color:var(--text3);flex-shrink:0;width:64px">과목으로 조회</span>
         <select id="wrongSubjectSelect" onchange="renderWrongList()" style="flex:1">
-          <option value="">전체 (회차 선택 사용)</option>
+          <option value="">전체 (회차 선택 필요)</option>
         </select>
       </div>
       <div id="wrongAnswerList"></div>
@@ -926,7 +926,8 @@ function buildExamControls(){
   avgEl.innerHTML = ['total','A','B'].map(s=>{
     const label = s==='total'?'총점 평균':s==='A'?'A형 평균':'B형 평균';
     const on = examAvgActive.has(s);
-    return `<button class="stab${on?' on':''}" style="${on?'border-color:#fff;color:#fff;background:rgba(255,255,255,.12)':''}" onclick="toggleExamAvg('${s}',this)">${label}</button>`;
+    const c = SERIES_COLOR[s];
+    return `<button class="stab${on?' on':''}" style="border-color:${c};color:#fff;${on?`background:${c}2a`:''}" onclick="toggleExamAvg('${s}',this)">${label}</button>`;
   }).join('');
 }
 function toggleExamAvg(s,btn){
@@ -994,7 +995,7 @@ const valueLabelPlugin = {
         if(v===null || v===undefined) return;
         ctx.save();
         ctx.font = '10px sans-serif';
-        ctx.fillStyle = ds.borderColor || '#888';
+        ctx.fillStyle = ds.isAvgDataset ? '#fff' : (ds.borderColor || '#888');
         ctx.textAlign = 'center';
         ctx.fillText(fmtVal(v), point.x, point.y - 8);
         ctx.restore();
@@ -1073,8 +1074,8 @@ function renderExamTrend(){
     datasets.push({
       seriesKey:s, isAvgDataset:true, label: avgLabelOf[s],
       data, rawScores, maxScore:max,
-      showLine:false, pointBackgroundColor:'#fff', pointBorderColor:'#fff', pointRadius:5, pointHitRadius:20, pointStyle:'circle',
-      borderColor:'#fff'
+      showLine:false, pointBackgroundColor:'transparent', pointBorderColor:SERIES_COLOR[s], pointBorderWidth:2, pointRadius:5, pointHitRadius:20, pointStyle:'circle',
+      borderColor:SERIES_COLOR[s]
     });
   });
 
@@ -1095,13 +1096,7 @@ function renderExamTrend(){
           label:(c)=>{
             const ds = c.dataset;
             const i = c.dataIndex;
-            if(ds.isAvgDataset){
-              return ds.label+': '+fmtBoth(ds.rawScores[i], ds.maxScore);
-            }
-            const lines = [ ds.label+': '+fmtBoth(ds.rawScores[i], ds.maxScore) ];
-            const avgMax = ds.seriesKey==='total'?80:ds.seriesKey==='A'?39:41;
-            if(ds.avgRaw[i]!==null && ds.avgRaw[i]!==undefined) lines.push(avgLabelOf[ds.seriesKey]+': '+fmtBoth(ds.avgRaw[i],avgMax));
-            return lines;
+            return ds.label+': '+fmtBoth(ds.rawScores[i], ds.maxScore);
           }
         } } },
       scales:{ y:{ beginAtZero:true, max:yMax }, x:{ grid:{display:false} } } }
@@ -1196,15 +1191,23 @@ function renderAvgRateChart(){
     const avg = exams.reduce((a,b)=>a+b,0)/exams.length;
     return Math.round(avg/max*1000)/10;
   }
+  function totalRate(){
+    const byExam = {};
+    rows.forEach(r=>{ byExam[r.examName]=(byExam[r.examName]||0)+Number(r.score); });
+    const exams = Object.values(byExam);
+    if(!exams.length) return null;
+    const avg = exams.reduce((a,b)=>a+b,0)/exams.length;
+    return Math.round(avg/80*1000)/10;
+  }
   const subjRates = SUBJECT_META.map(s=>{
     const rs = rows.filter(r=>r.subject===s.name);
     if(!rs.length) return null;
     const avg = rs.reduce((a,r)=>a+Number(r.score),0)/rs.length;
     return Math.round(avg/s.max*1000)/10;
   });
-  const labels = ['A형','B형', ...SUBJECT_META.map(s=>s.name)];
-  const data = [typeRate('A',39), typeRate('B',41), ...subjRates];
-  const colors = ['#5b8dee','#3ecf8e', ...SUBJECT_META.map(s=>s.color)];
+  const labels = ['총점','A형','B형', ...SUBJECT_META.map(s=>s.name)];
+  const data = [totalRate(), typeRate('A',39), typeRate('B',41), ...subjRates];
+  const colors = [SERIES_COLOR.total, '#5b8dee','#3ecf8e', ...SUBJECT_META.map(s=>s.color)];
 
   const ctx = document.getElementById('avgRateChart');
   if(avgRateChart) avgRateChart.destroy();
@@ -1246,9 +1249,10 @@ const valueLabelBarPlugin = {
 function buildWrongExamSelects(){
   const tree = examTree();
   const baseSel = document.getElementById('wrongExamBase');
-  baseSel.innerHTML = tree.map(t=>`<option value="${t.base}">${t.base}</option>`).join('');
+  baseSel.innerHTML = '<option value="">전체 (과목 선택 필요)</option>' +
+    tree.map(t=>`<option value="${t.base}">${t.base}</option>`).join('');
   const subjSel = document.getElementById('wrongSubjectSelect');
-  subjSel.innerHTML = '<option value="">전체 (회차 선택 사용)</option>' +
+  subjSel.innerHTML = '<option value="">전체 (회차 선택 필요)</option>' +
     SUBJECT_META.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
   subjSel.value = '';
   onWrongBaseChange();
@@ -1258,7 +1262,7 @@ function onWrongBaseChange(){
   const tree = examTree();
   const t = tree.find(x=>x.base===base);
   const roundSel = document.getElementById('wrongExamRound');
-  if(!t || (t.rounds.length===1 && t.rounds[0]==='')){
+  if(!base || !t || (t.rounds.length===1 && t.rounds[0]==='')){
     roundSel.innerHTML = '<option value="">-</option>';
   } else {
     roundSel.innerHTML = t.rounds.map(r=>`<option value="${r}">${r}</option>`).join('');
@@ -1291,6 +1295,11 @@ function renderWrongList(){
     return;
   }
 
+  const base = document.getElementById('wrongExamBase').value;
+  if(!base){
+    el.innerHTML = '<div style="font-size:13px;color:var(--text3)">과목을 선택해주세요.</div>';
+    return;
+  }
   const examName = currentWrongExamName();
   const rows = examData.wrongAnswers.filter(r=>r.author===examPerson && r.examName===examName);
   const bySubject = {};
