@@ -853,6 +853,11 @@ function parseExamEntry(raw){
   if(m && m[2].includes(',')) return {base:m[1].trim(), rounds:m[2].split(',').map(n=>n.trim()+'월')};
   m = name.match(/^(.*?)([\d,]+)회$/);
   if(m && m[2].includes(',')) return {base:m[1].trim(), rounds:m[2].split(',').map(n=>n.trim()+'회')};
+  // 회차가 하나뿐이어도(예: "임고온 1회") 이름과 회차를 분리
+  m = name.match(/^(.+?)\s*(\d+회)$/);
+  if(m && m[1].trim()) return {base:m[1].trim(), rounds:[m[2]]};
+  m = name.match(/^(.+?)\s*(\d+월)$/);
+  if(m && m[1].trim()) return {base:m[1].trim(), rounds:[m[2]]};
   return {base:name, rounds:['']};
 }
 function examTree(){
