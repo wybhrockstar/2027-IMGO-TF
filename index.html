@@ -285,15 +285,18 @@ body.light .nc-stitle{color:var(--text3)}
     <div class="nc">
       <div class="nc-stitle" style="margin-bottom:10px">오답 기록</div>
       <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
-        <span style="font-size:11px;color:var(--text3);flex-shrink:0;width:64px">회차로 조회</span>
+        <span style="font-size:11px;color:var(--text3);flex-shrink:0;width:64px">조회 방식</span>
+        <select id="wrongQueryMode" onchange="onWrongQueryModeChange()" style="flex:1">
+          <option value="exam">회차로 조회</option>
+          <option value="subject">과목으로 조회</option>
+        </select>
+      </div>
+      <div id="wrongExamRow" style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
         <select id="wrongExamBase" onchange="onWrongBaseChange()" style="flex:1"></select>
         <select id="wrongExamRound" onchange="renderWrongList()" style="flex:1"></select>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-        <span style="font-size:11px;color:var(--text3);flex-shrink:0;width:64px">과목으로 조회</span>
-        <select id="wrongSubjectSelect" onchange="renderWrongList()" style="flex:1">
-          <option value="">전체 (회차 선택 필요)</option>
-        </select>
+      <div id="wrongSubjectRow" style="display:none;gap:8px;margin-bottom:10px;align-items:center">
+        <select id="wrongSubjectSelect" onchange="renderWrongList()" style="flex:1"></select>
       </div>
       <div id="wrongAnswerList"></div>
     </div>
@@ -900,7 +903,7 @@ async function showExamPerson(who, btn){
   document.getElementById('examPanel-status').style.display = who==='status' ? '' : 'none';
   document.getElementById('examPanel-person').style.display = who==='status' ? 'none' : '';
   if(who==='status') return;
-  if(!examLoaded) await fetchExamData();
+  await fetchExamData();
   buildExamControls();
   renderExamTrend();
   renderExamSubjectTabs();
@@ -1005,12 +1008,43 @@ const valueLabelPlugin = {
 };
 
 // 클릭 시 툴팁 토글 (한 번 누르면 표시, 같은 지점을 한 번 더 누르면 숨김)
+// 히트박스는 해당 x지점의 데이터 y값들 사이 구간으로 제한하고, 스크롤 동작은 무시한다.
 function attachTooltipToggle(chart){
   let lockedIndex = null;
-  chart.canvas.onclick = (evt)=>{
-    const points = chart.getElementsAtEventForMode(evt, 'nearest', {intersect:false, axis:'x'}, true);
-    if(!points.length) return;
-    const idx = points[0].index;
+  let touchStartX = 0, touchStartY = 0, moved = false;
+  const canvas = chart.canvas;
+  canvas.addEventListener('touchstart', (e)=>{
+    if(e.touches && e.touches[0]){ touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; moved = false; }
+  }, {passive:true});
+  canvas.addEventListener('touchmove', (e)=>{
+    if(e.touches && e.touches[0]){
+      const dx = Math.abs(e.touches[0].clientX - touchStartX);
+      const dy = Math.abs(e.touches[0].clientY - touchStartY);
+      if(dx > 6 || dy > 6) moved = true;
+    }
+  }, {passive:true});
+  canvas.onclick = (evt)=>{
+    if(moved){ moved = false; return; } // 스크롤/드래그 동작은 무시
+    const rect = canvas.getBoundingClientRect();
+    const touchY = evt.clientY - rect.top;
+    const xPoints = chart.getElementsAtEventForMode(evt, 'nearest', {intersect:false, axis:'x'}, true);
+    if(!xPoints.length) return;
+    const idx = xPoints[0].index;
+    const ys = [];
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta = chart.getDatasetMeta(di);
+      if(meta.hidden) return;
+      const v = ds.data[idx];
+      if(v===null || v===undefined) return;
+      const pt = meta.data[idx];
+      if(pt) ys.push(pt.y);
+    });
+    if(!ys.length) return;
+    const PAD = 16;
+    const minY = Math.min(...ys) - PAD;
+    const maxY = Math.max(...ys) + PAD;
+    if(touchY < minY || touchY > maxY) return; // 데이터 y값 구간 밖은 무시
+
     if(lockedIndex === idx){
       chart.tooltip.setActiveElements([], {x:0,y:0});
       chart.setActiveElements([]);
@@ -1019,7 +1053,7 @@ function attachTooltipToggle(chart){
       const active = chart.data.datasets
         .map((ds,di)=>({datasetIndex:di, index:idx}))
         .filter(a=>!chart.getDatasetMeta(a.datasetIndex).hidden && chart.data.datasets[a.datasetIndex].data[idx]!==null && chart.data.datasets[a.datasetIndex].data[idx]!==undefined);
-      const pt = points[0].element;
+      const pt = xPoints[0].element;
       chart.tooltip.setActiveElements(active, pt ? {x:pt.x,y:pt.y} : {x:0,y:0});
       chart.setActiveElements(active);
       lockedIndex = idx;
@@ -1112,7 +1146,7 @@ function renderExamTrend(){
     type:'line',
     data:{ labels, datasets },
     plugins:[valueLabelPlugin],
-    options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:'nearest', intersect:false, axis:'x' },
+    options:{ responsive:true, maintainAspectRatio:false, events:['click'], interaction:{ mode:'nearest', intersect:false, axis:'x' },
       layout:{ padding:{ top:24 } },
       plugins:{ legend:{display:false},
         tooltip:{ callbacks:{
@@ -1195,14 +1229,20 @@ function renderExamSubjectChart(){
     type:'line',
     data:{ labels, datasets },
     plugins:[valueLabelPlugin],
-    options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:'nearest', intersect:false, axis:'x' },
+    options:{ responsive:true, maintainAspectRatio:false, events:['click'], interaction:{ mode:'nearest', intersect:false, axis:'x' },
       layout:{ padding:{ top:24 } },
       plugins:{ legend:{display:false},
         tooltip:{ callbacks:{
           title:(items)=> examNames[items[0].dataIndex],
           label:(c)=> c.dataset.label+': '+fmtBoth(c.dataset.rawScores[c.dataIndex], c.dataset.maxScore)
         } } },
-      scales:{ y:{ beginAtZero:true, max: subjYMax, ticks:yTicks }, x:{ grid:{display:false}, ticks:{ color:'#fff' } } } }
+      scales:{ y:{ beginAtZero:true, max: subjYMax, ticks:yTicks,
+        afterBuildTicks: (axis)=>{
+          if(examMode!=='rate' && subjYMax!=null && !axis.ticks.some(t=>t.value===subjYMax)){
+            axis.ticks.push({value:subjYMax});
+          }
+        }
+      }, x:{ grid:{display:false}, ticks:{ color:'#fff' } } } }
   });
   attachTooltipToggle(examSubjectChart);
 }
@@ -1278,13 +1318,17 @@ const valueLabelBarPlugin = {
 function buildWrongExamSelects(){
   const tree = examTree();
   const baseSel = document.getElementById('wrongExamBase');
-  baseSel.innerHTML = '<option value="">전체 (과목 선택 필요)</option>' +
-    tree.map(t=>`<option value="${t.base}">${t.base}</option>`).join('');
+  baseSel.innerHTML = tree.map(t=>`<option value="${t.base}">${t.base}</option>`).join('');
   const subjSel = document.getElementById('wrongSubjectSelect');
-  subjSel.innerHTML = '<option value="">전체 (회차 선택 필요)</option>' +
-    SUBJECT_META.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
-  subjSel.value = '';
+  subjSel.innerHTML = SUBJECT_META.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
   onWrongBaseChange();
+  onWrongQueryModeChange();
+}
+function onWrongQueryModeChange(){
+  const mode = document.getElementById('wrongQueryMode').value;
+  document.getElementById('wrongExamRow').style.display = mode==='subject' ? 'none' : 'flex';
+  document.getElementById('wrongSubjectRow').style.display = mode==='subject' ? 'flex' : 'none';
+  renderWrongList();
 }
 function onWrongBaseChange(){
   const base = document.getElementById('wrongExamBase').value;
@@ -1305,10 +1349,11 @@ function currentWrongExamName(){
 }
 function renderWrongList(){
   const el = document.getElementById('wrongAnswerList');
-  const subjSel = document.getElementById('wrongSubjectSelect');
-  const subject = subjSel ? subjSel.value : '';
+  const modeSel = document.getElementById('wrongQueryMode');
+  const mode = modeSel ? modeSel.value : 'exam';
 
-  if(subject){
+  if(mode==='subject'){
+    const subject = document.getElementById('wrongSubjectSelect').value;
     const s = SUBJECT_META.find(x=>x.name===subject);
     const rows = examData.wrongAnswers.filter(r=>r.author===examPerson && r.subject===subject);
     const dateOf = {}; examData.scores.forEach(r=>{ dateOf[r.examName]=r.examDate; });
@@ -1324,11 +1369,6 @@ function renderWrongList(){
     return;
   }
 
-  const base = document.getElementById('wrongExamBase').value;
-  if(!base){
-    el.innerHTML = '<div style="font-size:13px;color:var(--text3)">과목을 선택해주세요.</div>';
-    return;
-  }
   const examName = currentWrongExamName();
   const rows = examData.wrongAnswers.filter(r=>r.author===examPerson && r.examName===examName);
   const bySubject = {};
