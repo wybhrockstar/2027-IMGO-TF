@@ -3647,7 +3647,7 @@
   },
   "exams": [
     {
-      "count": "횟수",
+      "count": "회분",
       "status": "현황",
       "name": "이름 회차 (논술 유무) (일정)",
       "essay": false
