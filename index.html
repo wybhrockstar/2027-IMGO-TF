@@ -1145,7 +1145,7 @@ function renderExamTrend(){
     type:'line',
     data:{ labels, datasets },
     plugins:[valueLabelPlugin],
-    options:{ responsive:true, maintainAspectRatio:false, events:['click'], interaction:{ mode:'nearest', intersect:false, axis:'x' },
+    options:{ responsive:true, maintainAspectRatio:false, events:[], interaction:{ mode:'nearest', intersect:false, axis:'x' },
       layout:{ padding:{ top:24 } },
       plugins:{ legend:{display:false},
         tooltip:{ callbacks:{
@@ -1228,7 +1228,7 @@ function renderExamSubjectChart(){
     type:'line',
     data:{ labels, datasets },
     plugins:[valueLabelPlugin],
-    options:{ responsive:true, maintainAspectRatio:false, events:['click'], interaction:{ mode:'nearest', intersect:false, axis:'x' },
+    options:{ responsive:true, maintainAspectRatio:false, events:[], interaction:{ mode:'nearest', intersect:false, axis:'x' },
       layout:{ padding:{ top:24 } },
       plugins:{ legend:{display:false},
         tooltip:{ callbacks:{
