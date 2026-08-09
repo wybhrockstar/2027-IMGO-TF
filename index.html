@@ -34,7 +34,7 @@ body.light{
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
 button{font-family:'Noto Sans KR',sans-serif;cursor:pointer}
-input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}
+input,select,textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px;color:var(--text);background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);padding:8px 10px;outline:none;transition:.15s;width:100%}
 
 /* ── HEADER ── */
 .hdr{border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:200}
@@ -109,6 +109,9 @@ body.light .cd{color:var(--text3)}
 .apply-btn{padding:8px 18px;font-size:13px;font-weight:600;border-radius:20px;border:1px solid var(--accent);color:var(--bg);background:var(--accent);transition:.15s;cursor:pointer}
 .apply-btn:hover{opacity:.85}
 .apply-btn:active{transform:scale(.97)}
+.apply-btn-sm{padding:5px 13px;font-size:12px;font-weight:600;border-radius:20px;border:1px solid var(--accent);color:var(--bg);background:var(--accent);transition:.15s;cursor:pointer}
+.apply-btn-sm:hover{opacity:.85}
+.apply-btn-sm:active{transform:scale(.97)}
 .lec-list{display:grid;grid-template-columns:1fr;gap:5px}
 @media(min-width:560px){.lec-list{grid-template-columns:repeat(2,1fr)}}
 .li{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);transition:.12s}
@@ -239,7 +242,7 @@ body.light .nc-stitle{color:var(--text3)}
   <div id="examPanel-person" style="display:none">
     <div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
       <div class="subj-tabs" id="modeTabs" style="margin:0"></div>
-      <button class="apply-btn" onclick="openRecordModal()">+ 기록</button>
+      <button class="apply-btn-sm" onclick="openRecordModal()">+ 기록</button>
     </div>
 
     <div class="nc" style="margin-bottom:16px">
@@ -833,6 +836,7 @@ const SUBJECT_META = [
   {name:'체육',type:'B',max:8,color:'#e8407a'}
 ];
 const SERIES_COLOR = { total:'#b8a5ff', A:'#5b8dee', B:'#3ecf8e' };
+function examThemeTextColor(){ return document.body.classList.contains('light') ? '#444444' : '#ffffff'; }
 const RATE_COLOR = '#c8f060';
 const AVG_COLOR = '#ff5a5a';
 
@@ -935,7 +939,7 @@ function buildExamControls(){
     const label = s==='total'?'총점 평균':s==='A'?'A형 평균':'B형 평균';
     const on = examAvgActive.has(s);
     const c = SERIES_COLOR[s];
-    return `<button class="stab${on?' on':''}" style="border-color:${on?c:'var(--border2)'};color:${on?'#fff':'var(--text3)'};${on?`background:${c}2a`:''}" onclick="toggleExamAvg('${s}',this)">${label}</button>`;
+    return `<button class="stab${on?' on':''}" style="${on?`border-color:${c};color:${examThemeTextColor()};background:${c}1a`:''}" onclick="toggleExamAvg('${s}',this)">${label}</button>`;
   }).join('');
 }
 function toggleExamAvg(s,btn){
@@ -1003,7 +1007,7 @@ const valueLabelPlugin = {
         if(v===null || v===undefined) return;
         ctx.save();
         ctx.font = '10px sans-serif';
-        ctx.fillStyle = ds.isAvgDataset ? '#fff' : (ds.borderColor || '#888');
+        ctx.fillStyle = ds.isAvgDataset ? examThemeTextColor() : (ds.borderColor || '#888');
         ctx.textAlign = 'center';
         ctx.fillText(fmtVal(v), point.x, point.y - 8);
         ctx.restore();
@@ -1210,7 +1214,7 @@ function renderExamTrend(){
             return ds.label+': '+fmtBoth(ds.rawScores[i], ds.maxScore);
           }
         } } },
-      scales:{ y:{ beginAtZero:true, max:yMax }, x:{ grid:{display:false}, ticks:{ color:'#fff' } } } }
+      scales:{ y:{ beginAtZero:true, max:yMax }, x:{ grid:{display:false}, ticks:{ color: examThemeTextColor() } } } }
   });
   attachTooltipToggle(examTrendChart);
 }
@@ -1298,7 +1302,7 @@ function renderExamSubjectChart(){
           ticks.push({value:subjYMax});
           axis.ticks = ticks;
         }
-      }, x:{ grid:{display:false}, ticks:{ color:'#fff' } } } }
+      }, x:{ grid:{display:false}, ticks:{ color: examThemeTextColor() } } } }
   });
   attachTooltipToggle(examSubjectChart);
 }
@@ -1331,8 +1335,9 @@ function renderAvgRateChart(){
   });
   const labels = ['총점','A형','B형', ...SUBJECT_META.map(s=>s.name)];
   const data = [totalRate(), typeRate('A',39), typeRate('B',41), ...subjRates];
-  const bgColors = ['#fff','#fff','#fff', ...SUBJECT_META.map(s=>s.color)];
-  const tickColors = ['#fff','#fff','#fff', ...SUBJECT_META.map(s=>s.color)];
+  const themeCol = examThemeTextColor();
+  const bgColors = [themeCol, themeCol, themeCol, ...SUBJECT_META.map(s=>s.color)];
+  const tickColors = [themeCol, themeCol, themeCol, ...SUBJECT_META.map(s=>s.color)];
 
   const ctx = document.getElementById('avgRateChart');
   if(avgRateChart) avgRateChart.destroy();
@@ -1582,6 +1587,12 @@ function toggleTheme(){
   const isLight = document.body.classList.toggle('light');
   document.getElementById('themeToggleBtn').textContent = isLight ? '🌞' : '🌙';
   localStorage.setItem('imgo_theme', isLight ? 'light' : 'dark');
+  if(typeof examPerson !== 'undefined' && examPerson){
+    buildExamControls();
+    renderExamTrend();
+    renderExamSubjectTabs();
+    renderAvgRateChart();
+  }
 }
 (function initTheme(){
   if(localStorage.getItem('imgo_theme')==='light'){
