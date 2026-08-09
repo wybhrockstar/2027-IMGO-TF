@@ -3659,9 +3659,9 @@
       "essay": false
     },
     {
-      "count": "1",
+      "count": "2",
       "status": "완료",
-      "name": "엑시트 1회",
+      "name": "엑시트 1~2회",
       "essay": false
     },
     {
@@ -3695,9 +3695,9 @@
       "essay": false
     },
     {
-      "count": "5",
+      "count": "4",
       "status": "완료",
-      "name": "테크니컬 신규 1~2회",
+      "name": "테크니컬 신규 1~4회",
       "essay": false
     },
     {
@@ -3713,9 +3713,9 @@
       "essay": false
     },
     {
-      "count": "2",
+      "count": "1",
       "status": "예정",
-      "name": "엑시트 2~3회",
+      "name": "엑시트 3회",
       "essay": false
     },
     {
@@ -3779,9 +3779,9 @@
       "essay": false
     },
     {
-      "count": "3",
+      "count": "1",
       "status": "예정",
-      "name": "테크니컬 신규 3~5회",
+      "name": "테크니컬 신규 5회",
       "essay": false
     },
     {
@@ -3791,5 +3791,5 @@
       "essay": true
     }
   ],
-  "examsUpdated": "2026.07.18."
+  "examsUpdated": "2026.08.13."
 }
