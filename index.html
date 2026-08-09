@@ -106,6 +106,9 @@ body.light .cd{color:var(--text3)}
 .stab{padding:5px 13px;font-size:12px;border-radius:20px;border:1px solid var(--border2);color:var(--text3);background:none;transition:.12s}
 .stab:hover{border-color:var(--blue);color:var(--blue)}
 .stab.on{background:rgba(110,181,255,.1);border-color:var(--blue);color:var(--blue)}
+.apply-btn{padding:8px 18px;font-size:13px;font-weight:600;border-radius:20px;border:1px solid var(--accent);color:var(--bg);background:var(--accent);transition:.15s;cursor:pointer}
+.apply-btn:hover{opacity:.85}
+.apply-btn:active{transform:scale(.97)}
 .lec-list{display:grid;grid-template-columns:1fr;gap:5px}
 @media(min-width:560px){.lec-list{grid-template-columns:repeat(2,1fr)}}
 .li{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);transition:.12s}
@@ -1274,7 +1277,7 @@ function renderExamSubjectChart(){
   if(examSubjectChart) examSubjectChart.destroy();
   fitChartWidth('examSubjectChart', labels.length);
   const subjYMax = examMode==='rate' ? 100 : (activeList.length ? Math.max(...activeList.map(s=>s.max)) : undefined);
-  const yTicks = examMode==='rate' ? {} : { stepSize:1, precision:0 };
+  const yTicks = examMode==='rate' ? {} : { stepSize:1, precision:0, autoSkip:false };
   examSubjectChart = new Chart(ctx,{
     type:'line',
     data:{ labels, datasets },
@@ -1288,9 +1291,12 @@ function renderExamSubjectChart(){
         } } },
       scales:{ y:{ beginAtZero:true, max: subjYMax, ticks:yTicks,
         afterBuildTicks: (axis)=>{
-          if(examMode!=='rate' && subjYMax!=null && !axis.ticks.some(t=>t.value===subjYMax)){
-            axis.ticks.push({value:subjYMax});
-          }
+          if(examMode==='rate' || subjYMax==null) return;
+          const step = subjYMax<=12 ? 1 : Math.ceil(subjYMax/10);
+          const ticks = [];
+          for(let v=0; v<subjYMax; v+=step) ticks.push({value:v});
+          ticks.push({value:subjYMax});
+          axis.ticks = ticks;
         }
       }, x:{ grid:{display:false}, ticks:{ color:'#fff' } } } }
   });
@@ -1560,7 +1566,12 @@ async function submitRecord(){
     }
     await fetchExamData();
     renderExamTrend(); renderExamSubjectTabs(); renderAvgRateChart(); buildWrongExamSelects(); renderWrongList();
-    closeRecordModal();
+    statusEl.textContent='저장 완료!';
+    statusEl.style.color = 'var(--accent)';
+    setTimeout(()=>{
+      closeRecordModal();
+      statusEl.style.color = '';
+    }, 700);
   }catch(e){
     statusEl.textContent='저장 실패: '+e;
   }
