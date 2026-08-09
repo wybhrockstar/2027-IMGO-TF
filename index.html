@@ -284,19 +284,18 @@ body.light .nc-stitle{color:var(--text3)}
 
     <div class="nc">
       <div class="nc-stitle" style="margin-bottom:10px">오답 기록</div>
-      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
-        <span style="font-size:11px;color:var(--text3);flex-shrink:0;width:64px">조회 방식</span>
-        <select id="wrongQueryMode" onchange="onWrongQueryModeChange()" style="flex:1">
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+        <select id="wrongQueryMode" onchange="onWrongQueryModeChange()" style="flex:1;min-width:0">
           <option value="exam">회차로 조회</option>
           <option value="subject">과목으로 조회</option>
         </select>
-      </div>
-      <div id="wrongExamRow" style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-        <select id="wrongExamBase" onchange="onWrongBaseChange()" style="flex:1"></select>
-        <select id="wrongExamRound" onchange="renderWrongList()" style="flex:1"></select>
-      </div>
-      <div id="wrongSubjectRow" style="display:none;gap:8px;margin-bottom:10px;align-items:center">
-        <select id="wrongSubjectSelect" onchange="renderWrongList()" style="flex:1"></select>
+        <div id="wrongExamRow" style="display:flex;gap:8px;flex:2;min-width:0">
+          <select id="wrongExamBase" onchange="onWrongBaseChange()" style="flex:1;min-width:0"></select>
+          <select id="wrongExamRound" onchange="renderWrongList()" style="flex:1;min-width:0"></select>
+        </div>
+        <div id="wrongSubjectRow" style="display:none;gap:8px;flex:2;min-width:0">
+          <select id="wrongSubjectSelect" onchange="renderWrongList()" style="flex:1;min-width:0"></select>
+        </div>
       </div>
       <div id="wrongAnswerList"></div>
     </div>
@@ -1045,7 +1044,7 @@ function attachTooltipToggle(chart){
     const maxY = Math.max(...ys) + PAD;
     if(touchY < minY || touchY > maxY) return; // 데이터 y값 구간 밖은 무시
 
-    if(lockedIndex === idx){
+    if(lockedIndex !== null){
       chart.tooltip.setActiveElements([], {x:0,y:0});
       chart.setActiveElements([]);
       lockedIndex = null;
