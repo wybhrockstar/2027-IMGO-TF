@@ -927,7 +927,7 @@ function buildExamControls(){
     const label = s==='total'?'총점 평균':s==='A'?'A형 평균':'B형 평균';
     const on = examAvgActive.has(s);
     const c = SERIES_COLOR[s];
-    return `<button class="stab${on?' on':''}" style="border-color:${on?c:'var(--border2)'};color:#fff;${on?`background:${c}2a`:''}" onclick="toggleExamAvg('${s}',this)">${label}</button>`;
+    return `<button class="stab${on?' on':''}" style="border-color:${on?c:'var(--border2)'};color:${on?'#fff':'var(--text3)'};${on?`background:${c}2a`:''}" onclick="toggleExamAvg('${s}',this)">${label}</button>`;
   }).join('');
 }
 function toggleExamAvg(s,btn){
@@ -1004,6 +1004,30 @@ const valueLabelPlugin = {
   }
 };
 
+// 클릭 시 툴팁 토글 (한 번 누르면 표시, 같은 지점을 한 번 더 누르면 숨김)
+function attachTooltipToggle(chart){
+  let lockedIndex = null;
+  chart.canvas.onclick = (evt)=>{
+    const points = chart.getElementsAtEventForMode(evt, 'nearest', {intersect:false, axis:'x'}, true);
+    if(!points.length) return;
+    const idx = points[0].index;
+    if(lockedIndex === idx){
+      chart.tooltip.setActiveElements([], {x:0,y:0});
+      chart.setActiveElements([]);
+      lockedIndex = null;
+    } else {
+      const active = chart.data.datasets
+        .map((ds,di)=>({datasetIndex:di, index:idx}))
+        .filter(a=>!chart.getDatasetMeta(a.datasetIndex).hidden && chart.data.datasets[a.datasetIndex].data[idx]!==null && chart.data.datasets[a.datasetIndex].data[idx]!==undefined);
+      const pt = points[0].element;
+      chart.tooltip.setActiveElements(active, pt ? {x:pt.x,y:pt.y} : {x:0,y:0});
+      chart.setActiveElements(active);
+      lockedIndex = idx;
+    }
+    chart.update();
+  };
+}
+
 function examTrendPoints(seriesKey){
   const rows = dedupeLatest(personScores().filter(r=> seriesKey==='total' || r.type===seriesKey),
     r=>r.author+'|'+r.examName+'|'+r.type+'|'+r.subject);
@@ -1062,7 +1086,7 @@ function renderExamTrend(){
       label: s==='total'?'총점':s==='A'?'A형':'B형',
       data, rawScores, maxScore:max, avgRaw,
       borderColor: SERIES_COLOR[s], backgroundColor: SERIES_COLOR[s],
-      tension:.2, pointRadius:4, pointHitRadius:20, spanGaps:true
+      tension:.2, pointRadius:4, pointHitRadius:10, spanGaps:true
     };
   });
 
@@ -1074,7 +1098,7 @@ function renderExamTrend(){
     datasets.push({
       seriesKey:s, isAvgDataset:true, label: avgLabelOf[s],
       data, rawScores, maxScore:max,
-      showLine:false, pointBackgroundColor:'transparent', pointBorderColor:SERIES_COLOR[s], pointBorderWidth:2, pointRadius:5, pointHitRadius:20, pointStyle:'circle',
+      showLine:false, pointBackgroundColor:'transparent', pointBorderColor:SERIES_COLOR[s], pointBorderWidth:2, pointRadius:5, pointHitRadius:10, pointStyle:'circle',
       borderColor:SERIES_COLOR[s]
     });
   });
@@ -1099,8 +1123,9 @@ function renderExamTrend(){
             return ds.label+': '+fmtBoth(ds.rawScores[i], ds.maxScore);
           }
         } } },
-      scales:{ y:{ beginAtZero:true, max:yMax }, x:{ grid:{display:false} } } }
+      scales:{ y:{ beginAtZero:true, max:yMax }, x:{ grid:{display:false}, ticks:{ color:'#fff' } } } }
   });
+  attachTooltipToggle(examTrendChart);
 }
 
 function fitChartWidth(canvasId, count){
@@ -1158,12 +1183,14 @@ function renderExamSubjectChart(){
       return row ? Number(row.score) : null;
     });
     const data = rawScores.map(v=> v===null?null: (examMode==='score' ? v : Math.round(v/s.max*1000)/10));
-    return { label:s.name, data, rawScores, maxScore:s.max, borderColor:s.color, backgroundColor:s.color, tension:.2, pointRadius:4, pointHitRadius:20, spanGaps:true };
+    return { label:s.name, data, rawScores, maxScore:s.max, borderColor:s.color, backgroundColor:s.color, tension:.2, pointRadius:4, pointHitRadius:10, spanGaps:true };
   });
 
   const ctx = document.getElementById('examSubjectChart');
   if(examSubjectChart) examSubjectChart.destroy();
   fitChartWidth('examSubjectChart', labels.length);
+  const subjYMax = examMode==='rate' ? 100 : (activeList.length ? Math.max(...activeList.map(s=>s.max)) : undefined);
+  const yTicks = examMode==='rate' ? {} : { stepSize:1, precision:0 };
   examSubjectChart = new Chart(ctx,{
     type:'line',
     data:{ labels, datasets },
@@ -1175,8 +1202,9 @@ function renderExamSubjectChart(){
           title:(items)=> examNames[items[0].dataIndex],
           label:(c)=> c.dataset.label+': '+fmtBoth(c.dataset.rawScores[c.dataIndex], c.dataset.maxScore)
         } } },
-      scales:{ y:{ beginAtZero:true, max: examMode==='rate'?100:undefined }, x:{ grid:{display:false} } } }
+      scales:{ y:{ beginAtZero:true, max: subjYMax, ticks:yTicks }, x:{ grid:{display:false}, ticks:{ color:'#fff' } } } }
   });
+  attachTooltipToggle(examSubjectChart);
 }
 
 // ---- 평균 정답률 (막대그래프) ----
@@ -1208,13 +1236,13 @@ function renderAvgRateChart(){
   const labels = ['총점','A형','B형', ...SUBJECT_META.map(s=>s.name)];
   const data = [totalRate(), typeRate('A',39), typeRate('B',41), ...subjRates];
   const bgColors = ['#fff','#fff','#fff', ...SUBJECT_META.map(s=>s.color)];
-  const borderColors = [SERIES_COLOR.total, '#5b8dee','#3ecf8e', ...SUBJECT_META.map(s=>s.color)];
+  const tickColors = ['#fff','#fff','#fff', ...SUBJECT_META.map(s=>s.color)];
 
   const ctx = document.getElementById('avgRateChart');
   if(avgRateChart) avgRateChart.destroy();
   avgRateChart = new Chart(ctx, {
     type:'bar',
-    data:{ labels, datasets:[{ data, backgroundColor:bgColors, borderRadius:4, hideLabel:false, borderColor:borderColors, borderWidth:2,
+    data:{ labels, datasets:[{ data, backgroundColor:bgColors, borderRadius:4, hideLabel:false, borderWidth:0,
       rawScores:data, maxScore:100 }] },
     plugins:[valueLabelBarPlugin],
     options:{ responsive:true, maintainAspectRatio:false,
@@ -1223,7 +1251,7 @@ function renderAvgRateChart(){
         tooltip:{ callbacks:{
           label:(c)=> (c.raw===null||c.raw===undefined) ? '기록 없음' : c.raw.toFixed(1)+'%'
         } } },
-      scales:{ y:{ beginAtZero:true, max:100 }, x:{ grid:{display:false}, ticks:{ font:{ size:10 } } } } }
+      scales:{ y:{ beginAtZero:true, max:100 }, x:{ grid:{display:false}, ticks:{ font:{ size:10 }, color: (c)=>tickColors[c.index] } } } }
   });
 }
 const valueLabelBarPlugin = {
@@ -1236,7 +1264,7 @@ const valueLabelBarPlugin = {
         const v = ds.data[i];
         if(v===null || v===undefined) return;
         ctx.save();
-        ctx.font = '10px sans-serif';
+        ctx.font = '9px sans-serif';
         ctx.fillStyle = Array.isArray(ds.backgroundColor) ? ds.backgroundColor[i] : (ds.backgroundColor||'#888');
         ctx.textAlign = 'center';
         ctx.fillText(v.toFixed(1)+'%', bar.x, bar.y - 6);
