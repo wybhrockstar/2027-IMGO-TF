@@ -950,16 +950,39 @@ function renderExamRecordTable(){
     wrap.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:16px 8px">기록된 모의고사가 없습니다. 우측 상단 + 기록 버튼으로 추가하세요.</div>';
     return;
   }
+  // 회차별 A/B 응시자 평균 -> 총점 평균(A+B) 계산
+  const avgByExam = {};
+  (examData.averages||[]).forEach(a=>{
+    if(!avgByExam[a.examName]) avgByExam[a.examName] = {A:null,B:null};
+    avgByExam[a.examName][a.type] = Number(a.averageScore||0);
+  });
+  function avgOf(examName, key){
+    const rec = avgByExam[examName];
+    if(!rec) return null;
+    if(key==='A') return rec.A;
+    if(key==='B') return rec.B;
+    if(rec.A===null && rec.B===null) return null;
+    return (rec.A||0)+(rec.B||0);
+  }
+  function diffTag(val, avg){
+    if(avg===null || avg===undefined) return '';
+    const d = Math.round((val-avg)*10)/10;
+    const c = d>=0 ? 'var(--blue)' : 'var(--red)';
+    const sign = d>=0 ? '+' : '-';
+    return ` <span style="color:${c};font-size:10px;font-weight:600">(${sign}${Math.abs(d)})</span>`;
+  }
   const subjCols = SUBJECT_META;
+  const abBg = 'background:var(--bg4)';
   let html = '<table class="exam-score-table"><thead><tr><th style="text-align:left">회차</th><th>날짜</th>';
   subjCols.forEach(s=>{ html += `<th style="color:${s.color}"><span style="display:block;line-height:1.2">${s.name}</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${s.max}점</span></th>`; });
-  html += `<th style="color:${SERIES_COLOR.A}"><span style="display:block;line-height:1.2">A형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">39점</span></th><th style="color:${SERIES_COLOR.B}"><span style="display:block;line-height:1.2">B형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">41점</span></th><th style="color:var(--purple)"><span style="display:block;line-height:1.2">총점</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">80점</span></th></tr></thead><tbody>`;
+  html += `<th style="color:${SERIES_COLOR.A};${abBg}"><span style="display:block;line-height:1.2">A형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">39점</span></th><th style="color:${SERIES_COLOR.B};${abBg}"><span style="display:block;line-height:1.2">B형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">41점</span></th><th style="color:var(--purple);${abBg}"><span style="display:block;line-height:1.2">총점</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">80점</span></th></tr></thead><tbody>`;
   examNames.forEach(n=>{
     const e = byExam[n];
     html += `<tr><td class="exam-score-name">${n}</td><td>${mmdd(e.date)}</td>`;
     subjCols.forEach(s=>{ html += `<td>${e.subj[s.name]!==undefined ? e.subj[s.name] : '-'}</td>`; });
-    html += `<td style="color:${SERIES_COLOR.A};font-weight:600">${e.a}</td><td style="color:${SERIES_COLOR.B};font-weight:600">${e.b}</td>`;
-    html += `<td style="color:var(--purple);font-weight:700">${e.total}</td></tr>`;
+    const aAvg = avgOf(n,'A'), bAvg = avgOf(n,'B'), tAvg = avgOf(n,'total');
+    html += `<td style="${abBg};color:var(--text);font-weight:600">${e.a}${diffTag(e.a,aAvg)}</td><td style="${abBg};color:var(--text);font-weight:600">${e.b}${diffTag(e.b,bAvg)}</td>`;
+    html += `<td style="${abBg};color:var(--text);font-weight:700">${e.total}${diffTag(e.total,tAvg)}</td></tr>`;
   });
   html += '</tbody></table>';
   wrap.innerHTML = html;
