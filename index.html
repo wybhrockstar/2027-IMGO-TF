@@ -972,17 +972,17 @@ function renderExamRecordTable(){
     return `\u2009<span style="color:${c};font-size:10px">(${sign}${Math.abs(d)})</span>`;
   }
   const subjCols = SUBJECT_META;
-  const abBg = 'background:var(--bg4)';
-  let html = '<table class="exam-score-table"><thead><tr><th style="text-align:left">회차</th><th>날짜</th>';
-  subjCols.forEach(s=>{ html += `<th style="color:${s.color}"><span style="display:block;line-height:1.2">${s.name}</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${s.max}점</span></th>`; });
-  html += `<th style="color:${SERIES_COLOR.A};${abBg}"><span style="display:block;line-height:1.2">A형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">39점</span></th><th style="color:${SERIES_COLOR.B};${abBg}"><span style="display:block;line-height:1.2">B형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">41점</span></th><th style="color:var(--purple);${abBg}"><span style="display:block;line-height:1.2">총점</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">80점</span></th></tr></thead><tbody>`;
+  const divider = 'border-left:1px solid var(--border2)';
+  let html = '<table class="exam-score-table"><thead><tr><th style="text-align:left">회차</th><th style="' + divider + '">날짜</th>';
+  subjCols.forEach((s,i)=>{ html += `<th style="color:${s.color}${i===0?';'+divider:''}"><span style="display:block;line-height:1.2">${s.name}</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${s.max}점</span></th>`; });
+  html += `<th style="color:${SERIES_COLOR.A};${divider}"><span style="display:block;line-height:1.2">A형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">39점</span></th><th style="color:${SERIES_COLOR.B}"><span style="display:block;line-height:1.2">B형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">41점</span></th><th style="color:var(--purple)"><span style="display:block;line-height:1.2">총점</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">80점</span></th></tr></thead><tbody>`;
   examNames.forEach(n=>{
     const e = byExam[n];
-    html += `<tr><td class="exam-score-name">${n}</td><td>${mmdd(e.date)}</td>`;
-    subjCols.forEach(s=>{ html += `<td>${e.subj[s.name]!==undefined ? e.subj[s.name] : '-'}</td>`; });
+    html += `<tr><td class="exam-score-name">${n}</td><td style="${divider}">${mmdd(e.date)}</td>`;
+    subjCols.forEach((s,i)=>{ html += `<td${i===0?` style="${divider}"`:''}>${e.subj[s.name]!==undefined ? e.subj[s.name] : '-'}</td>`; });
     const aAvg = avgOf(n,'A'), bAvg = avgOf(n,'B'), tAvg = avgOf(n,'total');
-    html += `<td style="${abBg};color:var(--text)">${e.a}${diffTag(e.a,aAvg)}</td><td style="${abBg};color:var(--text)">${e.b}${diffTag(e.b,bAvg)}</td>`;
-    html += `<td style="${abBg};color:var(--text)">${e.total}${diffTag(e.total,tAvg)}</td></tr>`;
+    html += `<td style="${divider};color:var(--text)">${e.a}${diffTag(e.a,aAvg)}</td><td style="color:var(--text)">${e.b}${diffTag(e.b,bAvg)}</td>`;
+    html += `<td style="color:var(--text)">${e.total}${diffTag(e.total,tAvg)}</td></tr>`;
   });
   html += '</tbody></table>';
   wrap.innerHTML = html;
