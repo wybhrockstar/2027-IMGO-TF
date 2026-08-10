@@ -969,7 +969,7 @@ function renderExamRecordTable(){
     const d = Math.round((val-avg)*10)/10;
     const c = d>=0 ? 'var(--blue)' : 'var(--red)';
     const sign = d>=0 ? '+' : '-';
-    return `\u2009<span style="color:${c};font-size:10px;font-weight:600">(${sign}${Math.abs(d)})</span>`;
+    return `\u2009<span style="color:${c};font-size:10px">(${sign}${Math.abs(d)})</span>`;
   }
   const subjCols = SUBJECT_META;
   const abBg = 'background:var(--bg4)';
