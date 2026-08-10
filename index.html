@@ -969,7 +969,7 @@ function renderExamRecordTable(){
     const d = Math.round((val-avg)*10)/10;
     const c = d>=0 ? 'var(--blue)' : 'var(--red)';
     const sign = d>=0 ? '+' : '-';
-    return ` <span style="color:${c};font-size:10px;font-weight:600">(${sign}${Math.abs(d)})</span>`;
+    return `\u2009<span style="color:${c};font-size:10px;font-weight:600">(${sign}${Math.abs(d)})</span>`;
   }
   const subjCols = SUBJECT_META;
   const abBg = 'background:var(--bg4)';
@@ -981,8 +981,8 @@ function renderExamRecordTable(){
     html += `<tr><td class="exam-score-name">${n}</td><td>${mmdd(e.date)}</td>`;
     subjCols.forEach(s=>{ html += `<td>${e.subj[s.name]!==undefined ? e.subj[s.name] : '-'}</td>`; });
     const aAvg = avgOf(n,'A'), bAvg = avgOf(n,'B'), tAvg = avgOf(n,'total');
-    html += `<td style="${abBg};color:var(--text);font-weight:600">${e.a}${diffTag(e.a,aAvg)}</td><td style="${abBg};color:var(--text);font-weight:600">${e.b}${diffTag(e.b,bAvg)}</td>`;
-    html += `<td style="${abBg};color:var(--text);font-weight:700">${e.total}${diffTag(e.total,tAvg)}</td></tr>`;
+    html += `<td style="${abBg};color:var(--text)">${e.a}${diffTag(e.a,aAvg)}</td><td style="${abBg};color:var(--text)">${e.b}${diffTag(e.b,bAvg)}</td>`;
+    html += `<td style="${abBg};color:var(--text)">${e.total}${diffTag(e.total,tAvg)}</td></tr>`;
   });
   html += '</tbody></table>';
   wrap.innerHTML = html;
