@@ -193,6 +193,7 @@ body.light .nc-stitle{color:var(--text3)}
 <!-- NAV -->
 <nav class="nav">
   <button class="ntab on" onclick="goPage('schedule',this)">스터디 현황</button>
+  <button class="ntab" onclick="goPage('studywrong',this)">스터디 오답</button>
   <button class="ntab" onclick="goPage('lectures',this)">강의 목록</button>
   <button class="ntab" onclick="goPage('exams',this)">모의고사</button>
   <button class="ntab" onclick="goPage('notice',this)">공지사항</button>
@@ -207,6 +208,19 @@ body.light .nc-stitle{color:var(--text3)}
   <div class="cal-wrap"><div class="sec-title">2주 캘린더</div><div id="calGrid"></div></div>
   <div class="sec-title">전체 일정</div>
   <div id="scheduleList"></div>
+</div>
+
+<!-- ======= PAGE: STUDY WRONG ANSWERS ======= -->
+<div class="page main" id="page-studywrong">
+  <div class="ttab-wrap" id="swAuthorToggle" style="display:flex;gap:8px;margin-bottom:18px"></div>
+
+  <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+    <select id="swSubjectSelect" onchange="renderStudyWrongPage()" style="flex:1;min-width:110px"></select>
+  </div>
+
+  <div class="subj-tabs" id="swTermTabs" style="margin-bottom:16px"></div>
+
+  <div id="swWrongList"></div>
 </div>
 
 <!-- ======= PAGE: LECTURES ======= -->
@@ -371,6 +385,7 @@ body.light .nc-stitle{color:var(--text3)}
 const DEFAULT = {
   dday: '2026-11-07',
   termPeriods: { 1:'2026.06.01 ~ 08.17', 2:'2026.08.19 ~ 10.07', 3:'2026.10.08 ~ 11.07' },
+  studyWrongAnswers: [],
   schedule: {
     1:[
       {week:'1주차',items:[
@@ -826,6 +841,7 @@ function goPage(name,btn){
   btn.classList.add('on');
   if(name==='lectures')buildSubjectTabs();
   if(name==='exams')renderExams();
+  if(name==='studywrong')renderStudyWrongPage();
 }
 
 // ==================== MOCK EXAM RECORD (재언/태현) ====================
@@ -1441,6 +1457,93 @@ const valueLabelBarPlugin = {
     });
   }
 };
+
+// ==================== STUDY WRONG ANSWERS PAGE ====================
+let swAuthor = '재언';
+let swTerms = new Set(['all']);
+
+function buildSwAuthorToggle(){
+  const wrap = document.getElementById('swAuthorToggle');
+  if(!wrap) return;
+  wrap.innerHTML = ['재언','태현'].map(name=>{
+    const on = swAuthor===name;
+    return `<button class="ttab${on?' on':''}" onclick="selectSwAuthor('${name}')">${name}</button>`;
+  }).join('');
+}
+function selectSwAuthor(name){
+  swAuthor = name;
+  renderStudyWrongPage();
+}
+
+function buildSwSubjectSelect(){
+  const sel = document.getElementById('swSubjectSelect');
+  if(!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">전체 과목</option>' + SUBJECT_META.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
+  if(cur) sel.value = cur;
+}
+
+function buildSwTermTabs(){
+  const wrap = document.getElementById('swTermTabs');
+  if(!wrap) return;
+  const opts = [{v:'all',l:'전체'},{v:'1',l:'1텀'},{v:'2',l:'2텀'},{v:'3',l:'3텀'}];
+  wrap.innerHTML = opts.map(o=>{
+    const on = swTerms.has(o.v);
+    return `<button class="stab${on?' on':''}" style="${on?'border-color:var(--accent);color:var(--accent);background:var(--accent3)':''}" onclick="toggleSwTerm('${o.v}')">${o.l}</button>`;
+  }).join('');
+}
+function toggleSwTerm(v){
+  if(v==='all'){
+    swTerms = new Set(['all']);
+  } else {
+    swTerms.delete('all');
+    if(swTerms.has(v)) swTerms.delete(v); else swTerms.add(v);
+    if(swTerms.size===0) swTerms.add('all');
+  }
+  buildSwTermTabs();
+  renderStudyWrongPage();
+}
+
+function renderStudyWrongPage(){
+  buildSwAuthorToggle();
+  buildSwSubjectSelect();
+  buildSwTermTabs();
+
+  const listEl = document.getElementById('swWrongList');
+  if(!listEl) return;
+  const rows = (S.studyWrongAnswers||[]).slice();
+  const subjFilter = document.getElementById('swSubjectSelect').value;
+
+  const filtered = rows.filter(r=>
+    r.author===swAuthor &&
+    (swTerms.has('all') || swTerms.has(String(r.term))) &&
+    (!subjFilter || r.subject===subjFilter)
+  );
+
+  filtered.sort((a,b)=>{
+    if(a.term!==b.term) return a.term-b.term;
+    return (a.createdAt||'').localeCompare(b.createdAt||'');
+  });
+
+  if(!filtered.length){
+    listEl.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0">기록된 오답이 없습니다.</div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(r=>{
+    const s = SUBJECT_META.find(x=>x.name===r.subject);
+    const color = s ? s.color : 'var(--accent)';
+    return `<div class="nc" style="margin-bottom:10px;padding:12px 14px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+        <span style="font-weight:600;color:${color}">${r.subject}</span>
+        <span style="font-size:12px;color:var(--text3)">${r.term}텀</span>
+        ${r.round?`<span style="font-size:11px;color:var(--text3)">· ${r.round}</span>`:''}
+      </div>
+      ${r.progress?`<div style="font-size:12px;color:var(--text2);margin-bottom:4px">진도: ${r.progress}</div>`:''}
+      <div style="font-size:13px;color:var(--text)">${r.note}</div>
+    </div>`;
+  }).join('');
+}
 
 // ---- 오답 기록: 이름+회차 드롭다운 ----
 function buildWrongExamSelects(){

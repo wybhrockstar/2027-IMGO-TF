@@ -139,6 +139,7 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 
   <div class="tabs">
     <button class="tab on" onclick="switchTab('schedule', this)">📅 스터디 일정</button>
+    <button class="tab" onclick="switchTab('studywrong', this)">❌ 스터디 오답</button>
     <button class="tab" onclick="switchTab('timelog', this)">⏱ 스터디 기록</button>
     <button class="tab" onclick="switchTab('lectures', this)">📚 강의 목록</button>
     <button class="tab" onclick="switchTab('exams', this)">🎯 모의고사</button>
@@ -261,6 +262,76 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
         <button class="apply-btn" onclick="syncGoogleCalendar()" style="border-color:var(--purple);color:var(--purple);background:rgba(184,165,255,.1);margin-left:6px">📅 Google Calendar 동기화</button>
         <div class="ai-status" id="sc-push-status" style="margin-top:6px"></div>
         <div class="ai-status" id="gcal-status" style="margin-top:6px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STUDY WRONG ANSWERS -->
+  <div class="panel" id="panel-studywrong">
+    <div class="ai-box">
+      <div class="ai-title">❌ 스터디 오답 등록</div>
+      <div class="ai-desc">스터디 현황(일정)에서 회차를 선택하면 진도가 자동 입력됩니다.</div>
+
+      <div class="fgroup" style="margin-bottom:8px">
+        <label>대상</label>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="tab on sw-author-btn" id="sw-author-재언" onclick="selectSwAuthor('재언', this)">재언</button>
+          <button type="button" class="tab sw-author-btn" id="sw-author-태현" onclick="selectSwAuthor('태현', this)">태현</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div class="fgroup" style="margin-bottom:0">
+          <label>텀</label>
+          <select class="fi" id="sw-term" onchange="onSwTermChange()">
+            <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option>
+          </select>
+        </div>
+        <div class="fgroup" style="margin-bottom:0">
+          <label>스터디 회차 (일정)</label>
+          <select class="fi" id="sw-round" onchange="onSwRoundChange()"></select>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div class="fgroup" style="margin-bottom:0">
+          <label>과목</label>
+          <select class="fi" id="sw-subject"></select>
+        </div>
+        <div class="fgroup" style="margin-bottom:0">
+          <label>관련 진도</label>
+          <input class="fi" id="sw-progress" placeholder="예: 총론 1~2장">
+        </div>
+      </div>
+
+      <div class="fgroup" style="margin-bottom:12px">
+        <label>오답 내용</label>
+        <textarea class="fi" id="sw-note" style="min-height:90px" placeholder="오답 내용을 입력하세요"></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="apply-btn" onclick="addStudyWrongRecord()">✓ 오답 추가</button>
+        <div class="ai-status" id="sw-add-status"></div>
+      </div>
+    </div>
+
+    <div class="ai-box">
+      <div class="ai-title">📋 등록된 스터디 오답</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <select class="fi" id="sw-filter-author" style="max-width:140px" onchange="renderStudyWrongList()">
+          <option value="">전체 대상</option>
+          <option value="재언">재언</option>
+          <option value="태현">태현</option>
+        </select>
+        <select class="fi" id="sw-filter-term" style="max-width:120px" onchange="renderStudyWrongList()">
+          <option value="">전체 텀</option>
+          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option>
+        </select>
+      </div>
+      <div id="sw-current-list"></div>
+      <div style="margin-top:12px">
+        <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
+        <div class="ai-status" id="sw-push-status" style="margin-top:6px"></div>
       </div>
     </div>
   </div>
@@ -529,16 +600,16 @@ async function pushToGithub(){
     const json = await res.json();
     cfg.sha = json.content.sha;
     localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
-    ['sc','tl2','lc','nt','raw'].forEach(p=>setStatus(p+'-push-status','✓ GitHub 저장 완료!','ok'));
+    ['sc','tl2','lc','nt','raw','sw'].forEach(p=>setStatus(p+'-push-status','✓ GitHub 저장 완료!','ok'));
     setStatus('term-period-status','✓ GitHub 저장 완료!','ok');
     setStatus('so-status','✓ GitHub 저장 완료!','ok');
     setTimeout(()=>{
-      ['sc','tl2','lc','nt','raw'].forEach(p=>setStatus(p+'-push-status','',''));
+      ['sc','tl2','lc','nt','raw','sw'].forEach(p=>setStatus(p+'-push-status',''));
       setStatus('term-period-status','','');
       setStatus('so-status','','');
     }, 3000);
   } catch(e){
-    ['sc','tl2','lc','nt','raw'].forEach(p=>setStatus(p+'-push-status','⚠ '+e.message,'err'));
+    ['sc','tl2','lc','nt','raw','sw'].forEach(p=>setStatus(p+'-push-status','⚠ '+e.message,'err'));
     setStatus('term-period-status','⚠ '+e.message,'err');
     setStatus('so-status','⚠ '+e.message,'err');
   }
@@ -825,6 +896,111 @@ function rebuildTermWithItems(term, newItems){
     });
   }
   DATA.schedule[term] = result;
+}
+
+// ── 스터디 오답 ──
+const SW_SUBJECT_META = ['국어','영어','총론·창체','사회','도덕','실과','수학','미술','통합교과','과학','음악','체육'];
+let swSelectedAuthor = '재언';
+
+function selectSwAuthor(name, btn){
+  swSelectedAuthor = name;
+  document.querySelectorAll('.sw-author-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+function buildSwSubjectSelect(){
+  const sel = document.getElementById('sw-subject');
+  if(!sel) return;
+  sel.innerHTML = SW_SUBJECT_META.map(s=>`<option value="${s}">${s}</option>`).join('');
+}
+
+// 텀의 스터디 일정 아이템을 날짜순으로 반환 (회차 선택용)
+function swRoundItems(term){
+  return flattenScheduleTerm(term)
+    .filter(it=>it.date && it.date!=='-')
+    .sort((a,b)=>dateToSortKey(a.date)-dateToSortKey(b.date));
+}
+
+function onSwTermChange(){
+  const term = document.getElementById('sw-term').value;
+  const items = swRoundItems(term);
+  const roundSel = document.getElementById('sw-round');
+  if(!items.length){
+    roundSel.innerHTML = '<option value="">일정 없음</option>';
+  } else {
+    roundSel.innerHTML = items.map((it,i)=>
+      `<option value="${i}">${it.date}(${it.day||''}) ${escHtml(it.subject||'')}</option>`
+    ).join('');
+  }
+  onSwRoundChange();
+}
+function onSwRoundChange(){
+  const term = document.getElementById('sw-term').value;
+  const items = swRoundItems(term);
+  const idx = document.getElementById('sw-round').value;
+  const it = items[idx];
+  if(it) document.getElementById('sw-progress').value = it.subject || '';
+}
+
+function addStudyWrongRecord(){
+  if(!DATA){ setStatus('sw-add-status','데이터가 없습니다.','err'); return; }
+  const term = document.getElementById('sw-term').value;
+  const items = swRoundItems(term);
+  const idx = document.getElementById('sw-round').value;
+  const roundItem = items[idx];
+  const subject = document.getElementById('sw-subject').value;
+  const progress = document.getElementById('sw-progress').value.trim();
+  const note = document.getElementById('sw-note').value.trim();
+  if(!subject || !note){ setStatus('sw-add-status','과목과 오답 내용을 입력해주세요.','err'); return; }
+
+  if(!DATA.studyWrongAnswers) DATA.studyWrongAnswers = [];
+  const roundLabel = roundItem ? `${roundItem.date}(${roundItem.day||''}) ${roundItem.subject||''}`.trim() : '';
+
+  DATA.studyWrongAnswers.push({
+    id: 'sw_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    author: swSelectedAuthor, term: Number(term), round: roundLabel, subject, progress, note,
+    createdAt: new Date().toISOString().slice(0,10)
+  });
+
+  document.getElementById('sw-note').value = '';
+  setStatus('sw-add-status','✓ 추가됨. GitHub 저장 버튼으로 반영하세요.','ok');
+  setTimeout(()=>setStatus('sw-add-status','',''), 3000);
+  renderStudyWrongList();
+}
+
+function deleteStudyWrongRecord(id){
+  if(!DATA || !DATA.studyWrongAnswers) return;
+  DATA.studyWrongAnswers = DATA.studyWrongAnswers.filter(r=>r.id!==id);
+  renderStudyWrongList();
+}
+
+function renderStudyWrongList(){
+  const el = document.getElementById('sw-current-list');
+  if(!el) return;
+  if(!DATA){ el.innerHTML=''; return; }
+  const rows = (DATA.studyWrongAnswers||[]).slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  const fAuthor = document.getElementById('sw-filter-author').value;
+  const fTerm = document.getElementById('sw-filter-term').value;
+  const filtered = rows.filter(r=>
+    (!fAuthor || r.author===fAuthor) && (!fTerm || String(r.term)===fTerm)
+  );
+  if(!filtered.length){
+    el.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px">등록된 스터디 오답이 없습니다.</div>';
+    return;
+  }
+  el.innerHTML = filtered.map(r=>`
+    <div class="cur-item">
+      <div class="cur-item-text">
+        <span style="font-size:11px;color:var(--amber);border:1px solid rgba(255,179,71,.3);border-radius:10px;padding:1px 7px;margin-right:6px">${escHtml(r.author)}</span>
+        <span style="font-size:11px;color:var(--accent);margin-right:6px">${r.term}텀</span>
+        <span style="font-weight:600;margin-right:6px">${escHtml(r.subject)}</span>
+        ${r.round?`<span style="font-size:11px;color:var(--text3);margin-right:6px">${escHtml(r.round)}</span>`:''}
+        ${r.progress?`<span style="font-size:11px;color:var(--teal);margin-right:6px">진도: ${escHtml(r.progress)}</span>`:''}
+        <div style="margin-top:3px;font-size:12px;color:var(--text2)">${escHtml(r.note)}</div>
+      </div>
+      <button class="del-btn" title="삭제" onclick="deleteStudyWrongRecord('${r.id}')">×</button>
+    </div>
+  `).join('');
 }
 
 let parsedStudyBuffer = null; // [{date, day, subject}]
@@ -1568,6 +1744,9 @@ function renderAll(){
   renderTermPeriodInputs();
   renderSubjOrderList();
   renderCurrentExams();
+  buildSwSubjectSelect();
+  onSwTermChange();
+  renderStudyWrongList();
   updateRawEditor();
 }
 function buildSubjectSelects(){
