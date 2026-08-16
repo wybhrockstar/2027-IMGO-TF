@@ -3792,26 +3792,5 @@
     }
   ],
   "examsUpdated": "2026.08.13.",
-  "studyWrongAnswers": [
-    {
-      "id": "sw_1786881313178_vgewz",
-      "author": "재언",
-      "term": 1,
-      "round": "6/1(월) 총창",
-      "subject": "총론·창체",
-      "progress": "총창",
-      "note": "기록X",
-      "createdAt": "2026-08-16"
-    },
-    {
-      "id": "sw_1786881364513_cui7w",
-      "author": "태현",
-      "term": 1,
-      "round": "6/1(월) 총창",
-      "subject": "총론·창체",
-      "progress": "총창",
-      "note": "기록X",
-      "createdAt": "2026-08-16"
-    }
-  ]
+  "studyWrongAnswers": []
 }
