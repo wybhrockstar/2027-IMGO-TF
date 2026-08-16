@@ -293,24 +293,19 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <div class="fgroup" style="margin-bottom:0">
-          <label>과목</label>
-          <select class="fi" id="sw-subject"></select>
-        </div>
-        <div class="fgroup" style="margin-bottom:0">
-          <label>관련 진도</label>
-          <input class="fi" id="sw-progress" placeholder="예: 총론 1~2장">
-        </div>
+      <div class="fgroup" style="margin-bottom:8px">
+        <label>과목</label>
+        <select class="fi" id="sw-subject"></select>
       </div>
 
       <div class="fgroup" style="margin-bottom:12px">
-        <label>오답 내용</label>
-        <textarea class="fi" id="sw-note" style="min-height:90px" placeholder="오답 내용을 입력하세요"></textarea>
+        <label>오답 내용 (줄바꿈 입력 가능)</label>
+        <textarea class="fi" id="sw-note" style="min-height:90px" placeholder="오답 내용을 입력하세요 (줄바꿈 그대로 저장됩니다)"></textarea>
       </div>
 
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button class="apply-btn" onclick="addStudyWrongRecord()">✓ 오답 추가</button>
+        <button class="apply-btn" id="sw-submit-btn" onclick="addStudyWrongRecord()">✓ 오답 추가</button>
+        <button class="apply-btn" id="sw-cancel-edit-btn" onclick="cancelSwEdit()" style="display:none;border-color:var(--text3);color:var(--text3);background:none">취소</button>
         <div class="ai-status" id="sw-add-status"></div>
       </div>
     </div>
@@ -934,13 +929,38 @@ function onSwTermChange(){
   }
   onSwRoundChange();
 }
+// 회차 과목 텍스트 -> SW_SUBJECT_META 과목 자동 매핑
+// 총창=총론·창체, 통교=통합교과 라는 축약어를 감안하고,
+// 2텀부터는 회차 하나에 두 과목 이상(범위 확장)이 섞여 있을 수 있어 앞쪽 과목만 인식한다.
+function guessSwSubjectFromText(text){
+  if(!text) return '';
+  let t = String(text).trim();
+  // 괄호/논술有 등 부가 표기 제거 후 맨 앞 토큰 기준으로 탐색
+  t = t.replace(/\(.*?\)/g,' ').trim();
+  const ABBR = {총창:'총론·창체', 통교:'통합교과'};
+  // 원문에 축약어가 그대로 있으면 먼저 치환
+  for(const k in ABBR){ t = t.replace(new RegExp(k,'g'), ABBR[k]); }
+  // SW_SUBJECT_META 중 원문에 가장 먼저(앞에) 등장하는 과목을 채택 (두 과목 이상 섞인 경우 앞 과목 인식)
+  let best = null, bestIdx = Infinity;
+  for(const s of SW_SUBJECT_META){
+    const idx = t.indexOf(s);
+    if(idx !== -1 && idx < bestIdx){ bestIdx = idx; best = s; }
+  }
+  return best || '';
+}
+
 function onSwRoundChange(){
   const term = document.getElementById('sw-term').value;
   const items = swRoundItems(term);
   const idx = document.getElementById('sw-round').value;
   const it = items[idx];
-  if(it) document.getElementById('sw-progress').value = it.subject || '';
+  if(it){
+    const guessed = guessSwSubjectFromText(it.subject || '');
+    if(guessed) document.getElementById('sw-subject').value = guessed;
+  }
 }
+
+let swEditingId = null;
 
 function addStudyWrongRecord(){
   if(!DATA){ setStatus('sw-add-status','데이터가 없습니다.','err'); return; }
@@ -949,28 +969,70 @@ function addStudyWrongRecord(){
   const idx = document.getElementById('sw-round').value;
   const roundItem = items[idx];
   const subject = document.getElementById('sw-subject').value;
-  const progress = document.getElementById('sw-progress').value.trim();
-  const note = document.getElementById('sw-note').value.trim();
-  if(!subject || !note){ setStatus('sw-add-status','과목과 오답 내용을 입력해주세요.','err'); return; }
+  const note = document.getElementById('sw-note').value; // 줄바꿈 보존을 위해 trim은 앞뒤만
+  const noteTrimmed = note.replace(/^\n+|\n+$/g,'').trim();
+  if(!subject || !noteTrimmed){ setStatus('sw-add-status','과목과 오답 내용을 입력해주세요.','err'); return; }
 
   if(!DATA.studyWrongAnswers) DATA.studyWrongAnswers = [];
   const roundLabel = roundItem ? `${roundItem.date}(${roundItem.day||''}) ${roundItem.subject||''}`.trim() : '';
+  const roundSortKey = roundItem ? dateToSortKey(roundItem.date) : 0;
 
-  DATA.studyWrongAnswers.push({
-    id: 'sw_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
-    author: swSelectedAuthor, term: Number(term), round: roundLabel, subject, progress, note,
-    createdAt: new Date().toISOString().slice(0,10)
-  });
+  if(swEditingId){
+    const rec = DATA.studyWrongAnswers.find(r=>r.id===swEditingId);
+    if(rec){
+      rec.author = swSelectedAuthor; rec.term = Number(term); rec.round = roundLabel;
+      rec.roundSortKey = roundSortKey; rec.subject = subject; rec.note = noteTrimmed;
+    }
+    swEditingId = null;
+    document.getElementById('sw-submit-btn').textContent = '✓ 오답 추가';
+    document.getElementById('sw-cancel-edit-btn').style.display = 'none';
+    setStatus('sw-add-status','✓ 수정됨. GitHub 저장 버튼으로 반영하세요.','ok');
+  } else {
+    DATA.studyWrongAnswers.push({
+      id: 'sw_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      author: swSelectedAuthor, term: Number(term), round: roundLabel, roundSortKey, subject, note: noteTrimmed,
+      createdAt: new Date().toISOString().slice(0,10)
+    });
+    setStatus('sw-add-status','✓ 추가됨. GitHub 저장 버튼으로 반영하세요.','ok');
+  }
 
   document.getElementById('sw-note').value = '';
-  setStatus('sw-add-status','✓ 추가됨. GitHub 저장 버튼으로 반영하세요.','ok');
   setTimeout(()=>setStatus('sw-add-status','',''), 3000);
   renderStudyWrongList();
+}
+
+function editStudyWrongRecord(id){
+  if(!DATA || !DATA.studyWrongAnswers) return;
+  const r = DATA.studyWrongAnswers.find(x=>x.id===id);
+  if(!r) return;
+  swEditingId = id;
+  selectSwAuthor(r.author, document.getElementById('sw-author-'+r.author) || document.querySelector('.sw-author-btn'));
+  document.getElementById('sw-term').value = String(r.term);
+  onSwTermChange();
+  // 저장된 round 라벨과 동일한 항목을 회차 select에서 찾아 선택
+  const items = swRoundItems(String(r.term));
+  const foundIdx = items.findIndex(it=>`${it.date}(${it.day||''}) ${it.subject||''}`.trim() === r.round);
+  if(foundIdx !== -1) document.getElementById('sw-round').value = String(foundIdx);
+  document.getElementById('sw-subject').value = r.subject;
+  document.getElementById('sw-note').value = r.note;
+  document.getElementById('sw-submit-btn').textContent = '✓ 오답 수정 저장';
+  document.getElementById('sw-cancel-edit-btn').style.display = 'inline-flex';
+  setStatus('sw-add-status','수정 중... 내용을 고친 뒤 저장하세요.','loading');
+  document.getElementById('panel-studywrong').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function cancelSwEdit(){
+  swEditingId = null;
+  document.getElementById('sw-note').value = '';
+  document.getElementById('sw-submit-btn').textContent = '✓ 오답 추가';
+  document.getElementById('sw-cancel-edit-btn').style.display = 'none';
+  setStatus('sw-add-status','',''); 
 }
 
 function deleteStudyWrongRecord(id){
   if(!DATA || !DATA.studyWrongAnswers) return;
   DATA.studyWrongAnswers = DATA.studyWrongAnswers.filter(r=>r.id!==id);
+  if(swEditingId===id) cancelSwEdit();
   renderStudyWrongList();
 }
 
@@ -978,27 +1040,40 @@ function renderStudyWrongList(){
   const el = document.getElementById('sw-current-list');
   if(!el) return;
   if(!DATA){ el.innerHTML=''; return; }
-  const rows = (DATA.studyWrongAnswers||[]).slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  const rows = (DATA.studyWrongAnswers||[]).slice();
   const fAuthor = document.getElementById('sw-filter-author').value;
   const fTerm = document.getElementById('sw-filter-term').value;
-  const filtered = rows.filter(r=>
+  let filtered = rows.filter(r=>
     (!fAuthor || r.author===fAuthor) && (!fTerm || String(r.term)===fTerm)
   );
+  if(!fAuthor && !fTerm){
+    // 전체 선택 시: 텀순 → 모고탭 과목순서 → 회차순
+    filtered.sort((a,b)=>{
+      if(a.term !== b.term) return a.term - b.term;
+      const ai = SW_SUBJECT_META.indexOf(a.subject), bi = SW_SUBJECT_META.indexOf(b.subject);
+      if(ai !== bi) return (ai===-1?999:ai) - (bi===-1?999:bi);
+      return (a.roundSortKey||0) - (b.roundSortKey||0);
+    });
+  } else {
+    filtered.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  }
   if(!filtered.length){
     el.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px">등록된 스터디 오답이 없습니다.</div>';
     return;
   }
   el.innerHTML = filtered.map(r=>`
-    <div class="cur-item">
+    <div class="cur-item" style="align-items:flex-start">
       <div class="cur-item-text">
         <span style="font-size:11px;color:var(--amber);border:1px solid rgba(255,179,71,.3);border-radius:10px;padding:1px 7px;margin-right:6px">${escHtml(r.author)}</span>
         <span style="font-size:11px;color:var(--accent);margin-right:6px">${r.term}텀</span>
         <span style="font-weight:600;margin-right:6px">${escHtml(r.subject)}</span>
         ${r.round?`<span style="font-size:11px;color:var(--text3);margin-right:6px">${escHtml(r.round)}</span>`:''}
-        ${r.progress?`<span style="font-size:11px;color:var(--teal);margin-right:6px">진도: ${escHtml(r.progress)}</span>`:''}
-        <div style="margin-top:3px;font-size:12px;color:var(--text2)">${escHtml(r.note)}</div>
+        <div style="margin-top:3px;font-size:12px;color:var(--text2);white-space:pre-wrap">${escHtml(r.note)}</div>
       </div>
-      <button class="del-btn" title="삭제" onclick="deleteStudyWrongRecord('${r.id}')">×</button>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:center">
+        <button class="del-btn" title="수정" style="color:var(--teal);font-size:13px" onclick="editStudyWrongRecord('${r.id}')">✎</button>
+        <button class="del-btn" title="삭제" onclick="deleteStudyWrongRecord('${r.id}')">×</button>
+      </div>
     </div>
   `).join('');
 }

@@ -214,9 +214,7 @@ body.light .nc-stitle{color:var(--text3)}
 <div class="page main" id="page-studywrong">
   <div class="ttab-wrap" id="swAuthorToggle" style="display:flex;gap:8px;margin-bottom:18px"></div>
 
-  <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
-    <select id="swSubjectSelect" onchange="renderStudyWrongPage()" style="flex:1;min-width:110px"></select>
-  </div>
+  <div class="subj-tabs" id="swSubjectTabs" style="margin-bottom:12px;flex-wrap:wrap"></div>
 
   <div class="subj-tabs" id="swTermTabs" style="margin-bottom:16px"></div>
 
@@ -259,17 +257,20 @@ body.light .nc-stitle{color:var(--text3)}
   </div>
 
   <div id="examPanel-person" style="display:none">
-    <div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-      <div class="subj-tabs" id="modeTabs" style="margin:0"></div>
-      <button class="apply-btn-sm" onclick="openRecordModal()">+ 기록</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <div class="subj-tabs" id="examSectionTabs" style="margin:0"></div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="subj-tabs" id="modeTabs" style="margin:0"></div>
+        <button class="apply-btn-sm" onclick="openRecordModal()">+ 기록</button>
+      </div>
     </div>
 
-    <div class="nc" style="margin-bottom:16px">
+    <div id="examSec-record" class="nc" style="margin-bottom:16px">
       <div class="nc-stitle" style="margin-bottom:10px">모의고사 기록</div>
       <div style="overflow-x:auto" id="exam-record-table-wrap"></div>
     </div>
 
-    <div class="nc" style="margin-bottom:16px">
+    <div id="examSec-trend" class="nc" style="margin-bottom:16px">
       <div class="nc-stitle" style="margin-bottom:10px">점수 추이</div>
       <div class="subj-tabs" style="margin:0 0 10px">
         <div class="subj-tabs" id="seriesTabs" style="margin:0;gap:5px"></div>
@@ -286,10 +287,10 @@ body.light .nc-stitle{color:var(--text3)}
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#3ecf8e;display:inline-block"></span>B형</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:transparent;border:2px solid var(--text3);display:inline-block"></span>평균</span>
       </div>
-    </div>
 
-    <div class="nc" style="margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0;flex-wrap:wrap;gap:8px">
+      <div style="height:1px;background:var(--border);margin:18px 0"></div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;flex-wrap:wrap;gap:8px">
         <div class="nc-stitle" style="margin:0">세부 점수 추이</div>
         <button class="stab" id="subjToggleAllBtn" style="border-color:var(--accent);color:var(--accent)" onclick="toggleAllSubjects()"></button>
       </div>
@@ -299,10 +300,10 @@ body.light .nc-stitle{color:var(--text3)}
           <canvas id="examSubjectChart"></canvas>
         </div>
       </div>
-    </div>
 
-    <div class="nc" style="margin-bottom:16px">
-      <div class="nc-stitle" style="margin-bottom:10px">평균 정답률</div>
+      <div style="height:1px;background:var(--border);margin:18px 0"></div>
+
+      <div class="nc-stitle" style="margin-bottom:10px">평균</div>
       <div style="overflow-x:auto">
         <div style="position:relative;height:220px">
           <canvas id="avgRateChart"></canvas>
@@ -310,7 +311,7 @@ body.light .nc-stitle{color:var(--text3)}
       </div>
     </div>
 
-    <div class="nc">
+    <div id="examSec-wrong" class="nc">
       <div class="nc-stitle" style="margin-bottom:10px">오답 기록</div>
       <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
         <select id="wrongQueryMode" onchange="onWrongQueryModeChange()" style="flex:0 0 72px;min-width:72px">
@@ -723,6 +724,40 @@ function buildSchedule(t){
 }
 
 // ==================== TERM SWITCH ====================
+function parseTermPeriod(str){
+  // "2026.06.01 ~ 08.17" 형식 파싱
+  if(!str) return null;
+  const parts = str.split('~').map(s=>s.trim());
+  if(parts.length!==2) return null;
+  const startM = parts[0].match(/(\d{4})\.(\d{1,2})\.(\d{1,2})/);
+  if(!startM) return null;
+  const year = parseInt(startM[1]);
+  const start = new Date(year, parseInt(startM[2])-1, parseInt(startM[3]));
+  let end = null;
+  const endFullM = parts[1].match(/(\d{4})\.(\d{1,2})\.(\d{1,2})/);
+  const endShortM = parts[1].match(/(\d{1,2})\.(\d{1,2})/);
+  if(endFullM){
+    end = new Date(parseInt(endFullM[1]), parseInt(endFullM[2])-1, parseInt(endFullM[3]));
+  } else if(endShortM){
+    let endYear = year;
+    if(parseInt(endShortM[1]) < parseInt(startM[2])) endYear = year+1; // 연도 넘어가는 경우
+    end = new Date(endYear, parseInt(endShortM[1])-1, parseInt(endShortM[2]));
+  }
+  return { start, end };
+}
+function detectCurrentTerm(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const terms = [1,2,3]
+    .map(t=>({ t, period: parseTermPeriod((S.termPeriods||{})[t]) }))
+    .filter(x=>x.period);
+  if(!terms.length) return 1;
+  terms.sort((a,b)=>a.period.start-b.period.start);
+  let result = terms[0].t; // 첫 텀 시작 전이면 1텀 기본 표시
+  terms.forEach(({t, period})=>{
+    if(today >= period.start) result = t; // 시작한 텀 중 가장 최근 텀
+  });
+  return result;
+}
 function showTerm(n){
   currentTerm=n;
   document.querySelectorAll('.ttab').forEach((t,i)=>t.classList.toggle('on',i+1===n));
@@ -868,6 +903,7 @@ const AVG_COLOR = '#ff5a5a';
 
 let examData = { scores:[], averages:[], wrongAnswers:[] };
 let examPerson = null;
+let examSection = 'record'; // record | wrong | avg | trend
 let examSeriesActive = new Set(['total']);
 let examAvgActive = new Set();
 let examMode = 'score';
@@ -940,12 +976,40 @@ async function showExamPerson(who, btn){
   if(who==='status') return;
   await fetchExamData();
   buildExamControls();
+  buildExamSectionTabs();
+  applyExamSection();
   renderExamRecordTable();
   renderExamTrend();
   renderExamSubjectTabs();
   renderAvgRateChart();
   buildWrongExamSelects();
   renderWrongList();
+}
+
+const EXAM_SECTIONS = [
+  {id:'record', label:'모의고사 기록'},
+  {id:'trend', label:'모의고사 분석'},
+  {id:'wrong', label:'오답 기록'}
+];
+function buildExamSectionTabs(){
+  const el = document.getElementById('examSectionTabs');
+  if(!el) return;
+  el.innerHTML = EXAM_SECTIONS.map(sec=>{
+    const on = examSection===sec.id;
+    return `<button class="stab${on?' on':''}" style="${on?'border-color:var(--accent);color:var(--accent);background:var(--accent3)':''}" onclick="selectExamSection('${sec.id}')">${sec.label}</button>`;
+  }).join('');
+}
+function selectExamSection(id){
+  examSection = id;
+  buildExamSectionTabs();
+  applyExamSection();
+}
+function applyExamSection(){
+  const map = {record:'examSec-record', trend:'examSec-trend', wrong:'examSec-wrong'};
+  Object.keys(map).forEach(k=>{
+    const el = document.getElementById(map[k]);
+    if(el) el.style.display = (k===examSection) ? '' : 'none';
+  });
 }
 
 function renderExamRecordTable(){
@@ -989,16 +1053,27 @@ function renderExamRecordTable(){
   }
   const subjCols = SUBJECT_META;
   const divider = 'border-left:1px solid var(--border2)';
+  const isRate = examMode==='rate';
+  function rateOf(v, max){ return v===undefined||v===null ? undefined : Math.round(v/max*1000)/10; }
+  function cellVal(v, max){
+    if(v===undefined || v===null) return '-';
+    return isRate ? rateOf(v,max).toFixed(1)+'%' : v;
+  }
   let html = '<table class="exam-score-table"><thead><tr><th style="text-align:left">회차</th><th style="' + divider + '">날짜</th>';
-  subjCols.forEach((s,i)=>{ html += `<th style="color:${s.color}${i===0?';'+divider:''}"><span style="display:block;line-height:1.2">${s.name}</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${s.max}점</span></th>`; });
-  html += `<th style="color:${SERIES_COLOR.A};${divider}"><span style="display:block;line-height:1.2">A형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">39점</span></th><th style="color:${SERIES_COLOR.B}"><span style="display:block;line-height:1.2">B형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">41점</span></th><th style="color:var(--purple)"><span style="display:block;line-height:1.2">총점</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">80점</span></th></tr></thead><tbody>`;
+  subjCols.forEach((s,i)=>{ html += `<th style="color:${s.color}${i===0?';'+divider:''}"><span style="display:block;line-height:1.2">${s.name}</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${isRate?'정답률':s.max+'점'}</span></th>`; });
+  html += `<th style="color:${SERIES_COLOR.A};${divider}"><span style="display:block;line-height:1.2">A형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${isRate?'정답률':'39점'}</span></th><th style="color:${SERIES_COLOR.B}"><span style="display:block;line-height:1.2">B형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${isRate?'정답률':'41점'}</span></th><th style="color:var(--purple)"><span style="display:block;line-height:1.2">총점</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${isRate?'정답률':'80점'}</span></th></tr></thead><tbody>`;
   examNames.forEach(n=>{
     const e = byExam[n];
     html += `<tr><td class="exam-score-name">${n}</td><td style="${divider}">${mmdd(e.date)}</td>`;
-    subjCols.forEach((s,i)=>{ html += `<td${i===0?` style="${divider}"`:''}>${e.subj[s.name]!==undefined ? e.subj[s.name] : '-'}</td>`; });
+    subjCols.forEach((s,i)=>{ html += `<td${i===0?` style="${divider}"`:''}>${cellVal(e.subj[s.name], s.max)}</td>`; });
     const aAvg = avgOf(n,'A'), bAvg = avgOf(n,'B'), tAvg = avgOf(n,'total');
-    html += `<td style="${divider};color:var(--text)">${e.a}${diffTag(e.a,aAvg)}</td><td style="color:var(--text)">${e.b}${diffTag(e.b,bAvg)}</td>`;
-    html += `<td style="color:var(--text)">${e.total}${diffTag(e.total,tAvg)}</td></tr>`;
+    if(isRate){
+      html += `<td style="${divider};color:var(--text)">${rateOf(e.a,39).toFixed(1)}%</td><td style="color:var(--text)">${rateOf(e.b,41).toFixed(1)}%</td>`;
+      html += `<td style="color:var(--text)">${rateOf(e.total,80).toFixed(1)}%</td></tr>`;
+    } else {
+      html += `<td style="${divider};color:var(--text)">${e.a}${diffTag(e.a,aAvg)}</td><td style="color:var(--text)">${e.b}${diffTag(e.b,bAvg)}</td>`;
+      html += `<td style="color:var(--text)">${e.total}${diffTag(e.total,tAvg)}</td></tr>`;
+    }
   });
   html += '</tbody></table>';
   wrap.innerHTML = html;
@@ -1048,6 +1123,8 @@ function setExamMode(m,btn){
   buildExamControls();
   renderExamTrend();
   renderExamSubjectChart();
+  renderExamRecordTable();
+  renderAvgRateChart();
 }
 
 function personScores(){ return examData.scores.filter(r=>r.author===examPerson); }
@@ -1389,34 +1466,36 @@ function renderExamSubjectChart(){
   attachTooltipToggle(examSubjectChart);
 }
 
-// ---- 평균 정답률 (막대그래프) ----
+// ---- 평균 (막대그래프, 점수/정답률 토글 반영) ----
 let avgRateChart = null;
 function renderAvgRateChart(){
   const rows = dedupeLatest(personScores(), r=>r.author+'|'+r.examName+'|'+r.type+'|'+r.subject);
-  function typeRate(type,max){
+  const isRate = examMode==='rate';
+  function typeAvg(type,max){
     const byExam = {};
     rows.filter(r=>r.type===type).forEach(r=>{ byExam[r.examName]=(byExam[r.examName]||0)+Number(r.score); });
     const exams = Object.values(byExam);
     if(!exams.length) return null;
     const avg = exams.reduce((a,b)=>a+b,0)/exams.length;
-    return Math.round(avg/max*1000)/10;
+    return isRate ? Math.round(avg/max*1000)/10 : Math.round(avg*10)/10;
   }
-  function totalRate(){
+  function totalAvg(){
     const byExam = {};
     rows.forEach(r=>{ byExam[r.examName]=(byExam[r.examName]||0)+Number(r.score); });
     const exams = Object.values(byExam);
     if(!exams.length) return null;
     const avg = exams.reduce((a,b)=>a+b,0)/exams.length;
-    return Math.round(avg/80*1000)/10;
+    return isRate ? Math.round(avg/80*1000)/10 : Math.round(avg*10)/10;
   }
-  const subjRates = SUBJECT_META.map(s=>{
+  const subjAvgs = SUBJECT_META.map(s=>{
     const rs = rows.filter(r=>r.subject===s.name);
     if(!rs.length) return null;
     const avg = rs.reduce((a,r)=>a+Number(r.score),0)/rs.length;
-    return Math.round(avg/s.max*1000)/10;
+    return isRate ? Math.round(avg/s.max*1000)/10 : Math.round(avg*10)/10;
   });
+  const maxScores = [80, 39, 41, ...SUBJECT_META.map(s=>s.max)];
   const labels = ['총점','A형','B형', ...SUBJECT_META.map(s=>s.name)];
-  const data = [totalRate(), typeRate('A',39), typeRate('B',41), ...subjRates];
+  const data = [totalAvg(), typeAvg('A',39), typeAvg('B',41), ...subjAvgs];
   const themeCol = examThemeTextColor();
   const bgColors = [themeCol, themeCol, themeCol, ...SUBJECT_META.map(s=>s.color)];
   const tickColors = [themeCol, themeCol, themeCol, ...SUBJECT_META.map(s=>s.color)];
@@ -1426,15 +1505,15 @@ function renderAvgRateChart(){
   avgRateChart = new Chart(ctx, {
     type:'bar',
     data:{ labels, datasets:[{ data, backgroundColor:bgColors, borderRadius:4, hideLabel:false, borderWidth:0,
-      rawScores:data, maxScore:100 }] },
+      rawScores:data, maxScores, unitLabel: isRate?'%':'점' }] },
     plugins:[valueLabelBarPlugin],
     options:{ responsive:true, maintainAspectRatio:false, events:[],
       layout:{ padding:{ top:24 } },
       plugins:{ legend:{display:false},
         tooltip:{ callbacks:{
-          label:(c)=> (c.raw===null||c.raw===undefined) ? '기록 없음' : c.raw.toFixed(1)+'%'
+          label:(c)=> (c.raw===null||c.raw===undefined) ? '기록 없음' : (isRate ? c.raw.toFixed(1)+'%' : c.raw+'점')
         } } },
-      scales:{ y:{ beginAtZero:true, max:100 }, x:{ grid:{display:false}, ticks:{ font:{ size:10 }, color: (c)=>tickColors[c.index] } } } }
+      scales:{ y:{ beginAtZero:true, max: isRate ? 100 : Math.max(...maxScores) }, x:{ grid:{display:false}, ticks:{ font:{ size:10 }, color: (c)=>tickColors[c.index] } } } }
   });
   attachBarTooltipToggle(avgRateChart);
 }
@@ -1451,7 +1530,7 @@ const valueLabelBarPlugin = {
         ctx.font = '9px sans-serif';
         ctx.fillStyle = Array.isArray(ds.backgroundColor) ? ds.backgroundColor[i] : (ds.backgroundColor||'#888');
         ctx.textAlign = 'center';
-        ctx.fillText(v.toFixed(1)+'%', bar.x, bar.y - 6);
+        ctx.fillText(v + (ds.unitLabel || '%'), bar.x, bar.y - 6);
         ctx.restore();
       });
     });
@@ -1475,12 +1554,20 @@ function selectSwAuthor(name){
   renderStudyWrongPage();
 }
 
+let swSubject = '전체'; // 토글: 전체가 기본값
 function buildSwSubjectSelect(){
-  const sel = document.getElementById('swSubjectSelect');
-  if(!sel) return;
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">전체 과목</option>' + SUBJECT_META.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
-  if(cur) sel.value = cur;
+  const wrap = document.getElementById('swSubjectTabs');
+  if(!wrap) return;
+  const names = ['전체', ...SUBJECT_META.map(s=>s.name)];
+  wrap.innerHTML = names.map(name=>{
+    const on = swSubject===name;
+    return `<button class="stab${on?' on':''}" onclick="selectSwSubject('${name}')">${name}</button>`;
+  }).join('');
+}
+function selectSwSubject(name){
+  swSubject = name;
+  buildSwSubjectSelect();
+  renderStudyWrongPage();
 }
 
 function buildSwTermTabs(){
@@ -1512,18 +1599,28 @@ function renderStudyWrongPage(){
   const listEl = document.getElementById('swWrongList');
   if(!listEl) return;
   const rows = (S.studyWrongAnswers||[]).slice();
-  const subjFilter = document.getElementById('swSubjectSelect').value;
 
   const filtered = rows.filter(r=>
     r.author===swAuthor &&
     (swTerms.has('all') || swTerms.has(String(r.term))) &&
-    (!subjFilter || r.subject===subjFilter)
+    (swSubject==='전체' || r.subject===swSubject)
   );
 
-  filtered.sort((a,b)=>{
-    if(a.term!==b.term) return a.term-b.term;
-    return (a.createdAt||'').localeCompare(b.createdAt||'');
-  });
+  if(swSubject==='전체'){
+    // 텀순 → 모고탭 과목순서 → 회차순
+    filtered.sort((a,b)=>{
+      if(a.term!==b.term) return a.term-b.term;
+      const ai = SUBJECT_META.findIndex(s=>s.name===a.subject);
+      const bi = SUBJECT_META.findIndex(s=>s.name===b.subject);
+      if(ai!==bi) return (ai===-1?999:ai)-(bi===-1?999:bi);
+      return (a.roundSortKey||0)-(b.roundSortKey||0) || (a.createdAt||'').localeCompare(b.createdAt||'');
+    });
+  } else {
+    filtered.sort((a,b)=>{
+      if(a.term!==b.term) return a.term-b.term;
+      return (a.roundSortKey||0)-(b.roundSortKey||0) || (a.createdAt||'').localeCompare(b.createdAt||'');
+    });
+  }
 
   if(!filtered.length){
     listEl.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:12px 0">기록된 오답이 없습니다.</div>';
@@ -1539,8 +1636,7 @@ function renderStudyWrongPage(){
         <span style="font-size:12px;color:var(--text3)">${r.term}텀</span>
         ${r.round?`<span style="font-size:11px;color:var(--text3)">· ${r.round}</span>`:''}
       </div>
-      ${r.progress?`<div style="font-size:12px;color:var(--text2);margin-bottom:4px">진도: ${r.progress}</div>`:''}
-      <div style="font-size:13px;color:var(--text)">${r.note}</div>
+      <div style="font-size:13px;color:var(--text);white-space:pre-wrap">${r.note}</div>
     </div>`;
   }).join('');
 }
@@ -1593,7 +1689,7 @@ function renderWrongList(){
       const { title, round } = splitExamLabel(r.examName);
       const roundLabel = round ? (title+' '+round) : title;
       return `<div style="display:flex;gap:8px;padding:8px 10px;background:var(--bg3,rgba(127,119,221,.06));border-radius:8px;font-size:13px;margin-bottom:6px">
-        <span style="font-weight:600;min-width:88px;flex-shrink:0;color:${s?s.color:''}">${roundLabel}</span><span>${r.note}</span>
+        <span style="font-weight:600;min-width:88px;flex-shrink:0;color:${s?s.color:''}">${roundLabel}</span><span style="white-space:pre-wrap">${r.note}</span>
       </div>`;
     }).join('');
     el.innerHTML = items || '<div style="font-size:13px;color:var(--text3)">기록된 오답이 없습니다.</div>';
@@ -1606,7 +1702,7 @@ function renderWrongList(){
   rows.forEach(r=>{ bySubject[r.subject]=r.note; });
   const items = SUBJECT_META.filter(s=>bySubject[s.name]).map(s=>
     `<div style="display:flex;gap:8px;padding:8px 10px;background:var(--bg3,rgba(127,119,221,.06));border-radius:8px;font-size:13px;margin-bottom:6px">
-      <span style="font-weight:600;min-width:78px;flex-shrink:0;color:${s.color}">${s.name}</span><span>${bySubject[s.name]}</span>
+      <span style="font-weight:600;min-width:78px;flex-shrink:0;color:${s.color}">${s.name}</span><span style="white-space:pre-wrap">${bySubject[s.name]}</span>
     </div>`
   ).join('');
   el.innerHTML = items || '<div style="font-size:13px;color:var(--text3)">기록된 오답이 없습니다.</div>';
@@ -1670,7 +1766,7 @@ function buildRecordFields(){
     document.getElementById('rec-wrongFields').innerHTML = SUBJECT_META.map((s,i)=>
       `<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
         <label style="width:78px;flex-shrink:0;font-size:13px;color:${s.color}">${s.name}</label>
-        <input type="text" id="rec-wrong-${i}" placeholder="오답 내용 간략히" style="flex:1;padding:4px 6px">
+        <textarea id="rec-wrong-${i}" placeholder="오답 내용 (줄바꿈 가능)" style="flex:1;padding:4px 6px;min-height:32px;resize:vertical;font-family:inherit;line-height:1.5"></textarea>
       </div>`
     ).join('');
   }
@@ -1779,7 +1875,7 @@ function toggleTheme(){
   await loadData();
   updateDday();
   buildTermTabs();
-  showTerm(1);
+  showTerm(detectCurrentTerm());
   renderNoticeView();
   buildSubjectTabs();
   renderExams();
