@@ -1564,27 +1564,11 @@ function renderAvgRateChart(){
   const ctx = document.getElementById('avgRateChart');
   if(avgRateChart) avgRateChart.destroy();
   const barOpts = { barPercentage:0.55, categoryPercentage:0.7 };
-  function hexToRgba(hex, alpha){
-    if(!hex || hex[0]!=='#') return hex;
-    const h = hex.slice(1);
-    const full = h.length===3 ? h.split('').map(c=>c+c).join('') : h;
-    const r = parseInt(full.slice(0,2),16), g = parseInt(full.slice(2,4),16), b = parseInt(full.slice(4,6),16);
-    return `rgba(${r},${g},${b},${alpha})`;
-  }
-  const faintColors = bgColors.map(c=>hexToRgba(c,0.25));
-  const datasets = [];
-  let maxDatasetIndex = -1;
-  if(!isRate){
-    // 만점: 같은 테마색에 투명도를 줘서 평균 막대 뒤에 띠그래프처럼 겹치게 표시
-    maxDatasetIndex = datasets.length;
-    datasets.push({
-      data: maxScores, backgroundColor:faintColors, borderRadius:4, borderWidth:0,
-      rawScores:maxScores, maxScores, unitLabel:'점', labelPrefix:'★', label:'만점', order:1, ...barOpts
-    });
-  }
-  const barDatasetIndex = datasets.length;
-  datasets.push({ data, backgroundColor:bgColors, borderRadius:4, borderWidth:0,
-    rawScores:data, maxScores, unitLabel: isRate?'%':'점', label:'평균', order:2, ...barOpts });
+  const barDatasetIndex = 0;
+  const datasets = [
+    { data, backgroundColor:bgColors, borderRadius:4, borderWidth:0,
+      rawScores:data, maxScores, unitLabel: isRate?'%':'점', label:'평균', ...barOpts }
+  ];
   avgRateChart = new Chart(ctx, {
     type:'bar',
     data:{ labels, datasets },
@@ -1604,9 +1588,10 @@ function renderAvgRateChart(){
             return lines;
           }
         } } },
-      scales:{ y:{ beginAtZero:true, max: isRate ? 100 : Math.max(...maxScores) }, x:{ grouped:false, grid:{display:false}, ticks:{ font:{ size:10 }, color: (c)=>tickColors[c.index] } } } }
+      scales:{ y:{ beginAtZero:true, max: isRate ? 100 : Math.max(...maxScores) }, x:{ grouped:false, grid:{display:false}, ticks:{ font:{ size:10 }, color: (c)=>tickColors[c.index],
+        callback:(val,idx)=> [labels[idx], maxScores[idx]+'점'] } } } }
   });
-  attachBarTooltipToggle(avgRateChart, barDatasetIndex, maxDatasetIndex>=0 ? maxDatasetIndex : undefined);
+  attachBarTooltipToggle(avgRateChart, barDatasetIndex);
   observeChartResize('avgRateChartWrap', ()=>avgRateChart);
 }
 const valueLabelBarPlugin = {
