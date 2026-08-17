@@ -763,8 +763,15 @@ const SUB_DISPLAY_IDX = {'통교':'통합교과','총창':'총론·창체'};
 function subjDisplayName(s){ return SUB_DISPLAY_IDX[s]||s; }
 
 // 강의목록 탭 과목 순서/색상: 모의고사 과목별 추이 토글과 동일한 순서/테마색 사용.
-// 국어 바로 뒤에 '국어 특강', 수학 바로 뒤에 '수학 특강'을 같은 테마색으로 추가.
+// 각 기본 과목 바로 뒤에 동일 테마색의 파생 과목(심화/특강/개념 등)을 배치.
 // (SUBJECT_META가 이 시점에는 아직 선언되지 않았으므로 지연 계산 함수로 처리)
+const LECTURE_COMPANIONS = {
+  '국어': ['국어 특강'],
+  '영어': ['영어 심화'],
+  '수학': ['수학 특강'],
+  '과학': ['과학 개념'],
+  '음악': ['음악 심화']
+};
 let _lectureSubjOrderCache = null, _lectureSubjColorCache = null;
 function getLectureSubjectOrder(){
   if(_lectureSubjOrderCache) return _lectureSubjOrderCache;
@@ -772,14 +779,22 @@ function getLectureSubjectOrder(){
   SUBJECT_META.forEach(s=>{
     _lectureSubjOrderCache.push(s.name);
     _lectureSubjColorCache[s.name] = s.color;
-    if(s.name==='국어'){ _lectureSubjOrderCache.push('국어 특강'); _lectureSubjColorCache['국어 특강'] = s.color; }
-    if(s.name==='수학'){ _lectureSubjOrderCache.push('수학 특강'); _lectureSubjColorCache['수학 특강'] = s.color; }
+    (LECTURE_COMPANIONS[s.name]||[]).forEach(c=>{
+      _lectureSubjOrderCache.push(c);
+      _lectureSubjColorCache[c] = s.color;
+    });
   });
   return _lectureSubjOrderCache;
 }
 function getLectureSubjectColor(name){
   if(!_lectureSubjColorCache) getLectureSubjectOrder();
   return _lectureSubjColorCache[name];
+}
+// 강의목록 탭은 단일 선택 내비게이션. 선택된 탭만 테마색으로 표시하고,
+// 선택되지 않은 탭은 기존처럼 회색으로 표시한다.
+function lectureTabStyle(active,color){
+  if(!color) return '';
+  return active ? `border-color:${color};color:${color};background:${color}22` : `border-color:var(--border2);color:var(--text3)`;
 }
 function buildSubjectTabs(){
   const rawSubjects=Object.keys(S.lectures||{});
@@ -797,7 +812,7 @@ function buildSubjectTabs(){
     const label=subjDisplayName(s)+(currentCount?` (${currentCount})`:'');
     const on = s===currentSubject;
     const color = getLectureSubjectColor(s);
-    const style = color ? subjectBtnStyle(on,color) : '';
+    const style = lectureTabStyle(on,color);
     return `<button class="stab${on?' on':''}" style="${style}" onclick="showSubject('${s}',this)">${label}</button>`;
   }).join('');
   if(selEl)selEl.innerHTML=subjects.map(s=>`<option value="${s}">${subjDisplayName(s)}</option>`).join('');
@@ -805,13 +820,8 @@ function buildSubjectTabs(){
   renderLectures();
 }
 function showSubject(name,btn){
-  if(btn){
-    document.querySelectorAll('#subjectTabs .stab').forEach(t=>{ t.classList.remove('on'); t.setAttribute('style',''); });
-    btn.classList.add('on');
-    const color = getLectureSubjectColor(name);
-    if(color) btn.setAttribute('style', subjectBtnStyle(true,color));
-  }
-  currentSubject=name;renderLectures();
+  currentSubject=name;
+  buildSubjectTabs();
 }
 function calcLectureMins(lecs){
   let t=0;
@@ -1028,6 +1038,13 @@ function applyExamSection(){
   ['examSec-record','examSec-trend','examSec-subject','examSec-avg','examSec-wrong'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.style.display = shown.has(id) ? '' : 'none';
+  });
+  // display:none 상태에서 그려진 차트는 크기가 0으로 굳어버릴 수 있어,
+  // 화면에 다시 보일 때 강제로 resize 해준다.
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      [examTrendChart, examSubjectChart, avgRateChart].forEach(c=>{ if(c) c.resize(); });
+    });
   });
 }
 
@@ -1521,14 +1538,17 @@ function renderAvgRateChart(){
 
   const ctx = document.getElementById('avgRateChart');
   if(avgRateChart) avgRateChart.destroy();
-  const datasets = [{ data, backgroundColor:bgColors, borderRadius:4, borderWidth:0,
-    rawScores:data, maxScores, unitLabel: isRate?'%':'점', label:'내 평균' }];
+  const barOpts = { barPercentage:0.65, categoryPercentage:0.7 };
+  const datasets = [];
   if(!isRate){
+    // 만점(외곽선) 막대를 먼저 그려서 뒤에 깔리고, 평균 막대가 그 위에 겹쳐 보이도록 함
     datasets.push({
       data: maxScores, backgroundColor:'transparent', borderColor:bgColors, borderWidth:2, borderRadius:4,
-      rawScores:maxScores, maxScores, unitLabel:'점', label:'만점', skipLabel:true, order:2
+      rawScores:maxScores, maxScores, unitLabel:'점', label:'만점', skipLabel:true, order:1, ...barOpts
     });
   }
+  datasets.push({ data, backgroundColor:bgColors, borderRadius:4, borderWidth:0,
+    rawScores:data, maxScores, unitLabel: isRate?'%':'점', label:'평균', order:2, ...barOpts });
   avgRateChart = new Chart(ctx, {
     type:'bar',
     data:{ labels, datasets },
@@ -1542,12 +1562,12 @@ function renderAvgRateChart(){
             if(c.raw===null||c.raw===undefined) return '기록 없음';
             const max = c.dataset.maxScores[c.dataIndex];
             if(c.dataset.label==='만점') return `만점 : ${c.raw}점`;
-            if(isRate) return `나의 평균 : ${c.raw.toFixed(1)}%`;
+            if(isRate) return `평균 : ${c.raw.toFixed(1)}%`;
             const rate = max ? Math.round(c.raw/max*1000)/10 : 0;
-            return `나의 평균 : ${c.raw}/${max}점 (${rate}%)`;
+            return `평균 : ${c.raw}/${max}점 (${rate}%)`;
           }
         } } },
-      scales:{ y:{ beginAtZero:true, max: isRate ? 100 : Math.max(...maxScores) }, x:{ grid:{display:false}, ticks:{ font:{ size:10 }, color: (c)=>tickColors[c.index] } } } }
+      scales:{ y:{ beginAtZero:true, max: isRate ? 100 : Math.max(...maxScores) }, x:{ grouped:false, grid:{display:false}, ticks:{ font:{ size:10 }, color: (c)=>tickColors[c.index] } } } }
   });
   attachBarTooltipToggle(avgRateChart);
 }
