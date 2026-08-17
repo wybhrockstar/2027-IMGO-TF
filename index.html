@@ -1575,7 +1575,7 @@ function renderAvgRateChart(){
     markerDatasetIndex = datasets.length;
     datasets.push({
       type:'line', showLine:false, data: maxScores,
-      pointStyle:'circle', pointRadius:7, pointHoverRadius:8, pointBorderWidth:2,
+      pointStyle:'circle', pointRadius:5, pointHoverRadius:6, pointBorderWidth:2,
       pointBackgroundColor:'transparent', pointBorderColor:bgColors, backgroundColor:'transparent', borderColor:'transparent',
       rawScores:maxScores, maxScores, unitLabel:'점', labelPrefix:'★', label:'만점', order:1
     });
@@ -1612,6 +1612,8 @@ const valueLabelBarPlugin = {
       if(ds.skipLabel) return;
       const meta = chart.getDatasetMeta(di);
       const colorSrc = (ds.pointBorderColor && ds.pointBorderColor!=='transparent') ? ds.pointBorderColor : ds.backgroundColor;
+      // 동그라미 마커는 반지름+테두리만큼 더 띄워서 값 라벨이 마커와 겹치지 않게 함
+      const offset = ds.pointStyle ? (ds.pointRadius||5) + (ds.pointBorderWidth||2) + 6 : 6;
       meta.data.forEach((bar,i)=>{
         const v = ds.data[i];
         if(v===null || v===undefined) return;
@@ -1619,7 +1621,7 @@ const valueLabelBarPlugin = {
         ctx.font = '9px sans-serif';
         ctx.fillStyle = Array.isArray(colorSrc) ? colorSrc[i] : (colorSrc||'#888');
         ctx.textAlign = 'center';
-        ctx.fillText((ds.labelPrefix||'') + v + (ds.unitLabel || '%'), bar.x, bar.y - 6);
+        ctx.fillText((ds.labelPrefix||'') + v + (ds.unitLabel || '%'), bar.x, bar.y - offset);
         ctx.restore();
       });
     });
