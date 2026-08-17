@@ -764,17 +764,27 @@ function subjDisplayName(s){ return SUB_DISPLAY_IDX[s]||s; }
 
 // 강의목록 탭 과목 순서/색상: 모의고사 과목별 추이 토글과 동일한 순서/테마색 사용.
 // 국어 바로 뒤에 '국어 특강', 수학 바로 뒤에 '수학 특강'을 같은 테마색으로 추가.
-const LECTURE_SUBJECT_ORDER = [];
-const LECTURE_SUBJECT_COLOR = {};
-SUBJECT_META.forEach(s=>{
-  LECTURE_SUBJECT_ORDER.push(s.name);
-  LECTURE_SUBJECT_COLOR[s.name] = s.color;
-  if(s.name==='국어'){ LECTURE_SUBJECT_ORDER.push('국어 특강'); LECTURE_SUBJECT_COLOR['국어 특강'] = s.color; }
-  if(s.name==='수학'){ LECTURE_SUBJECT_ORDER.push('수학 특강'); LECTURE_SUBJECT_COLOR['수학 특강'] = s.color; }
-});
+// (SUBJECT_META가 이 시점에는 아직 선언되지 않았으므로 지연 계산 함수로 처리)
+let _lectureSubjOrderCache = null, _lectureSubjColorCache = null;
+function getLectureSubjectOrder(){
+  if(_lectureSubjOrderCache) return _lectureSubjOrderCache;
+  _lectureSubjOrderCache = []; _lectureSubjColorCache = {};
+  SUBJECT_META.forEach(s=>{
+    _lectureSubjOrderCache.push(s.name);
+    _lectureSubjColorCache[s.name] = s.color;
+    if(s.name==='국어'){ _lectureSubjOrderCache.push('국어 특강'); _lectureSubjColorCache['국어 특강'] = s.color; }
+    if(s.name==='수학'){ _lectureSubjOrderCache.push('수학 특강'); _lectureSubjColorCache['수학 특강'] = s.color; }
+  });
+  return _lectureSubjOrderCache;
+}
+function getLectureSubjectColor(name){
+  if(!_lectureSubjColorCache) getLectureSubjectOrder();
+  return _lectureSubjColorCache[name];
+}
 function buildSubjectTabs(){
   const rawSubjects=Object.keys(S.lectures||{});
   if(!rawSubjects.length)return;
+  const LECTURE_SUBJECT_ORDER = getLectureSubjectOrder();
   const subjects = LECTURE_SUBJECT_ORDER.filter(n=>rawSubjects.includes(n))
     .concat(rawSubjects.filter(n=>!LECTURE_SUBJECT_ORDER.includes(n)));
   if(!currentSubject||!S.lectures[currentSubject])currentSubject=subjects[0];
@@ -786,7 +796,7 @@ function buildSubjectTabs(){
     const currentCount=lecs.filter(l=>!l.old).length;
     const label=subjDisplayName(s)+(currentCount?` (${currentCount})`:'');
     const on = s===currentSubject;
-    const color = LECTURE_SUBJECT_COLOR[s];
+    const color = getLectureSubjectColor(s);
     const style = color ? subjectBtnStyle(on,color) : '';
     return `<button class="stab${on?' on':''}" style="${style}" onclick="showSubject('${s}',this)">${label}</button>`;
   }).join('');
@@ -798,7 +808,7 @@ function showSubject(name,btn){
   if(btn){
     document.querySelectorAll('#subjectTabs .stab').forEach(t=>{ t.classList.remove('on'); t.setAttribute('style',''); });
     btn.classList.add('on');
-    const color = LECTURE_SUBJECT_COLOR[name];
+    const color = getLectureSubjectColor(name);
     if(color) btn.setAttribute('style', subjectBtnStyle(true,color));
   }
   currentSubject=name;renderLectures();
