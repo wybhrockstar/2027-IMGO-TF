@@ -224,10 +224,6 @@ body.light .nc-stitle{color:var(--text3)}
 <!-- ======= PAGE: LECTURES ======= -->
 <div class="page main" id="page-lectures">
   <div class="sec-title">과목별 강의 목록</div>
-  <div class="lec-old-toggle">
-    <label class="toggle-wrap"><input type="checkbox" id="showOld" onchange="renderLectures()" checked><span class="slider"></span></label>
-    <span>작년 강의 표시</span>
-  </div>
   <div class="subj-tabs" id="subjectTabs"></div>
   <div class="lec-list" id="lectureList"></div>
 </div>
@@ -271,15 +267,13 @@ body.light .nc-stitle{color:var(--text3)}
     </div>
 
     <div id="examSec-trend" class="nc" style="margin-bottom:16px">
-      <div class="nc-stitle" style="margin-bottom:10px">점수 추이</div>
+      <div class="nc-stitle" style="margin-bottom:10px">회차별 추이</div>
       <div class="subj-tabs" style="margin:0 0 10px">
         <div class="subj-tabs" id="seriesTabs" style="margin:0;gap:5px"></div>
         <div class="subj-tabs" id="avgTabs" style="margin:0;gap:5px"></div>
       </div>
-      <div style="overflow-x:auto">
-        <div style="position:relative;height:330px">
-          <canvas id="examTrendChart"></canvas>
-        </div>
+      <div style="width:100%;position:relative;height:330px">
+        <canvas id="examTrendChart"></canvas>
       </div>
       <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px">
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#b8a5ff;display:inline-block"></span>총점</span>
@@ -287,27 +281,23 @@ body.light .nc-stitle{color:var(--text3)}
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#3ecf8e;display:inline-block"></span>B형</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:transparent;border:2px solid var(--text3);display:inline-block"></span>평균</span>
       </div>
+    </div>
 
-      <div style="height:1px;background:var(--border);margin:18px 0"></div>
-
+    <div id="examSec-subject" class="nc" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;flex-wrap:wrap;gap:8px">
-        <div class="nc-stitle" style="margin:0">세부 점수 추이</div>
+        <div class="nc-stitle" style="margin:0">과목별 추이</div>
         <button class="stab" id="subjToggleAllBtn" style="border-color:var(--accent);color:var(--accent)" onclick="toggleAllSubjects()"></button>
       </div>
       <div class="subj-tabs" id="examSubjectTabs" style="margin:10px 0"></div>
-      <div style="overflow-x:auto">
-        <div style="position:relative;height:270px">
-          <canvas id="examSubjectChart"></canvas>
-        </div>
+      <div style="width:100%;position:relative;height:270px">
+        <canvas id="examSubjectChart"></canvas>
       </div>
+    </div>
 
-      <div style="height:1px;background:var(--border);margin:18px 0"></div>
-
-      <div class="nc-stitle" style="margin-bottom:10px">평균</div>
-      <div style="overflow-x:auto">
-        <div style="position:relative;height:220px">
-          <canvas id="avgRateChart"></canvas>
-        </div>
+    <div id="examSec-avg" class="nc" style="margin-bottom:16px">
+      <div class="nc-stitle" style="margin-bottom:10px">과목별 평균</div>
+      <div style="width:100%;position:relative;height:220px">
+        <canvas id="avgRateChart"></canvas>
       </div>
     </div>
 
@@ -772,9 +762,21 @@ function buildTermTabs(){
 const SUB_DISPLAY_IDX = {'통교':'통합교과','총창':'총론·창체'};
 function subjDisplayName(s){ return SUB_DISPLAY_IDX[s]||s; }
 
+// 강의목록 탭 과목 순서/색상: 모의고사 과목별 추이 토글과 동일한 순서/테마색 사용.
+// 국어 바로 뒤에 '국어 특강', 수학 바로 뒤에 '수학 특강'을 같은 테마색으로 추가.
+const LECTURE_SUBJECT_ORDER = [];
+const LECTURE_SUBJECT_COLOR = {};
+SUBJECT_META.forEach(s=>{
+  LECTURE_SUBJECT_ORDER.push(s.name);
+  LECTURE_SUBJECT_COLOR[s.name] = s.color;
+  if(s.name==='국어'){ LECTURE_SUBJECT_ORDER.push('국어 특강'); LECTURE_SUBJECT_COLOR['국어 특강'] = s.color; }
+  if(s.name==='수학'){ LECTURE_SUBJECT_ORDER.push('수학 특강'); LECTURE_SUBJECT_COLOR['수학 특강'] = s.color; }
+});
 function buildSubjectTabs(){
-  const subjects=Object.keys(S.lectures||{});
-  if(!subjects.length)return;
+  const rawSubjects=Object.keys(S.lectures||{});
+  if(!rawSubjects.length)return;
+  const subjects = LECTURE_SUBJECT_ORDER.filter(n=>rawSubjects.includes(n))
+    .concat(rawSubjects.filter(n=>!LECTURE_SUBJECT_ORDER.includes(n)));
   if(!currentSubject||!S.lectures[currentSubject])currentSubject=subjects[0];
   const tabsEl=document.getElementById('subjectTabs');
   const selEl=document.getElementById('la-subj');
@@ -783,14 +785,22 @@ function buildSubjectTabs(){
     const lecs=S.lectures[s]||[];
     const currentCount=lecs.filter(l=>!l.old).length;
     const label=subjDisplayName(s)+(currentCount?` (${currentCount})`:'');
-    return `<button class="stab${s===currentSubject?' on':''}" onclick="showSubject('${s}',this)">${label}</button>`;
+    const on = s===currentSubject;
+    const color = LECTURE_SUBJECT_COLOR[s];
+    const style = color ? subjectBtnStyle(on,color) : '';
+    return `<button class="stab${on?' on':''}" style="${style}" onclick="showSubject('${s}',this)">${label}</button>`;
   }).join('');
   if(selEl)selEl.innerHTML=subjects.map(s=>`<option value="${s}">${subjDisplayName(s)}</option>`).join('');
   if(selEl2)selEl2.innerHTML=subjects.map(s=>`<option value="${s}">${subjDisplayName(s)}</option>`).join('');
   renderLectures();
 }
 function showSubject(name,btn){
-  if(btn){document.querySelectorAll('#subjectTabs .stab').forEach(t=>t.classList.remove('on'));btn.classList.add('on');}
+  if(btn){
+    document.querySelectorAll('#subjectTabs .stab').forEach(t=>{ t.classList.remove('on'); t.setAttribute('style',''); });
+    btn.classList.add('on');
+    const color = LECTURE_SUBJECT_COLOR[name];
+    if(color) btn.setAttribute('style', subjectBtnStyle(true,color));
+  }
   currentSubject=name;renderLectures();
 }
 function calcLectureMins(lecs){
@@ -799,11 +809,10 @@ function calcLectureMins(lecs){
   return t;
 }
 function renderLectures(){
-  const showOld=document.getElementById('showOld')?.checked!==false;
   const lecs=S.lectures[currentSubject]||[];
   const currentLecs=lecs.filter(l=>!l.old);
   const oldLecs=lecs.filter(l=>l.old);
-  const visible=showOld?lecs:[...currentLecs];
+  const visible=lecs;
   const mins=calcLectureMins(visible);
   let header='';
   if(mins>0){
@@ -813,13 +822,12 @@ function renderLectures(){
   }
   let html='';
   if(currentLecs.length){
-    html+='<div style="font-size:10px;color:var(--teal);letter-spacing:.08em;text-transform:uppercase;padding:4px 2px 6px;grid-column:1/-1">● 올해 강의</div>';
     currentLecs.forEach(l=>{
       const t = (l.title||'').replace(/^\d+강\.\s*/,'');
       html+='<div class="li"><span class="lnum">'+l.num+'</span><span class="ltitle">'+t+'</span></div>';
     });
   }
-  if(showOld&&oldLecs.length){
+  if(oldLecs.length){
     html+='<div style="font-size:10px;color:var(--amber);letter-spacing:.08em;text-transform:uppercase;padding:12px 2px 6px;grid-column:1/-1;border-top:1px solid var(--border);margin-top:8px">● 작년 강의</div>';
     oldLecs.forEach(l=>{
       const t = (l.title||'').replace(/^\d+강\.\s*/,'');
@@ -1005,10 +1013,11 @@ function selectExamSection(id){
   applyExamSection();
 }
 function applyExamSection(){
-  const map = {record:'examSec-record', trend:'examSec-trend', wrong:'examSec-wrong'};
-  Object.keys(map).forEach(k=>{
-    const el = document.getElementById(map[k]);
-    if(el) el.style.display = (k===examSection) ? '' : 'none';
+  const map = {record:['examSec-record'], trend:['examSec-trend','examSec-subject','examSec-avg'], wrong:['examSec-wrong']};
+  const shown = new Set(map[examSection] || []);
+  ['examSec-record','examSec-trend','examSec-subject','examSec-avg','examSec-wrong'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = shown.has(id) ? '' : 'none';
   });
 }
 
@@ -1502,16 +1511,31 @@ function renderAvgRateChart(){
 
   const ctx = document.getElementById('avgRateChart');
   if(avgRateChart) avgRateChart.destroy();
+  const datasets = [{ data, backgroundColor:bgColors, borderRadius:4, borderWidth:0,
+    rawScores:data, maxScores, unitLabel: isRate?'%':'점', label:'내 평균' }];
+  if(!isRate){
+    datasets.push({
+      data: maxScores, backgroundColor:'transparent', borderColor:bgColors, borderWidth:2, borderRadius:4,
+      rawScores:maxScores, maxScores, unitLabel:'점', label:'만점', skipLabel:true, order:2
+    });
+  }
   avgRateChart = new Chart(ctx, {
     type:'bar',
-    data:{ labels, datasets:[{ data, backgroundColor:bgColors, borderRadius:4, hideLabel:false, borderWidth:0,
-      rawScores:data, maxScores, unitLabel: isRate?'%':'점' }] },
+    data:{ labels, datasets },
     plugins:[valueLabelBarPlugin],
     options:{ responsive:true, maintainAspectRatio:false, events:[],
       layout:{ padding:{ top:24 } },
       plugins:{ legend:{display:false},
         tooltip:{ callbacks:{
-          label:(c)=> (c.raw===null||c.raw===undefined) ? '기록 없음' : (isRate ? c.raw.toFixed(1)+'%' : c.raw+'점')
+          title:(items)=> items && items[0] ? items[0].label : '',
+          label:(c)=>{
+            if(c.raw===null||c.raw===undefined) return '기록 없음';
+            const max = c.dataset.maxScores[c.dataIndex];
+            if(c.dataset.label==='만점') return `만점 : ${c.raw}점`;
+            if(isRate) return `나의 평균 : ${c.raw.toFixed(1)}%`;
+            const rate = max ? Math.round(c.raw/max*1000)/10 : 0;
+            return `나의 평균 : ${c.raw}/${max}점 (${rate}%)`;
+          }
         } } },
       scales:{ y:{ beginAtZero:true, max: isRate ? 100 : Math.max(...maxScores) }, x:{ grid:{display:false}, ticks:{ font:{ size:10 }, color: (c)=>tickColors[c.index] } } } }
   });
@@ -1522,6 +1546,7 @@ const valueLabelBarPlugin = {
   afterDatasetsDraw(chart){
     const ctx = chart.ctx;
     chart.data.datasets.forEach((ds,di)=>{
+      if(ds.skipLabel) return;
       const meta = chart.getDatasetMeta(di);
       meta.data.forEach((bar,i)=>{
         const v = ds.data[i];
@@ -1561,7 +1586,9 @@ function buildSwSubjectSelect(){
   const names = ['전체', ...SUBJECT_META.map(s=>s.name)];
   wrap.innerHTML = names.map(name=>{
     const on = swSubject===name;
-    return `<button class="stab${on?' on':''}" onclick="selectSwSubject('${name}')">${name}</button>`;
+    const color = name==='전체' ? 'var(--accent)' : (SUBJECT_META.find(s=>s.name===name)||{}).color;
+    const style = color ? subjectBtnStyle(on,color) : '';
+    return `<button class="stab${on?' on':''}" style="${style}" onclick="selectSwSubject('${name}')">${name}</button>`;
   }).join('');
 }
 function selectSwSubject(name){
@@ -1712,16 +1739,17 @@ function renderWrongList(){
 function openRecordModal(){
   if(!examPerson) return;
   document.getElementById('recordModalTitle').textContent = examPerson+' 기록 추가';
+  recordMode = examSection==='wrong' ? 'wrong' : 'score';
   document.getElementById('recordModeTabs').innerHTML = ['score','wrong'].map(m=>{
     const on = recordMode===m;
-    return `<button class="stab${on?' on':''}" style="${on?'border-color:var(--accent);color:var(--accent);background:var(--accent3)':''}" onclick="setRecordMode('${m}',this)">${m==='score'?'점수 기록':'오답 기록'}</button>`;
+    return `<button class="stab${on?' on':''}" data-mode="${m}" style="${on?'border-color:var(--accent);color:var(--accent);background:var(--accent3)':''}" onclick="setRecordMode('${m}',this)">${m==='score'?'점수 기록':'오답 기록'}</button>`;
   }).join('');
   const tree = examTree();
   document.getElementById('rec-examBase').innerHTML = tree.map(t=>`<option value="${t.base}">${t.base}</option>`).join('');
   onRecBaseChange();
   document.getElementById('rec-examDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('record-status').textContent='';
-  setRecordMode('score');
+  setRecordMode(recordMode);
   document.getElementById('recordModalBg').style.display='flex';
 }
 function closeRecordModal(){ document.getElementById('recordModalBg').style.display='none'; }
@@ -1745,7 +1773,7 @@ function currentRecExamName(){
 function setRecordMode(m,btn){
   recordMode=m;
   document.querySelectorAll('#recordModeTabs .stab').forEach(b=>{ b.classList.remove('on'); b.style.cssText=''; });
-  const activeBtn = btn || document.querySelector('#recordModeTabs .stab');
+  const activeBtn = btn || document.querySelector(`#recordModeTabs .stab[data-mode="${m}"]`) || document.querySelector('#recordModeTabs .stab');
   if(activeBtn){ activeBtn.classList.add('on'); activeBtn.style.cssText='border-color:var(--accent);color:var(--accent);background:var(--accent3)'; }
   document.getElementById('rec-scoreFields').style.display = m==='score'?'':'none';
   document.getElementById('rec-wrongFields').style.display = m==='wrong'?'':'none';
