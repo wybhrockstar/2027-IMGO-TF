@@ -272,8 +272,8 @@ body.light .nc-stitle{color:var(--text3)}
         <div class="subj-tabs" id="seriesTabs" style="margin:0;gap:5px"></div>
         <div class="subj-tabs" id="avgTabs" style="margin:0;gap:5px"></div>
       </div>
-      <div style="width:100%;position:relative;height:330px">
-        <canvas id="examTrendChart"></canvas>
+      <div style="width:100%;max-width:100%;position:relative;height:330px;overflow:hidden" id="examTrendChartWrap">
+        <canvas id="examTrendChart" style="width:100%;height:100%;display:block"></canvas>
       </div>
       <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px">
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#b8a5ff;display:inline-block"></span>총점</span>
@@ -289,15 +289,15 @@ body.light .nc-stitle{color:var(--text3)}
         <button class="stab" id="subjToggleAllBtn" style="border-color:var(--accent);color:var(--accent)" onclick="toggleAllSubjects()"></button>
       </div>
       <div class="subj-tabs" id="examSubjectTabs" style="margin:10px 0"></div>
-      <div style="width:100%;position:relative;height:270px">
-        <canvas id="examSubjectChart"></canvas>
+      <div style="width:100%;max-width:100%;position:relative;height:270px;overflow:hidden" id="examSubjectChartWrap">
+        <canvas id="examSubjectChart" style="width:100%;height:100%;display:block"></canvas>
       </div>
     </div>
 
     <div id="examSec-avg" class="nc" style="margin-bottom:16px">
       <div class="nc-stitle" style="margin-bottom:10px">과목별 평균</div>
-      <div style="width:100%;position:relative;height:220px">
-        <canvas id="avgRateChart"></canvas>
+      <div style="width:100%;max-width:100%;position:relative;height:220px;overflow:hidden" id="avgRateChartWrap">
+        <canvas id="avgRateChart" style="width:100%;height:100%;display:block"></canvas>
       </div>
     </div>
 
@@ -776,9 +776,16 @@ let _lectureSubjOrderCache = null, _lectureSubjColorCache = null;
 function getLectureSubjectOrder(){
   if(_lectureSubjOrderCache) return _lectureSubjOrderCache;
   _lectureSubjOrderCache = []; _lectureSubjColorCache = {};
+  // 실제 데이터 키가 축약형('통교','총창')일 수 있으므로 정식명과 축약형 모두 등록한다.
+  const ABBR_OF = {}; // 정식명 -> 축약형
+  Object.keys(SUB_DISPLAY_IDX).forEach(abbr=>{ ABBR_OF[SUB_DISPLAY_IDX[abbr]] = abbr; });
   SUBJECT_META.forEach(s=>{
     _lectureSubjOrderCache.push(s.name);
     _lectureSubjColorCache[s.name] = s.color;
+    if(ABBR_OF[s.name]){
+      _lectureSubjOrderCache.push(ABBR_OF[s.name]);
+      _lectureSubjColorCache[ABBR_OF[s.name]] = s.color;
+    }
     (LECTURE_COMPANIONS[s.name]||[]).forEach(c=>{
       _lectureSubjOrderCache.push(c);
       _lectureSubjColorCache[c] = s.color;
@@ -938,6 +945,20 @@ let examMode = 'score';
 let activeSubjects = new Set(SUBJECT_META.map(s=>s.name));
 let examTrendChart = null;
 let examSubjectChart = null;
+// display:none 상태에서 그려지거나 탭 전환 등으로 컨테이너 크기가 바뀔 때
+// Chart.js가 스스로 못 따라가는 경우가 있어, 실제 크기 변화를 감지해 강제로 resize() 한다.
+const _chartResizeObservers = {};
+function observeChartResize(wrapId, getChart){
+  if(_chartResizeObservers[wrapId]) return; // 한 번만 등록
+  const el = document.getElementById(wrapId);
+  if(!el || typeof ResizeObserver === 'undefined') return;
+  const ro = new ResizeObserver(()=>{
+    const c = getChart();
+    if(c) c.resize();
+  });
+  ro.observe(el);
+  _chartResizeObservers[wrapId] = ro;
+}
 let examLoaded = false;
 let recordMode = 'score';
 
@@ -1000,8 +1021,10 @@ async function showExamPerson(who, btn){
   if(btn) btn.classList.add('on');
   examPerson = who==='status' ? null : who;
   document.getElementById('examPanel-status').style.display = who==='status' ? '' : 'none';
-  document.getElementById('examPanel-person').style.display = who==='status' ? 'none' : '';
-  if(who==='status') return;
+  const panel = document.getElementById('examPanel-person');
+  if(who==='status'){ panel.style.display = 'none'; return; }
+  // 데이터/렌더링이 끝나기 전까지는 패널을 숨겨서 이전 사람의 화면이 잠깐 보이는 것을 막는다.
+  panel.style.display = 'none';
   await fetchExamData();
   buildExamControls();
   buildExamSectionTabs();
@@ -1012,6 +1035,7 @@ async function showExamPerson(who, btn){
   renderAvgRateChart();
   buildWrongExamSelects();
   renderWrongList();
+  panel.style.display = '';
 }
 
 const EXAM_SECTIONS = [
@@ -1268,7 +1292,9 @@ function attachTooltipToggle(chart){
 }
 
 // 막대그래프용 클릭 토글: 각 막대 영역(1.5배 확장)을 히트박스로 사용
-function attachBarTooltipToggle(chart){
+// markerDatasetIndex가 있으면(예: 만점 동그라미) 그 지점까지 세로 히트박스를 확장한다.
+function attachBarTooltipToggle(chart, barDatasetIndex, markerDatasetIndex){
+  barDatasetIndex = barDatasetIndex || 0;
   let locked = false;
   let touchStartX = 0, touchStartY = 0, moved = false;
   const canvas = chart.canvas;
@@ -1287,15 +1313,19 @@ function attachBarTooltipToggle(chart){
     const rect = canvas.getBoundingClientRect();
     const touchX = evt.clientX - rect.left;
     const touchY = evt.clientY - rect.top;
-    const meta = chart.getDatasetMeta(0);
+    const meta = chart.getDatasetMeta(barDatasetIndex);
+    const markerMeta = (markerDatasetIndex!==undefined && markerDatasetIndex>=0) ? chart.getDatasetMeta(markerDatasetIndex) : null;
     let idx = -1;
     meta.data.forEach((bar,i)=>{
       const props = bar.getProps ? bar.getProps(['x','y','base','width'], true) : bar;
       const w = (props.width || 24) * 1.5; // 가로 1.5배
       const padY = 15; // 세로 여유(기존 10px 대비 1.5배)
       const xMin = props.x - w/2, xMax = props.x + w/2;
-      const yTop = Math.min(props.y, props.base) - padY;
+      let yTop = Math.min(props.y, props.base) - padY;
       const yBottom = Math.max(props.y, props.base) + padY;
+      if(markerMeta && markerMeta.data[i]){
+        yTop = Math.min(yTop, markerMeta.data[i].y - padY);
+      }
       if(touchX >= xMin && touchX <= xMax && touchY >= yTop && touchY <= yBottom){ idx = i; }
     });
     if(idx === -1) return;
@@ -1306,13 +1336,14 @@ function attachBarTooltipToggle(chart){
       locked = false;
     } else {
       const bar = meta.data[idx];
-      chart.tooltip.setActiveElements([{datasetIndex:0, index:idx}], bar ? {x:bar.x,y:bar.y} : {x:0,y:0});
-      chart.setActiveElements([{datasetIndex:0, index:idx}]);
+      chart.tooltip.setActiveElements([{datasetIndex:barDatasetIndex, index:idx}], bar ? {x:bar.x,y:bar.y} : {x:0,y:0});
+      chart.setActiveElements([{datasetIndex:barDatasetIndex, index:idx}]);
       locked = true;
     }
     chart.update();
   };
 }
+
 
 function examTrendPoints(seriesKey){
   const rows = dedupeLatest(personScores().filter(r=> seriesKey==='total' || r.type===seriesKey),
@@ -1391,7 +1422,6 @@ function renderExamTrend(){
 
   const ctx = document.getElementById('examTrendChart');
   if(examTrendChart) examTrendChart.destroy();
-  fitChartWidth('examTrendChart', labels.length);
   const activeTypes = new Set([...examSeriesActive, ...examAvgActive]);
   const yMax = examMode==='rate' ? 100 : (activeTypes.size ? Math.max(...[...activeTypes].map(seriesMax)) : undefined);
   examTrendChart = new Chart(ctx, {
@@ -1412,15 +1442,10 @@ function renderExamTrend(){
       scales:{ y:{ beginAtZero:true, max:yMax }, x:{ grid:{display:false}, ticks:{ color: examThemeTextColor() } } } }
   });
   attachTooltipToggle(examTrendChart);
+  observeChartResize('examTrendChartWrap', ()=>examTrendChart);
 }
 
-function fitChartWidth(canvasId, count){
-  const canvas = document.getElementById(canvasId);
-  const wrapper = canvas.parentElement;
-  const minW = wrapper.parentElement.clientWidth || 600;
-  const w = Math.max(minW, count*56);
-  wrapper.style.width = w+'px';
-}
+// 카드 폭을 벗어나지 않도록, 차트는 항상 컨테이너 100% 폭에 맞춘다(가로 스크롤 없음).
 
 function subjectBtnStyle(active,color){
   return active ? `border-color:${color};color:${color}` : `border-color:var(--border2);color:var(--text3)`;
@@ -1474,7 +1499,6 @@ function renderExamSubjectChart(){
 
   const ctx = document.getElementById('examSubjectChart');
   if(examSubjectChart) examSubjectChart.destroy();
-  fitChartWidth('examSubjectChart', labels.length);
   const subjYMax = examMode==='rate' ? 100 : (activeList.length ? Math.max(...activeList.map(s=>s.max)) : undefined);
   const yTicks = examMode==='rate' ? {} : { stepSize:1, precision:0, autoSkip:false };
   examSubjectChart = new Chart(ctx,{
@@ -1500,6 +1524,7 @@ function renderExamSubjectChart(){
       }, x:{ grid:{display:false}, ticks:{ color: examThemeTextColor() } } } }
   });
   attachTooltipToggle(examSubjectChart);
+  observeChartResize('examSubjectChartWrap', ()=>examSubjectChart);
 }
 
 // ---- 평균 (막대그래프, 점수/정답률 토글 반영) ----
@@ -1538,17 +1563,23 @@ function renderAvgRateChart(){
 
   const ctx = document.getElementById('avgRateChart');
   if(avgRateChart) avgRateChart.destroy();
-  const barOpts = { barPercentage:0.65, categoryPercentage:0.7 };
-  const datasets = [];
+  const barOpts = { barPercentage:0.55, categoryPercentage:0.7 };
+  const barDatasetIndex = 0;
+  const datasets = [
+    { data, backgroundColor:bgColors, borderRadius:4, borderWidth:0,
+      rawScores:data, maxScores, unitLabel: isRate?'%':'점', label:'평균', order:2, ...barOpts }
+  ];
+  let markerDatasetIndex = -1;
   if(!isRate){
-    // 만점(외곽선) 막대를 먼저 그려서 뒤에 깔리고, 평균 막대가 그 위에 겹쳐 보이도록 함
+    // 만점: 회차별 추이의 '평균'처럼 테두리만 있는 동그라미 마커로 표시 (막대 아님)
+    markerDatasetIndex = datasets.length;
     datasets.push({
-      data: maxScores, backgroundColor:'transparent', borderColor:bgColors, borderWidth:2, borderRadius:4,
-      rawScores:maxScores, maxScores, unitLabel:'점', label:'만점', skipLabel:true, order:1, ...barOpts
+      type:'line', showLine:false, data: maxScores,
+      pointStyle:'circle', pointRadius:7, pointHoverRadius:8, pointBorderWidth:2,
+      pointBackgroundColor:'transparent', pointBorderColor:bgColors, backgroundColor:'transparent', borderColor:'transparent',
+      rawScores:maxScores, maxScores, unitLabel:'점', labelPrefix:'★', label:'만점', order:1
     });
   }
-  datasets.push({ data, backgroundColor:bgColors, borderRadius:4, borderWidth:0,
-    rawScores:data, maxScores, unitLabel: isRate?'%':'점', label:'평균', order:2, ...barOpts });
   avgRateChart = new Chart(ctx, {
     type:'bar',
     data:{ labels, datasets },
@@ -1559,17 +1590,19 @@ function renderAvgRateChart(){
         tooltip:{ callbacks:{
           title:(items)=> items && items[0] ? items[0].label : '',
           label:(c)=>{
-            if(c.raw===null||c.raw===undefined) return '기록 없음';
-            const max = c.dataset.maxScores[c.dataIndex];
-            if(c.dataset.label==='만점') return `만점 : ${c.raw}점`;
-            if(isRate) return `평균 : ${c.raw.toFixed(1)}%`;
-            const rate = max ? Math.round(c.raw/max*1000)/10 : 0;
-            return `평균 : ${c.raw}/${max}점 (${rate}%)`;
+            const max = maxScores[c.dataIndex];
+            const avgVal = data[c.dataIndex];
+            if(avgVal===null || avgVal===undefined) return '기록 없음';
+            const rate = max ? Math.round(avgVal/max*1000)/10 : 0;
+            const lines = [ isRate ? `평균 : ${avgVal.toFixed(1)}%` : `평균 : ${avgVal}점 (${rate}%)` ];
+            if(!isRate) lines.push(`만점 : ${max}점`);
+            return lines;
           }
         } } },
       scales:{ y:{ beginAtZero:true, max: isRate ? 100 : Math.max(...maxScores) }, x:{ grouped:false, grid:{display:false}, ticks:{ font:{ size:10 }, color: (c)=>tickColors[c.index] } } } }
   });
-  attachBarTooltipToggle(avgRateChart);
+  attachBarTooltipToggle(avgRateChart, barDatasetIndex, markerDatasetIndex);
+  observeChartResize('avgRateChartWrap', ()=>avgRateChart);
 }
 const valueLabelBarPlugin = {
   id:'valueLabelBarPlugin',
@@ -1578,14 +1611,15 @@ const valueLabelBarPlugin = {
     chart.data.datasets.forEach((ds,di)=>{
       if(ds.skipLabel) return;
       const meta = chart.getDatasetMeta(di);
+      const colorSrc = (ds.pointBorderColor && ds.pointBorderColor!=='transparent') ? ds.pointBorderColor : ds.backgroundColor;
       meta.data.forEach((bar,i)=>{
         const v = ds.data[i];
         if(v===null || v===undefined) return;
         ctx.save();
         ctx.font = '9px sans-serif';
-        ctx.fillStyle = Array.isArray(ds.backgroundColor) ? ds.backgroundColor[i] : (ds.backgroundColor||'#888');
+        ctx.fillStyle = Array.isArray(colorSrc) ? colorSrc[i] : (colorSrc||'#888');
         ctx.textAlign = 'center';
-        ctx.fillText(v + (ds.unitLabel || '%'), bar.x, bar.y - 6);
+        ctx.fillText((ds.labelPrefix||'') + v + (ds.unitLabel || '%'), bar.x, bar.y - 6);
         ctx.restore();
       });
     });
