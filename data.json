@@ -4783,6 +4783,26 @@
       "subject": "통합교과",
       "note": "#통교\n지도서 총론 - \"함께 만들어요\"",
       "createdAt": "2026-08-21"
+    },
+    {
+      "id": "sw_1787296991128_r6nz3",
+      "author": "재언",
+      "term": 2,
+      "round": "8/21(금) 영어 전체",
+      "roundSortKey": 821,
+      "subject": "영어",
+      "note": "#영어 \n514 oral proficiency\n609 garden path",
+      "createdAt": "2026-08-21"
+    },
+    {
+      "id": "sw_1787297016018_l152g",
+      "author": "태현",
+      "term": 2,
+      "round": "8/21(금) 영어 전체",
+      "roundSortKey": 821,
+      "subject": "영어",
+      "note": "#영어\n573P 파닉스 지도 단계 : 음소에 대한 인식-> 철자와 소리의 상관관계 -> ...",
+      "createdAt": "2026-08-21"
     }
   ]
 }
