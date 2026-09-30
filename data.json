@@ -5138,6 +5138,86 @@
       "subject": "국어",
       "note": "오답X",
       "createdAt": "2026-09-22"
+    },
+    {
+      "id": "sw_1790748282384_wmrre",
+      "author": "재언",
+      "term": 2,
+      "round": "9/23(수) 국어 9~32",
+      "roundSortKey": 923,
+      "subject": "국어",
+      "note": "#국어\n읽기\n32 기사문 주관성 O",
+      "createdAt": "2026-09-30"
+    },
+    {
+      "id": "sw_1790748289769_f10gm",
+      "author": "태현",
+      "term": 2,
+      "round": "9/23(수) 국어 9~32",
+      "roundSortKey": 923,
+      "subject": "국어",
+      "note": "#국어\n읽기 각론\n38P 내용의 타당성 판단기준 - 주장이 가치있고 중요한가? 외 2개",
+      "createdAt": "2026-09-30"
+    },
+    {
+      "id": "sw_1790748302562_hrjw9",
+      "author": "재언",
+      "term": 2,
+      "round": "9/25(금) 국어 33~48+모형",
+      "roundSortKey": 925,
+      "subject": "국어",
+      "note": "#국어\n하이퍼텍스트 비선형적",
+      "createdAt": "2026-09-30"
+    },
+    {
+      "id": "sw_1790748311952_xdy1i",
+      "author": "태현",
+      "term": 2,
+      "round": "9/25(금) 국어 33~48+모형",
+      "roundSortKey": 925,
+      "subject": "국어",
+      "note": "#국어\n문학\n13P 관습적 상징\n62P 빈의자 기법 - 인물을통해 자신 되돌아볼수O",
+      "createdAt": "2026-09-30"
+    },
+    {
+      "id": "sw_1790748333757_hmewl",
+      "author": "재언",
+      "term": 2,
+      "round": "9/28(월) 체육 1~24",
+      "roundSortKey": 928,
+      "subject": "체육",
+      "note": "#체육\n기본이론\n각론\n9 동적 스트레칭 이유\n21 좌식행동지침",
+      "createdAt": "2026-09-30"
+    },
+    {
+      "id": "sw_1790748346891_khjq0",
+      "author": "태현",
+      "term": 2,
+      "round": "9/28(월) 체육 1~24",
+      "roundSortKey": 928,
+      "subject": "체육",
+      "note": "#체육\n교육과정\n416P 움직임 기술, 요소, \"전략\"\n478P 동료교수모형 장점 - 개인교사를지니게됨\n493P TPSR 책임감수준\n\n운동 각론\n4P 철봉잡는법\n23P 운동 56 신체활동예시 (미암기)\n28P 수동적 스트레칭",
+      "createdAt": "2026-09-30"
+    },
+    {
+      "id": "sw_1790748407994_5qime",
+      "author": "재언",
+      "term": 2,
+      "round": "9/30(수) 체육 25~43",
+      "roundSortKey": 930,
+      "subject": "체육",
+      "note": "PASS",
+      "createdAt": "2026-09-30"
+    },
+    {
+      "id": "sw_1790748418956_157ep",
+      "author": "태현",
+      "term": 2,
+      "round": "9/30(수) 체육 25~43",
+      "roundSortKey": 930,
+      "subject": "체육",
+      "note": "#체육\n188P 굴신",
+      "createdAt": "2026-09-30"
     }
   ]
 }
