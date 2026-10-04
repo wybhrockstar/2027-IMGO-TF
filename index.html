@@ -1719,6 +1719,9 @@ function renderAvgRateChart(){
   const labels = ['총점','A형','B형', ...SUBJECT_META.map(s=>s.name)];
   // rawAvgs: 점수 단위 평균(반올림 전). 막대 값은 모드에 따라 점수/정답률, 툴팁은 항상 점수+정답률
   const rawAvgs = [totalAvg(), typeAvg('A',39), typeAvg('B',41), ...subjAvgs];
+  // 목표 점수 (총점, A형, B형, 과목들 순서). 표시되는 소수 첫째 자리 평균 기준으로 비교
+  const avgGoals = personGoals();
+  const goalList = [avgGoals.total, avgGoals.A, avgGoals.B, ...SUBJECT_META.map(sj=>avgGoals.subj[sj.name])];
   const data = rawAvgs.map((v,i)=> v===null ? null : (isRate ? Math.round(v/maxScores[i]*1000)/10 : Math.round(v*10)/10));
   const themeCol = examThemeTextColor();
   const bgColors = [themeCol, themeCol, themeCol, ...SUBJECT_META.map(s=>s.color)];
@@ -1748,6 +1751,11 @@ function renderAvgRateChart(){
             const avgVal = Math.round(raw*10)/10;
             const rate = max ? Math.round(raw/max*1000)/10 : 0;
             return [ `평균 : ${avgVal}점 (${rate}%)`, `만점 : ${max}점` ];
+          },
+          labelTextColor:(c)=>{
+            const raw = rawAvgs[c.dataIndex];
+            if(raw===null || raw===undefined) return '#ffffff';
+            return belowGoal(Math.round(raw*10)/10, goalList[c.dataIndex]) ? GOAL_FAIL_TIP_COLOR : '#ffffff';
           }
         } } },
       scales:{ y:{ beginAtZero:true, max: isRate ? 100 : Math.max(...maxScores) }, x:{ grouped:false, grid:{display:false}, ticks:{ autoSkip:false, maxRotation:0, minRotation:0, font:{ size:8 }, color: (c)=>tickColors[c.index],
