@@ -111,6 +111,10 @@ body.light .cd{color:var(--text3)}
 .apply-btn:active{transform:scale(.97)}
 .apply-btn-sm{padding:5px 13px;font-size:12px;font-weight:600;border-radius:20px;border:1px solid var(--accent);color:var(--bg);background:var(--accent);transition:.15s;cursor:pointer}
 .apply-btn-sm:hover{opacity:.85}
+.ss{position:relative;height:34px;margin-top:2px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:pointer}
+.ss-track{position:absolute;top:15px;height:4px;border-radius:2px;background:var(--border2)}
+.ss-thumb{position:absolute;top:-9px;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.45);transition:opacity .12s}
+.ss-thumb.idle{opacity:.35}
 .card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px}
 .card-tools{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
 .card-tools .subj-tabs{margin:0;gap:5px;flex-wrap:nowrap}
@@ -288,6 +292,7 @@ body.light .nc-stitle{color:var(--text3)}
       <div style="width:100%;max-width:100%;position:relative;height:330px;overflow:hidden" id="examTrendChartWrap">
         <canvas id="examTrendChart" style="width:100%;height:100%;display:block"></canvas>
       </div>
+      <div class="ss" id="examTrendSlider"><div class="ss-track"><div class="ss-thumb idle"></div></div></div>
       <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px">
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#b8a5ff;display:inline-block"></span>총점</span>
         <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:#5b8dee;display:inline-block"></span>A형</span>
@@ -308,6 +313,7 @@ body.light .nc-stitle{color:var(--text3)}
       <div style="width:100%;max-width:100%;position:relative;height:270px;overflow:hidden" id="examSubjectChartWrap">
         <canvas id="examSubjectChart" style="width:100%;height:100%;display:block"></canvas>
       </div>
+      <div class="ss" id="examSubjectSlider"><div class="ss-track"><div class="ss-thumb idle"></div></div></div>
     </div>
 
     <div id="examSec-avg" class="nc" style="margin-bottom:16px">
@@ -320,6 +326,7 @@ body.light .nc-stitle{color:var(--text3)}
       <div style="width:100%;max-width:100%;position:relative;height:220px;overflow:hidden" id="avgRateChartWrap">
         <canvas id="avgRateChart" style="width:100%;height:100%;display:block"></canvas>
       </div>
+      <div class="ss" id="avgRateSlider"><div class="ss-track"><div class="ss-thumb idle"></div></div></div>
     </div>
 
     <div id="examSec-wrong" class="nc">
@@ -971,8 +978,8 @@ let examPerson = null;
 let examSection = 'record'; // record | wrong | avg | trend
 let examSeriesActive = new Set(['total','A','B']);
 let examAvgActive = new Set();
-// 카드별 점수/정답률 모드 (기본값: 기록=점수, 회차별 추이=점수, 과목별 추이=정답률, 과목별 평균=정답률)
-let examModes = { record:'score', trend:'score', subject:'rate', avg:'rate' };
+// 카드별 점수/정답률 모드 (기본값: 기록=점수, 회차별 추이=점수, 과목별 추이=점수, 과목별 평균=정답률)
+let examModes = { record:'score', trend:'score', subject:'score', avg:'rate' };
 let examOrder = 'desc'; // desc=최신순, asc=오래된순
 let prefillSnapshot = null; // 모달에서 불러온 기존 점수(변경 여부 판단용)
 let activeSubjects = new Set(SUBJECT_META.map(s=>s.name));
@@ -1163,21 +1170,26 @@ function renderExamRecordTable(){
     if(v===undefined || v===null) return '-';
     return isRate ? rateOf(v,max).toFixed(1)+'%' : v;
   }
+  // 과목 구분선: 첫 과목(국어) 앞, A형→B형이 바뀌는 지점(실과|수학) 앞
+  const subjDivider = i => (i===0 || subjCols[i].type!==subjCols[i-1].type) ? divider : '';
+  const hdr = (label, sub, color, extra)=> `<th style="color:${color}${extra?';'+extra:''}"><span style="display:block;line-height:1.2">${label}</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${sub}</span></th>`;
   let html = '<table class="exam-score-table"><thead><tr><th style="text-align:left">회차</th><th style="' + divider + '">날짜</th>';
-  subjCols.forEach((s,i)=>{ html += `<th style="color:${s.color}${i===0?';'+divider:''}"><span style="display:block;line-height:1.2">${s.name}</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${isRate?'정답률':s.max+'점'}</span></th>`; });
-  html += `<th style="color:${SERIES_COLOR.A};${divider}"><span style="display:block;line-height:1.2">A형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${isRate?'정답률':'39점'}</span></th><th style="color:${SERIES_COLOR.B}"><span style="display:block;line-height:1.2">B형</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${isRate?'정답률':'41점'}</span></th><th style="color:var(--purple)"><span style="display:block;line-height:1.2">총점</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${isRate?'정답률':'80점'}</span></th></tr></thead><tbody>`;
+  html += hdr('총점', isRate?'정답률':'80점', 'var(--purple)');
+  html += hdr('A형', isRate?'정답률':'39점', SERIES_COLOR.A);
+  html += hdr('B형', isRate?'정답률':'41점', SERIES_COLOR.B);
+  subjCols.forEach((s,i)=>{ html += hdr(s.name, isRate?'정답률':s.max+'점', s.color, subjDivider(i)); });
+  html += '</tr></thead><tbody>';
   examNames.forEach(n=>{
     const e = byExam[n];
     html += `<tr><td class="exam-score-name">${n}</td><td style="${divider}">${mmdd(e.date)}</td>`;
-    subjCols.forEach((s,i)=>{ html += `<td${i===0?` style="${divider}"`:''}>${cellVal(e.subj[s.name], s.max)}</td>`; });
     const aAvg = avgOf(n,'A'), bAvg = avgOf(n,'B'), tAvg = avgOf(n,'total');
     if(isRate){
-      html += `<td style="${divider};color:var(--text)">${rateOf(e.a,39).toFixed(1)}%</td><td style="color:var(--text)">${rateOf(e.b,41).toFixed(1)}%</td>`;
-      html += `<td style="color:var(--text)">${rateOf(e.total,80).toFixed(1)}%</td></tr>`;
+      html += `<td style="color:var(--text)">${rateOf(e.total,80).toFixed(1)}%</td><td style="color:var(--text)">${rateOf(e.a,39).toFixed(1)}%</td><td style="color:var(--text)">${rateOf(e.b,41).toFixed(1)}%</td>`;
     } else {
-      html += `<td style="${divider};color:var(--text)">${e.a}${diffTag(e.a,aAvg)}</td><td style="color:var(--text)">${e.b}${diffTag(e.b,bAvg)}</td>`;
-      html += `<td style="color:var(--text)">${e.total}${diffTag(e.total,tAvg)}</td></tr>`;
+      html += `<td style="color:var(--text)">${e.total}${diffTag(e.total,tAvg)}</td><td style="color:var(--text)">${e.a}${diffTag(e.a,aAvg)}</td><td style="color:var(--text)">${e.b}${diffTag(e.b,bAvg)}</td>`;
     }
+    subjCols.forEach((s,i)=>{ const d = subjDivider(i); html += `<td${d?` style="${d}"`:''}>${cellVal(e.subj[s.name], s.max)}</td>`; });
+    html += '</tr>';
   });
   html += '</tbody></table>';
   wrap.innerHTML = html;
@@ -1275,7 +1287,7 @@ function toDateInput(v){
 function xTickOptions(n){
   const many = n>5;
   return {
-    color: examThemeTextColor(), autoSkip:false, font:{ size:8 },
+    color: (c)=> (c.chart && c.chart.$selIdx===c.index) ? selAccent() : examThemeTextColor(), autoSkip:false, font:{ size:8 },
     maxRotation: many?90:0, minRotation: many?90:0,
     callback: function(val){
       const l = this.getLabelForValue(val);
@@ -1332,78 +1344,120 @@ const valueLabelPlugin = {
   }
 };
 
-// 툴팁 터치 인식: 그래프 영역이 아니라 X축 라벨(회차명/과목명) 영역을 눌렀을 때만 동작한다.
-// 라벨 띠(차트 영역 하단 ~ 캔버스 하단) 안에서, 터치 x좌표에 가장 가까운 라벨의 index를 반환 (없으면 -1)
-function xLabelHitIndex(chart, evt){
-  const rect = chart.canvas.getBoundingClientRect();
-  const x = evt.clientX - rect.left, y = evt.clientY - rect.top;
-  const area = chart.chartArea, xs = chart.scales.x;
-  if(!area || !xs) return -1;
-  if(y < area.bottom - 2 || y > rect.height) return -1;
+// ===== 슬라이더로 회차/과목 선택 → 회색 선 + 툴팁 =====
+// 그래프 아래 슬라이더를 움직이면 가장 가까운 회차(과목)에 회색 선이 붙고 툴팁이 뜬다.
+// 처음에는 아무것도 선택되지 않은 상태(툴팁 없음). 선택된 손잡이를 탭하면 선택 해제.
+const SEL_LINE_COLOR = 'rgba(150,150,150,.75)';
+function selAccent(){ return (getComputedStyle(document.body).getPropertyValue('--accent')||'').trim() || '#c8f060'; }
+function sliderIdxFrac(chart, idx){
+  const a = chart.chartArea, xs = chart.scales.x, w = a.right - a.left;
+  return w>0 ? (xs.getPixelForValue(idx) - a.left)/w : 0;
+}
+function sliderFracIdx(chart, frac){
+  const a = chart.chartArea, xs = chart.scales.x;
+  const x = a.left + frac*(a.right - a.left);
   const n = (chart.data.labels||[]).length;
-  if(!n) return -1;
-  const width = xs.right - xs.left;
-  const slot = xs.options && xs.options.offset ? width/n : (n>1 ? width/(n-1) : width);
   let idx = -1, best = Infinity;
   for(let i=0;i<n;i++){
     const d = Math.abs(xs.getPixelForValue(i) - x);
     if(d < best){ best = d; idx = i; }
   }
-  return best <= slot/2 + 2 ? idx : -1;
+  return idx;
 }
-// 같은 라벨을 한 번 더 누르면 숨김, 다른 라벨을 누르면 해당 회차(과목)로 이동. 스크롤/드래그는 무시한다.
-function attachLabelTooltip(chart, getActive){
-  let lockedIndex = null;
-  let touchStartX = 0, touchStartY = 0, moved = false;
-  const canvas = chart.canvas;
-  canvas.addEventListener('touchstart', (e)=>{
-    if(e.touches && e.touches[0]){ touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; moved = false; }
-  }, {passive:true});
-  canvas.addEventListener('touchmove', (e)=>{
-    if(e.touches && e.touches[0]){
-      const dx = Math.abs(e.touches[0].clientX - touchStartX);
-      const dy = Math.abs(e.touches[0].clientY - touchStartY);
-      if(dx > 6 || dy > 6) moved = true;
+// 슬라이더 트랙을 차트의 그래프 영역(좌우 폭)에 맞춰 배치하고 손잡이 위치를 갱신
+function layoutSlider(chart, id){
+  const root = document.getElementById(id);
+  if(!root || !chart.chartArea) return;
+  const track = root.querySelector('.ss-track'), thumb = root.querySelector('.ss-thumb');
+  const a = chart.chartArea, w = a.right - a.left;
+  track.style.left = a.left+'px'; track.style.width = w+'px';
+  const idx = chart.$selIdx;
+  if(idx===null || idx===undefined){
+    thumb.classList.add('idle'); thumb.style.left = '0px';
+  } else {
+    thumb.classList.remove('idle');
+    const f = (chart.$dragFrac!==null && chart.$dragFrac!==undefined) ? chart.$dragFrac : sliderIdxFrac(chart, idx);
+    thumb.style.left = (f*w)+'px';
+  }
+}
+function makeSelPlugin(id){
+  return {
+    id:'selSlider',
+    afterLayout(chart){ layoutSlider(chart, id); },
+    beforeDatasetsDraw(chart){
+      const idx = chart.$selIdx;
+      if(idx===null || idx===undefined) return;
+      const a = chart.chartArea, x = chart.scales.x.getPixelForValue(idx);
+      const ctx = chart.ctx;
+      ctx.save(); ctx.strokeStyle = SEL_LINE_COLOR; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x, a.top); ctx.lineTo(x, chart.height); ctx.stroke(); ctx.restore();
     }
-  }, {passive:true});
-  canvas.onclick = (evt)=>{
-    if(moved){ moved = false; return; }
-    const idx = xLabelHitIndex(chart, evt);
-    if(idx === -1) return;
-    if(lockedIndex === idx){
-      chart.tooltip.setActiveElements([], {x:0,y:0});
-      chart.setActiveElements([]);
-      lockedIndex = null;
-    } else {
+  };
+}
+// 꺾은선: 해당 회차에 값이 있는 (표시 중인) 모든 데이터셋의 점
+function lineActive(c, idx){
+  return c.data.datasets.map((ds,di)=>({datasetIndex:di, index:idx})).filter(a=>{
+    if(c.getDatasetMeta(a.datasetIndex).hidden) return false;
+    const v = c.data.datasets[a.datasetIndex].data[idx];
+    return v!==null && v!==undefined;
+  });
+}
+// 막대: 해당 과목 막대 (기록 없음도 툴팁 표시)
+function barActive(c, idx){ return [{datasetIndex:0, index:idx}]; }
+
+function attachSlider(chart, id, getActive){
+  const root = document.getElementById(id);
+  if(!root) return;
+  chart.$selIdx = null; chart.$dragFrac = null;
+  layoutSlider(chart, id);
+  const track = root.querySelector('.ss-track');
+  function show(idx){
+    const none = ()=>{ chart.$selIdx = null; chart.tooltip.setActiveElements([], {x:0,y:0}); chart.setActiveElements([]); };
+    if(idx===null || idx<0){ none(); }
+    else {
+      chart.$selIdx = idx;
       const active = getActive(chart, idx);
-      if(!active.length){
-        chart.tooltip.setActiveElements([], {x:0,y:0});
-        chart.setActiveElements([]);
-        lockedIndex = null;
-      } else {
+      if(active.length){
         const pt = chart.getDatasetMeta(active[0].datasetIndex).data[idx];
-        chart.tooltip.setActiveElements(active, pt ? {x:pt.x,y:pt.y} : {x:0,y:0});
+        chart.tooltip.setActiveElements(active, pt ? {x:pt.x, y:pt.y} : {x:0,y:0});
         chart.setActiveElements(active);
-        lockedIndex = idx;
+      } else {
+        chart.tooltip.setActiveElements([], {x:0,y:0}); chart.setActiveElements([]);
       }
     }
     chart.update();
+  }
+  let dragging = false, moved = false, startX = 0, onThumb = false, last = null;
+  const fracOf = (e)=>{
+    const r = track.getBoundingClientRect();
+    return r.width>0 ? Math.min(1, Math.max(0, (e.clientX - r.left)/r.width)) : 0;
   };
-}
-// 꺾은선: 해당 회차에 값이 있는 모든 (표시 중인) 데이터셋의 점을 활성화
-function attachTooltipToggle(chart){
-  attachLabelTooltip(chart, (c, idx)=> c.data.datasets
-    .map((ds,di)=>({datasetIndex:di, index:idx}))
-    .filter(a=>{
-      if(c.getDatasetMeta(a.datasetIndex).hidden) return false;
-      const v = c.data.datasets[a.datasetIndex].data[idx];
-      return v!==null && v!==undefined;
-    }));
-}
-// 막대: 해당 과목 막대의 툴팁 (기록 없음도 표시)
-function attachBarTooltipToggle(chart, barDatasetIndex, markerDatasetIndex){
-  barDatasetIndex = barDatasetIndex || 0;
-  attachLabelTooltip(chart, (c, idx)=> [{datasetIndex:barDatasetIndex, index:idx}]);
+  root.onpointerdown = (e)=>{
+    if(!chart.chartArea) return;
+    dragging = true; moved = false; startX = e.clientX;
+    onThumb = chart.$selIdx!==null && !!(e.target.closest && e.target.closest('.ss-thumb'));
+    try{ root.setPointerCapture(e.pointerId); }catch(_){}
+    if(onThumb){ last = chart.$selIdx; return; }
+    const f = fracOf(e); chart.$dragFrac = f;
+    last = sliderFracIdx(chart, f); show(last);
+  };
+  root.onpointermove = (e)=>{
+    if(!dragging) return;
+    if(!moved && Math.abs(e.clientX - startX) > 4) moved = true;
+    if(onThumb && !moved) return;
+    const f = fracOf(e); chart.$dragFrac = f;
+    const i = sliderFracIdx(chart, f);
+    if(i !== last){ last = i; show(i); } else layoutSlider(chart, id);
+  };
+  const end = ()=>{
+    if(!dragging) return;
+    dragging = false;
+    chart.$dragFrac = null;
+    if(onThumb && !moved){ show(null); return; } // 손잡이를 그냥 탭하면 선택 해제
+    layoutSlider(chart, id); // 가장 가까운 회차 위치로 손잡이 정렬
+  };
+  root.onpointerup = end;
+  root.onpointercancel = end;
 }
 
 
@@ -1490,7 +1544,7 @@ function renderExamTrend(){
   examTrendChart = new Chart(ctx, {
     type:'line',
     data:{ labels, datasets },
-    plugins:[valueLabelPlugin],
+    plugins:[valueLabelPlugin, makeSelPlugin('examTrendSlider')],
     options:{ responsive:true, maintainAspectRatio:false, events:[], interaction:{ mode:'nearest', intersect:false, axis:'x' },
       layout:{ padding:{ top:24 } },
       plugins:{ legend:{display:false},
@@ -1504,7 +1558,7 @@ function renderExamTrend(){
         } } },
       scales:{ y:{ beginAtZero:true, max:yMax }, x:{ grid:{display:false}, ticks:xTickOptions(labels.length) } } }
   });
-  attachTooltipToggle(examTrendChart);
+  attachSlider(examTrendChart,'examTrendSlider',lineActive);
   observeChartResize('examTrendChartWrap', ()=>examTrendChart);
 }
 
@@ -1567,7 +1621,7 @@ function renderExamSubjectChart(){
   examSubjectChart = new Chart(ctx,{
     type:'line',
     data:{ labels, datasets },
-    plugins:[valueLabelPlugin],
+    plugins:[valueLabelPlugin, makeSelPlugin('examSubjectSlider')],
     options:{ responsive:true, maintainAspectRatio:false, events:[], interaction:{ mode:'nearest', intersect:false, axis:'x' },
       layout:{ padding:{ top:24 } },
       plugins:{ legend:{display:false},
@@ -1586,7 +1640,7 @@ function renderExamSubjectChart(){
         }
       }, x:{ grid:{display:false}, ticks:xTickOptions(labels.length) } } }
   });
-  attachTooltipToggle(examSubjectChart);
+  attachSlider(examSubjectChart,'examSubjectSlider',lineActive);
   observeChartResize('examSubjectChartWrap', ()=>examSubjectChart);
 }
 
@@ -1635,7 +1689,7 @@ function renderAvgRateChart(){
   avgRateChart = new Chart(ctx, {
     type:'bar',
     data:{ labels, datasets },
-    plugins:[valueLabelBarPlugin],
+    plugins:[valueLabelBarPlugin, makeSelPlugin('avgRateSlider')],
     options:{ responsive:true, maintainAspectRatio:false, events:[],
       layout:{ padding:{ top:24 } },
       plugins:{ legend:{display:false},
@@ -1654,7 +1708,7 @@ function renderAvgRateChart(){
       scales:{ y:{ beginAtZero:true, max: isRate ? 100 : Math.max(...maxScores) }, x:{ grouped:false, grid:{display:false}, ticks:{ autoSkip:false, maxRotation:0, minRotation:0, font:{ size:8 }, color: (c)=>tickColors[c.index],
         callback:(val,idx)=> [labels[idx], maxScores[idx]+'점'] } } } }
   });
-  attachBarTooltipToggle(avgRateChart, barDatasetIndex);
+  attachSlider(avgRateChart,'avgRateSlider',barActive);
   observeChartResize('avgRateChartWrap', ()=>avgRateChart);
 }
 const valueLabelBarPlugin = {
