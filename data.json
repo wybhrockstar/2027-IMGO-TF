@@ -3785,7 +3785,13 @@
     {
       "count": "1",
       "status": "완료",
-      "name": "늘봄 1회",
+      "name": "뉴로직 파이널 1회",
+      "essay": false
+    },
+    {
+      "count": "2",
+      "status": "완료",
+      "name": "늘봄 1~2회",
       "essay": false
     },
     {
@@ -3801,9 +3807,15 @@
       "essay": true
     },
     {
-      "count": "2",
+      "count": "1",
       "status": "완료",
-      "name": "엑시트 1~2회",
+      "name": "암요 파이널 1회",
+      "essay": false
+    },
+    {
+      "count": "3",
+      "status": "완료",
+      "name": "엑시트 1~3회",
       "essay": false
     },
     {
@@ -3813,15 +3825,15 @@
       "essay": false
     },
     {
-      "count": "1",
+      "count": "2",
       "status": "완료",
-      "name": "위더스 실전 1회",
+      "name": "위더스 실전 1~2회",
       "essay": true
     },
     {
-      "count": "1",
+      "count": "2",
       "status": "완료",
-      "name": "임고온 1회",
+      "name": "임고온 1~2회",
       "essay": false
     },
     {
@@ -3851,13 +3863,19 @@
     {
       "count": "1",
       "status": "완료",
-      "name": "임고하이웨이 1회",
+      "name": "임고하이웨이 리마스터 1회",
       "essay": false
     },
     {
-      "count": "3",
+      "count": "1",
       "status": "완료",
-      "name": "초임공 1~3회",
+      "name": "임고하이웨이 신규 1회",
+      "essay": false
+    },
+    {
+      "count": "6",
+      "status": "완료",
+      "name": "초임공 1~6회",
       "essay": true
     },
     {
@@ -3867,9 +3885,9 @@
       "essay": false
     },
     {
-      "count": "1",
+      "count": "2",
       "status": "완료",
-      "name": "쿠키넷 파이널 1회",
+      "name": "쿠키넷 파이널 1~2회",
       "essay": false
     },
     {
@@ -3879,9 +3897,9 @@
       "essay": false
     },
     {
-      "count": "4",
+      "count": "5",
       "status": "완료",
-      "name": "테크니컬 신규 1~4회",
+      "name": "테크니컬 신규 1~5회",
       "essay": false
     },
     {
@@ -3893,71 +3911,23 @@
     {
       "count": "2",
       "status": "예정",
-      "name": "뉴로직 파이널 1~2회",
-      "essay": false
-    },
-    {
-      "count": "1",
-      "status": "예정",
-      "name": "늘봄 2회",
-      "essay": false
-    },
-    {
-      "count": "2",
-      "status": "예정",
       "name": "백구 파이널 2~3회",
       "essay": true
     },
     {
       "count": "1",
       "status": "예정",
-      "name": "암요파이널 1회",
-      "essay": false
-    },
-    {
-      "count": "1",
-      "status": "예정",
-      "name": "엑시트 3회",
-      "essay": false
-    },
-    {
-      "count": "2",
-      "status": "예정",
-      "name": "위더스 실전 2~3회",
+      "name": "위더스 실전 3회",
       "essay": true
     },
     {
       "count": "1",
       "status": "예정",
-      "name": "임고온 2회",
-      "essay": false
-    },
-    {
-      "count": "1",
-      "status": "예정",
-      "name": "임고하이웨이 2회",
-      "essay": false
-    },
-    {
-      "count": "3",
-      "status": "예정",
-      "name": "초임공 4~6회",
-      "essay": true
-    },
-    {
-      "count": "2",
-      "status": "예정",
-      "name": "쿠키넷 파이널 2~3회",
-      "essay": false
-    },
-    {
-      "count": "1",
-      "status": "예정",
-      "name": "테크니컬 신규 5회",
+      "name": "쿠키넷 파이널 3회",
       "essay": false
     }
   ],
-  "examsUpdated": "2026.09.17.",
+  "examsUpdated": "2026.10.10.",
   "studyWrongAnswers": [
     {
       "id": "sw_1786884615226_xpnxq",
