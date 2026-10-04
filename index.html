@@ -113,7 +113,7 @@ body.light .cd{color:var(--text3)}
 .apply-btn-sm:hover{opacity:.85}
 .ss{position:relative;height:34px;margin-top:2px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:pointer}
 .ss-track{position:absolute;top:15px;height:4px;border-radius:2px;background:var(--border2)}
-.ss-thumb{position:absolute;top:-4px;width:11px;height:11px;margin-left:-5.5px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.45);transition:opacity .12s}
+.ss-thumb{position:absolute;top:-5.5px;width:15px;height:15px;margin-left:-7.5px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.45);transition:opacity .12s}
 .ss-thumb.idle{opacity:.35}
 .card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px}
 .card-tools{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
@@ -1318,7 +1318,7 @@ function fmtVal(v, mode){
 function fmtBoth(rawScore, max){
   if(rawScore===null || rawScore===undefined || !max) return '';
   const rate = Math.round(rawScore/max*1000)/10;
-  return Math.round(rawScore)+'점 ('+rate.toFixed(1)+'%)';
+  return (Math.round(rawScore*10)/10)+'/'+max+'점 ('+rate.toFixed(1)+'%)';
 }
 
 // 점 위에 값 라벨을 직접 그려주는 경량 플러그인 (외부 CDN 의존 없이 처리)
