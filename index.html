@@ -272,6 +272,7 @@ body.light .nc-stitle{color:var(--text3)}
           <div class="subj-tabs" id="orderTabs"></div>
           <div class="subj-tabs" id="recModeTabs"></div>
           <button class="apply-btn-sm" onclick="openRecordModal()">+ 기록</button>
+          <button class="stab" style="border-color:var(--accent);color:var(--accent)" onclick="openGoalModal()">목표</button>
         </div>
       </div>
       <div style="overflow-x:auto" id="exam-record-table-wrap"></div>
@@ -351,6 +352,20 @@ body.light .nc-stitle{color:var(--text3)}
       </div>
       <div id="wrongAnswerList"></div>
     </div>
+  </div>
+</div>
+
+<!-- ======= GOAL MODAL ======= -->
+<div id="goalModalBg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--bg2,#fff);max-width:420px;width:92%;max-height:82vh;overflow:auto;border-radius:14px;padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="nc-stitle" style="margin:0" id="goalModalTitle">목표 설정</div>
+      <button onclick="closeGoalModal()" style="border:none;background:none;font-size:18px;color:var(--text3)">×</button>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">목표보다 낮은 값은 기록 표에 빨갛게, 분석 탭 툴팁에는 빨간 글씨로 표시됩니다. 목표와 같으면 달성입니다. 칸을 비우면 목표 없음입니다.</div>
+    <div id="goal-fields"></div>
+    <div id="goal-status" style="font-size:12px;margin-top:6px;color:var(--text3)"></div>
+    <button class="apply-btn" style="width:100%;margin-top:8px" onclick="submitGoals()">저장</button>
   </div>
 </div>
 
@@ -973,7 +988,7 @@ function examThemeTextColor(){ return document.body.classList.contains('light') 
 const RATE_COLOR = '#c8f060';
 const AVG_COLOR = '#ff5a5a';
 
-let examData = { scores:[], averages:[], wrongAnswers:[] };
+let examData = { scores:[], averages:[], wrongAnswers:[], goals:[] };
 let examPerson = null;
 let examSection = 'record'; // record | wrong | avg | trend
 let examSeriesActive = new Set(['total','A','B']);
@@ -1043,7 +1058,7 @@ async function fetchExamData(){
     const res = await fetch(MOCK_EXAM_API_URL+'?target=all');
     const json = await res.json();
     if(json.ok){
-      examData = { scores: json.scores||[], averages: json.averages||[], wrongAnswers: json.wrongAnswers||[] };
+      examData = { scores: json.scores||[], averages: json.averages||[], wrongAnswers: json.wrongAnswers||[], goals: json.goals||[] };
       examLoaded = true;
     }
   }catch(e){ console.error('exam data fetch failed', e); }
@@ -1164,6 +1179,8 @@ function renderExamRecordTable(){
   }
   const subjCols = SUBJECT_META;
   const divider = 'border-left:1px solid var(--border2)';
+  const goals = personGoals();
+  const FAIL = ';background:rgba(255,90,90,.22)';
   const isRate = examModes.record==='rate';
   function rateOf(v, max){ return v===undefined||v===null ? undefined : Math.round(v/max*1000)/10; }
   function cellVal(v, max){
@@ -1183,12 +1200,21 @@ function renderExamRecordTable(){
     const e = byExam[n];
     html += `<tr><td class="exam-score-name">${n}</td><td style="${divider}">${mmdd(e.date)}</td>`;
     const aAvg = avgOf(n,'A'), bAvg = avgOf(n,'B'), tAvg = avgOf(n,'total');
+    const tF = belowGoal(e.total, goals.total) ? FAIL : '';
+    const aF = belowGoal(e.a, goals.A) ? FAIL : '';
+    const bF = belowGoal(e.b, goals.B) ? FAIL : '';
     if(isRate){
-      html += `<td style="${divider};color:var(--text)">${rateOf(e.total,80).toFixed(1)}%</td><td style="color:var(--text)">${rateOf(e.a,39).toFixed(1)}%</td><td style="color:var(--text)">${rateOf(e.b,41).toFixed(1)}%</td>`;
+      html += `<td style="${divider};color:var(--text)${tF}">${rateOf(e.total,80).toFixed(1)}%</td><td style="color:var(--text)${aF}">${rateOf(e.a,39).toFixed(1)}%</td><td style="color:var(--text)${bF}">${rateOf(e.b,41).toFixed(1)}%</td>`;
     } else {
-      html += `<td style="${divider};color:var(--text)">${e.total}${diffTag(e.total,tAvg)}</td><td style="color:var(--text)">${e.a}${diffTag(e.a,aAvg)}</td><td style="color:var(--text)">${e.b}${diffTag(e.b,bAvg)}</td>`;
+      html += `<td style="${divider};color:var(--text)${tF}">${e.total}${diffTag(e.total,tAvg)}</td><td style="color:var(--text)${aF}">${e.a}${diffTag(e.a,aAvg)}</td><td style="color:var(--text)${bF}">${e.b}${diffTag(e.b,bAvg)}</td>`;
     }
-    subjCols.forEach((s,i)=>{ const d = subjDivider(i); html += `<td${d?` style="${d}"`:''}>${cellVal(e.subj[s.name], s.max)}</td>`; });
+    subjCols.forEach((sj,i)=>{
+      const d = subjDivider(i);
+      const v = e.subj[sj.name];
+      const f = (v!==undefined && v!==null && belowGoal(v/sj.max*100, goals.subj[sj.name])) ? FAIL : '';
+      const st = d + f;
+      html += `<td${st?` style="${st}"`:''}>${cellVal(v, sj.max)}</td>`;
+    });
     html += '</tr>';
   });
   html += '</tbody></table>';
@@ -1486,6 +1512,7 @@ function allExamLabelsForActiveSeries(){
 function seriesMax(s){ return s==='total'?80:s==='A'?39:41; }
 
 function renderExamTrend(){
+  const trendGoals = personGoals();
   const labelsRaw = allExamLabelsForActiveSeries();
   const dateOf = {};
   examData.scores.forEach(r=>{ dateOf[r.examName]=r.examDate; });
@@ -1554,6 +1581,11 @@ function renderExamTrend(){
             const ds = c.dataset;
             const i = c.dataIndex;
             return ds.label+': '+fmtBoth(ds.rawScores[i], ds.maxScore);
+          },
+          labelTextColor:(c)=>{
+            const ds = c.dataset;
+            const g = ds.isAvgDataset ? null : trendGoals[ds.seriesKey];
+            return belowGoal(ds.rawScores[c.dataIndex], g) ? GOAL_FAIL_TIP_COLOR : '#ffffff';
           }
         } } },
       scales:{ y:{ beginAtZero:true, max:yMax }, x:{ grid:{display:false}, ticks:xTickOptions(labels.length) } } }
@@ -1598,6 +1630,7 @@ function toggleAllSubjects(){
   renderExamSubjectTabs();
 }
 function renderExamSubjectChart(){
+  const subjGoals = personGoals();
   const rows = dedupeLatest(personScores(), r=>r.author+'|'+r.examName+'|'+r.type+'|'+r.subject);
   const activeList = SUBJECT_META.filter(s=>activeSubjects.has(s.name));
   const examNames = [...new Set(rows.filter(r=>activeSubjects.has(r.subject)).map(r=>r.examName))];
@@ -1627,7 +1660,12 @@ function renderExamSubjectChart(){
       plugins:{ legend:{display:false},
         tooltip:{ callbacks:{
           title:(items)=> examNames[items[0].dataIndex],
-          label:(c)=> c.dataset.label+': '+fmtBoth(c.dataset.rawScores[c.dataIndex], c.dataset.maxScore)
+          label:(c)=> c.dataset.label+': '+fmtBoth(c.dataset.rawScores[c.dataIndex], c.dataset.maxScore),
+          labelTextColor:(c)=>{
+            const raw = c.dataset.rawScores[c.dataIndex], max = c.dataset.maxScore;
+            const f = raw!==null && raw!==undefined && max && belowGoal(raw/max*100, subjGoals.subj[c.dataset.label]);
+            return f ? GOAL_FAIL_TIP_COLOR : '#ffffff';
+          }
         } } },
       scales:{ y:{ beginAtZero:true, max: subjYMax, ticks:yTicks,
         afterBuildTicks: (axis)=>{
@@ -1907,6 +1945,80 @@ function renderWrongList(){
     </div>`
   ).join('');
   el.innerHTML = items || '<div style="font-size:13px;color:var(--text3)">기록된 오답이 없습니다.</div>';
+}
+
+// ---- 목표 (Apps Script 'goals' 시트에 append, (author, goalKey)별 최신 값이 현재 목표) ----
+const GOAL_FAIL_TIP_COLOR = '#ff8a8a'; // 어두운 툴팁 배경용 밝은 빨강
+function personGoals(){
+  const out = { total:null, A:null, B:null, subj:{} };
+  const rows = dedupeLatest((examData.goals||[]).filter(g=>g.author===examPerson), g=>g.goalKey);
+  rows.forEach(g=>{
+    if(g.value==='' || g.value===null || g.value===undefined) return;
+    const v = Number(g.value);
+    if(isNaN(v)) return;
+    if(g.goalKey==='total' || g.goalKey==='A' || g.goalKey==='B') out[g.goalKey] = v;
+    else if(String(g.goalKey).indexOf('subj:')===0) out.subj[String(g.goalKey).slice(5)] = v;
+  });
+  return out;
+}
+// 목표와 같으면 달성, 목표보다 낮을 때만 true
+function belowGoal(value, goal){
+  if(value===null || value===undefined || goal===null || goal===undefined) return false;
+  return value < goal - 1e-9;
+}
+function openGoalModal(){
+  if(!examPerson) return;
+  const g = personGoals();
+  document.getElementById('goalModalTitle').textContent = examPerson+' 목표 설정';
+  const row = (label,color,unit,id,val,max)=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+      <label style="width:78px;flex-shrink:0;font-size:13px;color:${color}">${label}</label>
+      <span style="font-size:11px;color:var(--text3);width:40px;flex-shrink:0">${unit}</span>
+      <input type="number" min="0" max="${max}" step="any" id="${id}" value="${val===null||val===undefined?'':val}" style="flex:1;padding:4px 6px">
+    </div>`;
+  let html = '<div style="font-size:12px;color:var(--text2);margin:2px 0 6px">점수 목표</div>';
+  html += row('총점','var(--purple)','/80점','goal-total',g.total,80);
+  html += row('A형',SERIES_COLOR.A,'/39점','goal-A',g.A,39);
+  html += row('B형',SERIES_COLOR.B,'/41점','goal-B',g.B,41);
+  html += '<div style="font-size:12px;color:var(--text2);margin:12px 0 6px">과목별 정답률 목표</div>';
+  SUBJECT_META.forEach((sj,i)=>{ html += row(sj.name, sj.color, '%', 'goal-s-'+i, g.subj[sj.name], 100); });
+  document.getElementById('goal-fields').innerHTML = html;
+  const st = document.getElementById('goal-status'); st.textContent=''; st.style.color='';
+  document.getElementById('goalModalBg').style.display='flex';
+}
+function closeGoalModal(){ document.getElementById('goalModalBg').style.display='none'; }
+async function submitGoals(){
+  const st = document.getElementById('goal-status');
+  const cur = personGoals();
+  const items = [];
+  try{
+    const consider = (key, id, prev, max, label)=>{
+      const raw = document.getElementById(id).value.trim();
+      let val = '';
+      if(raw!==''){
+        val = Number(raw);
+        if(isNaN(val) || val<0 || val>max) throw new Error(label+' 목표는 0~'+max+' 사이로 입력해주세요.');
+      }
+      const prevVal = (prev===null || prev===undefined) ? '' : prev;
+      if(val!==prevVal) items.push({ goalKey:key, value:val });
+    };
+    consider('total','goal-total',cur.total,80,'총점');
+    consider('A','goal-A',cur.A,39,'A형');
+    consider('B','goal-B',cur.B,41,'B형');
+    SUBJECT_META.forEach((sj,i)=> consider('subj:'+sj.name,'goal-s-'+i,cur.subj[sj.name],100,sj.name));
+  }catch(err){ st.style.color=''; st.textContent = err.message; return; }
+  if(!items.length){ closeGoalModal(); return; }
+  st.style.color=''; st.textContent='저장 중...';
+  try{
+    const res = await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({ target:'goals', author:examPerson, items })});
+    let j = null; try{ j = await res.json(); }catch(_){}
+    if(j && j.ok===false) throw new Error(j.error||'알 수 없는 오류');
+    await fetchExamData();
+    renderExamRecordTable(); renderExamTrend(); renderExamSubjectChart();
+    st.style.color='var(--accent)'; st.textContent='저장 완료!';
+    setTimeout(()=>{ closeGoalModal(); st.style.color=''; }, 600);
+  }catch(e){
+    st.textContent = '저장 실패: '+e.message+' (Apps Script에 goals 기능을 추가하고 새 버전으로 배포했는지 확인해주세요)';
+  }
 }
 
 // ---- record modal ----
