@@ -271,8 +271,8 @@ body.light .nc-stitle{color:var(--text3)}
         <div class="card-tools">
           <div class="subj-tabs" id="orderTabs"></div>
           <div class="subj-tabs" id="recModeTabs"></div>
-          <button class="apply-btn-sm" onclick="openRecordModal()">+ 기록</button>
-          <button class="stab" style="border-color:var(--accent);color:var(--accent)" onclick="openGoalModal()">목표</button>
+          <button class="apply-btn-sm" onclick="openRecordModal()">기록</button>
+          <button class="apply-btn-sm" onclick="openGoalModal()">목표</button>
         </div>
       </div>
       <div style="overflow-x:auto" id="exam-record-table-wrap"></div>
@@ -334,7 +334,7 @@ body.light .nc-stitle{color:var(--text3)}
       <div class="card-head">
         <div class="nc-stitle" style="margin:0">오답 기록</div>
         <div class="card-tools">
-          <button class="apply-btn-sm" onclick="openRecordModal()">+ 기록</button>
+          <button class="apply-btn-sm" onclick="openRecordModal()">기록</button>
         </div>
       </div>
       <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
@@ -362,7 +362,7 @@ body.light .nc-stitle{color:var(--text3)}
       <div class="nc-stitle" style="margin:0" id="goalModalTitle">목표 설정</div>
       <button onclick="closeGoalModal()" style="border:none;background:none;font-size:18px;color:var(--text3)">×</button>
     </div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">목표보다 낮은 값은 기록 표에 빨갛게, 분석 탭 툴팁에는 빨간 글씨로 표시됩니다. 목표와 같으면 달성입니다. 칸을 비우면 목표 없음입니다.</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">목표 점수보다 낮은 값은 기록 표에 빨갛게, 분석 탭 툴팁에는 빨간 글씨로 표시됩니다. 목표와 같으면 달성이고, 기록이 없는 값은 표시하지 않습니다. 칸을 비우면 목표 없음입니다.</div>
     <div id="goal-fields"></div>
     <div id="goal-status" style="font-size:12px;margin-top:6px;color:var(--text3)"></div>
     <button class="apply-btn" style="width:100%;margin-top:8px" onclick="submitGoals()">저장</button>
@@ -1140,11 +1140,11 @@ function renderExamRecordTable(){
     recSeq[r.examName] = isNaN(ts) ? i : ts;
   });
   rows.forEach(r=>{
-    if(!byExam[r.examName]) byExam[r.examName] = { date:r.examDate, subj:{}, total:0, a:0, b:0 };
+    if(!byExam[r.examName]) byExam[r.examName] = { date:r.examDate, subj:{}, total:0, a:0, b:0, aN:0, bN:0 };
     byExam[r.examName].subj[r.subject] = Number(r.score);
     byExam[r.examName].total += Number(r.score)||0;
-    if(subjType[r.subject]==='A') byExam[r.examName].a += Number(r.score)||0;
-    else if(subjType[r.subject]==='B') byExam[r.examName].b += Number(r.score)||0;
+    if(subjType[r.subject]==='A'){ byExam[r.examName].a += Number(r.score)||0; byExam[r.examName].aN++; }
+    else if(subjType[r.subject]==='B'){ byExam[r.examName].b += Number(r.score)||0; byExam[r.examName].bN++; }
   });
   const examNames = Object.keys(byExam).sort((a,b)=>{
     const d = new Date(byExam[a].date) - new Date(byExam[b].date);
@@ -1181,6 +1181,7 @@ function renderExamRecordTable(){
   const divider = 'border-left:1px solid var(--border2)';
   const goals = personGoals();
   const FAIL = ';background:rgba(255,90,90,.22)';
+  const needA = SUBJECT_META.filter(x=>x.type==='A').length, needB = SUBJECT_META.filter(x=>x.type==='B').length;
   const isRate = examModes.record==='rate';
   function rateOf(v, max){ return v===undefined||v===null ? undefined : Math.round(v/max*1000)/10; }
   function cellVal(v, max){
@@ -1200,9 +1201,11 @@ function renderExamRecordTable(){
     const e = byExam[n];
     html += `<tr><td class="exam-score-name">${n}</td><td style="${divider}">${mmdd(e.date)}</td>`;
     const aAvg = avgOf(n,'A'), bAvg = avgOf(n,'B'), tAvg = avgOf(n,'total');
-    const tF = belowGoal(e.total, goals.total) ? FAIL : '';
-    const aF = belowGoal(e.a, goals.A) ? FAIL : '';
-    const bF = belowGoal(e.b, goals.B) ? FAIL : '';
+    // 해당 형(A/B)의 과목이 모두 기록된 경우에만 목표와 비교 (비어 있는 값은 무시)
+    const aFull = e.aN >= needA, bFull = e.bN >= needB;
+    const tF = (aFull && bFull && belowGoal(e.total, goals.total)) ? FAIL : '';
+    const aF = (aFull && belowGoal(e.a, goals.A)) ? FAIL : '';
+    const bF = (bFull && belowGoal(e.b, goals.B)) ? FAIL : '';
     if(isRate){
       html += `<td style="${divider};color:var(--text)${tF}">${rateOf(e.total,80).toFixed(1)}%</td><td style="color:var(--text)${aF}">${rateOf(e.a,39).toFixed(1)}%</td><td style="color:var(--text)${bF}">${rateOf(e.b,41).toFixed(1)}%</td>`;
     } else {
@@ -1211,7 +1214,7 @@ function renderExamRecordTable(){
     subjCols.forEach((sj,i)=>{
       const d = subjDivider(i);
       const v = e.subj[sj.name];
-      const f = (v!==undefined && v!==null && belowGoal(v/sj.max*100, goals.subj[sj.name])) ? FAIL : '';
+      const f = (v!==undefined && v!==null && belowGoal(v, goals.subj[sj.name])) ? FAIL : '';
       const st = d + f;
       html += `<td${st?` style="${st}"`:''}>${cellVal(v, sj.max)}</td>`;
     });
@@ -1492,8 +1495,9 @@ function examTrendPoints(seriesKey){
     r=>r.author+'|'+r.examName+'|'+r.type+'|'+r.subject);
   const byExam = {};
   rows.forEach(r=>{
-    if(!byExam[r.examName]) byExam[r.examName] = { score:0, date:r.examDate };
+    if(!byExam[r.examName]) byExam[r.examName] = { score:0, date:r.examDate, count:0 };
     byExam[r.examName].score += Number(r.score)||0;
+    byExam[r.examName].count++;
   });
   return byExam;
 }
@@ -1542,8 +1546,10 @@ function renderExamTrend(){
     const rawScores = labelsRaw.map(n=> pts[n] ? pts[n].score : null);
     const data = rawScores.map(v=> v===null?null: (examModes.trend==='score' ? v : Math.round(v/max*1000)/10));
     const avgRaw = labelsRaw.map(n=>avgFor(n,s));
+    const need = SUBJECT_META.filter(x=> s==='total' || x.type===s).length;
+    const complete = labelsRaw.map(n=> !!(pts[n] && pts[n].count>=need)); // 과목이 모두 기록된 회차만 목표 비교
     return {
-      seriesKey:s,
+      seriesKey:s, complete,
       label: s==='total'?'총점':s==='A'?'A형':'B형',
       data, rawScores, maxScore:max, avgRaw, valueMode:examModes.trend,
       borderColor: SERIES_COLOR[s], backgroundColor: SERIES_COLOR[s],
@@ -1585,7 +1591,7 @@ function renderExamTrend(){
           labelTextColor:(c)=>{
             const ds = c.dataset;
             const g = ds.isAvgDataset ? null : trendGoals[ds.seriesKey];
-            return belowGoal(ds.rawScores[c.dataIndex], g) ? GOAL_FAIL_TIP_COLOR : '#ffffff';
+            return (ds.complete && ds.complete[c.dataIndex] && belowGoal(ds.rawScores[c.dataIndex], g)) ? GOAL_FAIL_TIP_COLOR : '#ffffff';
           }
         } } },
       scales:{ y:{ beginAtZero:true, max:yMax }, x:{ grid:{display:false}, ticks:xTickOptions(labels.length) } } }
@@ -1663,7 +1669,7 @@ function renderExamSubjectChart(){
           label:(c)=> c.dataset.label+': '+fmtBoth(c.dataset.rawScores[c.dataIndex], c.dataset.maxScore),
           labelTextColor:(c)=>{
             const raw = c.dataset.rawScores[c.dataIndex], max = c.dataset.maxScore;
-            const f = raw!==null && raw!==undefined && max && belowGoal(raw/max*100, subjGoals.subj[c.dataset.label]);
+            const f = raw!==null && raw!==undefined && belowGoal(raw, subjGoals.subj[c.dataset.label]);
             return f ? GOAL_FAIL_TIP_COLOR : '#ffffff';
           }
         } } },
@@ -1957,7 +1963,7 @@ function personGoals(){
     const v = Number(g.value);
     if(isNaN(v)) return;
     if(g.goalKey==='total' || g.goalKey==='A' || g.goalKey==='B') out[g.goalKey] = v;
-    else if(String(g.goalKey).indexOf('subj:')===0) out.subj[String(g.goalKey).slice(5)] = v;
+    else if(String(g.goalKey).indexOf('subjScore:')===0) out.subj[String(g.goalKey).slice(10)] = v;
   });
   return out;
 }
@@ -1970,17 +1976,23 @@ function openGoalModal(){
   if(!examPerson) return;
   const g = personGoals();
   document.getElementById('goalModalTitle').textContent = examPerson+' 목표 설정';
-  const row = (label,color,unit,id,val,max)=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+  // 과목명/형(테마색) + 만점(기본 글자색) + 목표 입력란 + '점'(회색)
+  const row = (label,color,maxPt,id,val)=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
       <label style="width:78px;flex-shrink:0;font-size:13px;color:${color}">${label}</label>
-      <span style="font-size:11px;color:var(--text3);width:40px;flex-shrink:0">${unit}</span>
-      <input type="number" min="0" max="${max}" step="any" id="${id}" value="${val===null||val===undefined?'':val}" style="flex:1;padding:4px 6px">
+      <span style="font-size:13px;color:var(--text);width:34px;flex-shrink:0">${maxPt}점</span>
+      <input type="number" min="0" max="${maxPt}" step="any" id="${id}" value="${val===null||val===undefined?'':val}" style="flex:1;padding:4px 6px">
+      <span style="font-size:11px;color:var(--text3);flex-shrink:0">점</span>
     </div>`;
   let html = '<div style="font-size:12px;color:var(--text2);margin:2px 0 6px">점수 목표</div>';
-  html += row('총점','var(--purple)','/80점','goal-total',g.total,80);
-  html += row('A형',SERIES_COLOR.A,'/39점','goal-A',g.A,39);
-  html += row('B형',SERIES_COLOR.B,'/41점','goal-B',g.B,41);
-  html += '<div style="font-size:12px;color:var(--text2);margin:12px 0 6px">과목별 정답률 목표</div>';
-  SUBJECT_META.forEach((sj,i)=>{ html += row(sj.name, sj.color, '%', 'goal-s-'+i, g.subj[sj.name], 100); });
+  html += row('총점','var(--purple)',80,'goal-total',g.total);
+  html += row('A형',SERIES_COLOR.A,39,'goal-A',g.A);
+  html += row('B형',SERIES_COLOR.B,41,'goal-B',g.B);
+  // 구분선: B형과 국어 사이, 실과(A)와 수학(B) 사이
+  const goalDivider = '<div style="border-top:1px solid var(--border2);margin:8px 0"></div>';
+  SUBJECT_META.forEach((sj,i)=>{
+    if(i===0 || sj.type!==SUBJECT_META[i-1].type) html += goalDivider;
+    html += row(sj.name, sj.color, sj.max, 'goal-s-'+i, g.subj[sj.name]);
+  });
   document.getElementById('goal-fields').innerHTML = html;
   const st = document.getElementById('goal-status'); st.textContent=''; st.style.color='';
   document.getElementById('goalModalBg').style.display='flex';
@@ -2004,7 +2016,7 @@ async function submitGoals(){
     consider('total','goal-total',cur.total,80,'총점');
     consider('A','goal-A',cur.A,39,'A형');
     consider('B','goal-B',cur.B,41,'B형');
-    SUBJECT_META.forEach((sj,i)=> consider('subj:'+sj.name,'goal-s-'+i,cur.subj[sj.name],100,sj.name));
+    SUBJECT_META.forEach((sj,i)=> consider('subjScore:'+sj.name,'goal-s-'+i,cur.subj[sj.name],sj.max,sj.name));
   }catch(err){ st.style.color=''; st.textContent = err.message; return; }
   if(!items.length){ closeGoalModal(); return; }
   st.style.color=''; st.textContent='저장 중...';
