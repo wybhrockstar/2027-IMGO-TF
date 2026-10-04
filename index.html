@@ -113,7 +113,7 @@ body.light .cd{color:var(--text3)}
 .apply-btn-sm:hover{opacity:.85}
 .ss{position:relative;height:34px;margin-top:2px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:pointer}
 .ss-track{position:absolute;top:15px;height:4px;border-radius:2px;background:var(--border2)}
-.ss-thumb{position:absolute;top:-9px;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.45);transition:opacity .12s}
+.ss-thumb{position:absolute;top:-4px;width:11px;height:11px;margin-left:-5.5px;border-radius:50%;background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.45);transition:opacity .12s}
 .ss-thumb.idle{opacity:.35}
 .card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px}
 .card-tools{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
@@ -1174,7 +1174,7 @@ function renderExamRecordTable(){
   const subjDivider = i => (i===0 || subjCols[i].type!==subjCols[i-1].type) ? divider : '';
   const hdr = (label, sub, color, extra)=> `<th style="color:${color}${extra?';'+extra:''}"><span style="display:block;line-height:1.2">${label}</span><span style="display:block;font-size:9px;font-weight:400;opacity:.7;line-height:1.2;margin-top:1px">${sub}</span></th>`;
   let html = '<table class="exam-score-table"><thead><tr><th style="text-align:left">회차</th><th style="' + divider + '">날짜</th>';
-  html += hdr('총점', isRate?'정답률':'80점', 'var(--purple)');
+  html += hdr('총점', isRate?'정답률':'80점', 'var(--purple)', divider);
   html += hdr('A형', isRate?'정답률':'39점', SERIES_COLOR.A);
   html += hdr('B형', isRate?'정답률':'41점', SERIES_COLOR.B);
   subjCols.forEach((s,i)=>{ html += hdr(s.name, isRate?'정답률':s.max+'점', s.color, subjDivider(i)); });
@@ -1184,9 +1184,9 @@ function renderExamRecordTable(){
     html += `<tr><td class="exam-score-name">${n}</td><td style="${divider}">${mmdd(e.date)}</td>`;
     const aAvg = avgOf(n,'A'), bAvg = avgOf(n,'B'), tAvg = avgOf(n,'total');
     if(isRate){
-      html += `<td style="color:var(--text)">${rateOf(e.total,80).toFixed(1)}%</td><td style="color:var(--text)">${rateOf(e.a,39).toFixed(1)}%</td><td style="color:var(--text)">${rateOf(e.b,41).toFixed(1)}%</td>`;
+      html += `<td style="${divider};color:var(--text)">${rateOf(e.total,80).toFixed(1)}%</td><td style="color:var(--text)">${rateOf(e.a,39).toFixed(1)}%</td><td style="color:var(--text)">${rateOf(e.b,41).toFixed(1)}%</td>`;
     } else {
-      html += `<td style="color:var(--text)">${e.total}${diffTag(e.total,tAvg)}</td><td style="color:var(--text)">${e.a}${diffTag(e.a,aAvg)}</td><td style="color:var(--text)">${e.b}${diffTag(e.b,bAvg)}</td>`;
+      html += `<td style="${divider};color:var(--text)">${e.total}${diffTag(e.total,tAvg)}</td><td style="color:var(--text)">${e.a}${diffTag(e.a,aAvg)}</td><td style="color:var(--text)">${e.b}${diffTag(e.b,bAvg)}</td>`;
     }
     subjCols.forEach((s,i)=>{ const d = subjDivider(i); html += `<td${d?` style="${d}"`:''}>${cellVal(e.subj[s.name], s.max)}</td>`; });
     html += '</tr>';
@@ -1655,7 +1655,7 @@ function renderAvgRateChart(){
     const exams = Object.values(byExam);
     if(!exams.length) return null;
     const avg = exams.reduce((a,b)=>a+b,0)/exams.length;
-    return isRate ? Math.round(avg/max*1000)/10 : Math.round(avg*10)/10;
+    return avg;
   }
   function totalAvg(){
     const byExam = {};
@@ -1663,17 +1663,19 @@ function renderAvgRateChart(){
     const exams = Object.values(byExam);
     if(!exams.length) return null;
     const avg = exams.reduce((a,b)=>a+b,0)/exams.length;
-    return isRate ? Math.round(avg/80*1000)/10 : Math.round(avg*10)/10;
+    return avg;
   }
   const subjAvgs = SUBJECT_META.map(s=>{
     const rs = rows.filter(r=>r.subject===s.name);
     if(!rs.length) return null;
     const avg = rs.reduce((a,r)=>a+Number(r.score),0)/rs.length;
-    return isRate ? Math.round(avg/s.max*1000)/10 : Math.round(avg*10)/10;
+    return avg;
   });
   const maxScores = [80, 39, 41, ...SUBJECT_META.map(s=>s.max)];
   const labels = ['총점','A형','B형', ...SUBJECT_META.map(s=>s.name)];
-  const data = [totalAvg(), typeAvg('A',39), typeAvg('B',41), ...subjAvgs];
+  // rawAvgs: 점수 단위 평균(반올림 전). 막대 값은 모드에 따라 점수/정답률, 툴팁은 항상 점수+정답률
+  const rawAvgs = [totalAvg(), typeAvg('A',39), typeAvg('B',41), ...subjAvgs];
+  const data = rawAvgs.map((v,i)=> v===null ? null : (isRate ? Math.round(v/maxScores[i]*1000)/10 : Math.round(v*10)/10));
   const themeCol = examThemeTextColor();
   const bgColors = [themeCol, themeCol, themeCol, ...SUBJECT_META.map(s=>s.color)];
   const tickColors = [themeCol, themeCol, themeCol, ...SUBJECT_META.map(s=>s.color)];
@@ -1697,12 +1699,11 @@ function renderAvgRateChart(){
           title:(items)=> items && items[0] ? items[0].label : '',
           label:(c)=>{
             const max = maxScores[c.dataIndex];
-            const avgVal = data[c.dataIndex];
-            if(avgVal===null || avgVal===undefined) return '기록 없음';
-            const rate = max ? Math.round(avgVal/max*1000)/10 : 0;
-            const lines = [ isRate ? `평균 : ${avgVal.toFixed(1)}%` : `평균 : ${avgVal}점 (${rate}%)` ];
-            if(!isRate) lines.push(`만점 : ${max}점`);
-            return lines;
+            const raw = rawAvgs[c.dataIndex];
+            if(raw===null || raw===undefined) return '기록 없음';
+            const avgVal = Math.round(raw*10)/10;
+            const rate = max ? Math.round(raw/max*1000)/10 : 0;
+            return [ `평균 : ${avgVal}점 (${rate}%)`, `만점 : ${max}점` ];
           }
         } } },
       scales:{ y:{ beginAtZero:true, max: isRate ? 100 : Math.max(...maxScores) }, x:{ grouped:false, grid:{display:false}, ticks:{ autoSkip:false, maxRotation:0, minRotation:0, font:{ size:8 }, color: (c)=>tickColors[c.index],
