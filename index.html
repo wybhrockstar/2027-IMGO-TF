@@ -68,6 +68,22 @@ body.light .sec-title{color:var(--text3)}
 .sc-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500}
 .sc-sub{font-size:11px;color:var(--text3);margin-top:2px}
 
+/* ── WEEKLY 뽀개기 (3rd Term) ── */
+.pp-wrap{margin-bottom:26px}
+.pp-tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.pp-day{padding:6px 0;font-size:12px;font-weight:500;border-radius:var(--rs);border:1px solid var(--border2);background:var(--bg4);color:var(--text2);cursor:pointer}
+body.light .pp-day{background:var(--bg3)}
+.pp-day.sel{border-color:var(--text);color:var(--text);background:rgba(255,255,255,.1)}
+body.light .pp-day.sel{background:rgba(0,0,0,.06)}
+.pp-day.today{border-color:var(--accent);background:var(--accent3);color:var(--accent)}
+.pp-card{margin-top:6px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:2px 14px}
+.pp-row{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;align-items:start;padding:11px 0;border-bottom:1px solid var(--border)}
+.pp-row:last-child{border-bottom:none}
+.pp-lab{justify-self:start;font-size:11px;color:var(--text2);border:1px solid var(--border2);border-radius:6px;padding:3px 10px;white-space:nowrap;margin-top:1px}
+.pp-val{font-size:13px;color:var(--text);line-height:1.6;word-break:keep-all;overflow-wrap:break-word}
+.pp-g{color:var(--text3)}
+.pp-gb{color:var(--text3);font-weight:700}
+
 /* ── CALENDAR ── */
 .cal-wrap{margin-bottom:26px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
@@ -213,6 +229,7 @@ body.light .nc-stitle{color:var(--text3)}
 
     <div class="term-tabs" id="termTabs"></div>
   <div class="stats" id="statsRow"></div>
+  <div class="pp-wrap" id="ppWrap" style="display:none"><div class="sec-title">Weekly 뽀개기</div><div id="ppBody"></div></div>
   <div class="cal-wrap"><div class="sec-title">2주 캘린더</div><div id="calGrid"></div></div>
   <div class="sec-title">전체 일정</div>
   <div id="scheduleList"></div>
@@ -800,10 +817,52 @@ function detectCurrentTerm(){
   });
   return result;
 }
+// ==================== WEEKLY 뽀개기 (3rd Term, 매주 월~일 반복) ====================
+const PP_DAYS=['월','화','수','목','금','토','일'];
+const PP_DATA=[
+  {gen:'총론 3~6P',   model:[['도덕','11개']],              edu:[['통교 핵심아이디어',175],['통교 교학방 과정·기능',270]]},
+  {gen:'총론 6~8P',   model:[['사회','10개+']],             edu:[['통교 내체표',571]]},
+  {gen:'총론 9~11P',  model:[['체육','11개+']],             edu:[['미술 내체표',506]]},
+  {gen:'총론 12~15P', model:[['수학','5개'],['미술','4개']], edu:[['음악 내체표',450],['음악 개체표',181]]},
+  {gen:'총론 16~19P', model:[['과학','8개']],              edu:[['국어 범주',207],['국어 가치·태도',184],['실과 지식·이해',369]]},
+  {gen:'창체 3~7P',   model:[['실과','7개+']],             edu:[['체육 3~4 신체활동',514],['체육 가치·태도',218]]},
+  {gen:'창체 8~11P',  model:[['국어','8개']],              edu:[['체육 5~6 신체활동',466],['체육 뒷교',355]]}
+];
+let ppSel=null;          // null = 오늘 요일을 따라감
+let ppSelDay='';         // ppSel을 고른 날짜 (날짜가 바뀌면 오늘로 복귀)
+function ppTodayIdx(){ const d=new Date().getDay(); return d===0?6:d-1; }
+function buildWeekly(){
+  const wrap=document.getElementById('ppWrap');
+  if(!wrap) return;
+  if(currentTerm!==3){ wrap.style.display='none'; return; }
+  wrap.style.display='';
+  const dayKey=new Date().toDateString();
+  if(ppSelDay!==dayKey){ ppSel=null; ppSelDay=dayKey; }
+  const today=ppTodayIdx();
+  const sel=ppSel===null?today:ppSel;
+  const tabs=PP_DAYS.map((l,i)=>`<button class="pp-day${i===today?' today':''}${i===sel?' sel':''}" onclick="ppPick(${i})">${l}</button>`).join('');
+  const x=PP_DATA[sel];
+  const total=x.edu.reduce((a,e)=>a+e[1],0);
+  const model=x.model.map(m=>`${m[0]} <span class="pp-g">(${m[1]})</span>`).join(' + ');
+  const edu=x.edu.map(e=>`${e[0]} <span class="pp-g">(${e[1]}자)</span>`).join(' + ')+` <span class="pp-gb">[총 ${total}자]</span>`;
+  const row=(lab,val)=>`<div class="pp-row"><div class="pp-lab">${lab}</div><div class="pp-val">${val}</div></div>`;
+  document.getElementById('ppBody').innerHTML=
+    `<div class="pp-tabs">${tabs}</div><div class="pp-card">${row('역량','ALL')}${row('모형',model)}${row('교육과정',edu)}${row('총론·창체',x.gen)}</div>`;
+}
+function ppPick(i){ ppSel=i; ppSelDay=new Date().toDateString(); buildWeekly(); }
+// 날짜가 바뀌면 2주 캘린더와 뽀개기 요일이 같이 오늘로 갱신되도록 주기적으로 확인
+let ppLastDay=new Date().toDateString();
+function checkDayChange(){
+  const k=new Date().toDateString();
+  if(k!==ppLastDay){ ppLastDay=k; showTerm(currentTerm); }
+}
+setInterval(checkDayChange,30000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkDayChange(); });
+
 function showTerm(n){
   currentTerm=n;
   document.querySelectorAll('.ttab').forEach((t,i)=>t.classList.toggle('on',i+1===n));
-  buildStats(n);buildCalendar(n);buildSchedule(n);
+  buildStats(n);buildWeekly();buildCalendar(n);buildSchedule(n);
 
 }
 function buildTermTabs(){
