@@ -2400,23 +2400,25 @@ function bbCard(d,extra,done){
   return `<div class="bb-card" ${done===2?'style="border-color:var(--amber);opacity:.85"':done?'style="border-color:var(--accent);background:var(--accent3)"':''} onclick="bbOpen('${d.id}')"><div style="display:flex;align-items:center"><div style="flex:1"><div class="bb-ct">${done===2?'<span class="bb-ck" style="background:var(--amber);width:auto;padding:0 6px;border-radius:9px">PASS</span>':done?'<span class="bb-ck">✓</span>':''}${lb}${bbEsc(d.title)}</div><div class="bb-cs">학습 ${s.l}/${d.n} · 풀이 ${bbRn(d.id)}회 · ${bbSet.term}텀 정답률 <b style="color:${bbCol(s.rate)}">${s.rate===null?'-':s.rate+'%'}</b>${s.w?' · 약점 '+s.w:''}</div></div>${extra||''}</div></div>`;
 }
 const bbGrp=d=>/역량/.test(d.title)?0:d.subj==='총론·창체'?1:/모형/.test(d.title)?2:3;   // 역량 / 총론·창체 / 모형 / 교육과정
+const bbWkSort=(a,b)=>{const ca=a.loc==='공통',cb=b.loc==='공통';if(ca!==cb)return ca?-1:1;
+  if(ca)return bbGrp(a)-bbGrp(b);
+  const si=d=>{const i=SUBJECT_META.findIndex(s=>s.name===d.subj);return !d.subj?-1:i<0?99:i};
+  return si(a)-si(b)||a.title.localeCompare(b.title,'ko',{numeric:true})};
 function bbWeekly(){
   const now=new Date(),td=(now.getDay()+6)%7;if(bbDay===null)bbDay=td;
   const dt=new Date(now);dt.setDate(now.getDate()-td+bbDay);const key=bbDK(dt),dn=bbDone[key]||{};
-  const L=bbDocs.filter(d=>bbVis(d)&&d.loc&&bbDays(d.day).includes(bbDay)).sort((a,b)=>bbGrp(a)-bbGrp(b)),nd=L.filter(d=>dn[d.id]).length;
-  const btn=d=>{const v=dn[d.id];
-    if(v===1)return `<button class="apply-btn-sm" onclick="event.stopPropagation();bbDn('${key}','${d.id}')">✓ 완료됨</button>`;
-    const ob='background:none;color:var(--accent);border:1px solid var(--accent)';
-    const ps=v===2?`<button class="apply-btn-sm" style="background:var(--amber);color:#111;border:1px solid var(--amber);margin-right:6px" onclick="event.stopPropagation();bbPs('${key}','${d.id}')" title="눌러서 PASS 취소">PASS됨</button>`:`<button class="apply-btn-sm" style="background:none;color:var(--text2);border:1px solid var(--border2);margin-right:6px" onclick="event.stopPropagation();bbPs('${key}','${d.id}')">PASS</button>`;
-    return `<span style="display:flex;white-space:nowrap">${ps}<button class="apply-btn-sm" style="${ob}" onclick="event.stopPropagation();bbDn('${key}','${d.id}')">완료하기</button></span>`};
+  const L=bbDocs.filter(d=>bbVis(d)&&d.loc&&bbDays(d.day).includes(bbDay)).sort(bbWkSort),nd=L.filter(d=>dn[d.id]).length;
+  const btn=d=>{const v=dn[d.id],oc=`event.stopPropagation();bbDn('${key}','${d.id}')`;
+    if(v===1)return `<button class="apply-btn-sm" onclick="${oc}">✓ 완료됨</button>`;
+    if(v===2)return `<button class="apply-btn-sm" style="background:var(--amber);color:#111;border:1px solid var(--amber)" onclick="${oc}" title="눌러서 취소">PASS됨</button>`;
+    return `<button class="apply-btn-sm" style="background:none;color:var(--accent);border:1px solid var(--accent)" onclick="${oc}">완료하기</button>`};
   return `<div class="pp-tabs" style="margin-bottom:10px">${BB_DAYS.map((x,i)=>`<button class="pp-day ${i===bbDay?'sel':''} ${i===td?'today':''}" onclick="bbDay=${i};bbRender()">${x}</button>`).join('')}</div>
   <div class="bb-cs" style="margin-bottom:8px">${dt.getMonth()+1}/${dt.getDate()}(${BB_DAYS[bbDay]}) · ${nd}/${L.length} 완료</div>`
   +(L.length?L.map(d=>bbCard(d,btn(d),dn[d.id])).join(''):'<div class="bb-cs" style="padding:24px 0;text-align:center">이 요일에 지정된 뽀개기가 없어요.<br>등록 시 구분(공통/재언/태현)과 요일을 고르면 여기에 떠요.</div>');
 }
 // 완료 상태: 1=완료, 2=PASS (풀이 없이 넘김, 완료 카운트에는 포함 · 풀이 횟수에는 안 침)
 function bbSetDn(key,id,v){const m=(bbDone[key]=bbDone[key]||{});if(v)m[id]=v;else delete m[id];bbEnq('done',`done|${key}|${id}`,{date:key,docId:id,done:v});bbSave();bbRender()}
-function bbDn(key,id){const m=bbDone[key]||{};bbSetDn(key,id,m[id]===1?0:1)}
-function bbPs(key,id){const m=bbDone[key]||{};if(m[id]===1)return;bbSetDn(key,id,m[id]===2?0:2)}
+function bbDn(key,id){const m=bbDone[key]||{};if(m[id]){bbSetDn(key,id,0);return}const solved=bbSes.some(s=>s.doc===id&&bbDK(new Date(s.ts))===key);bbSetDn(key,id,solved?1:2)}
 function bbList(){
   const L=bbDocs.filter(bbVis).filter(d=>bbSub==='all'||(bbSub==='custom'?(d.loc&&d.loc!=='공통'):bbSub==='none'?!d.subj:d.subj===bbSub));
   const w=d=>{const s=bbAgg(d.id,bbSet.term);return s.rate===null?-1:100-s.rate},k=(a,b)=>a.title.localeCompare(b.title,'ko',{numeric:true});
