@@ -2485,12 +2485,12 @@ async function submitRecord(){
 // ==================== 뽀개기 ====================
 const BB={D:'imgo_bb_docs',R:'imgo_bb_rec_',P:'imgo_bb_person',S:'imgo_bb_set_',N:'imgo_bb_done_'};
 const BB_DAYS=['월','화','수','목','금','토','일'];
-let bbSes=[],bbEC=null,bbRuns={},bbDocs=[],bbPerson='재언',bbRec={},bbSet={min:60,max:80,term:1},bbDone={},bbView=null,bbS=null,bbTmp=null;
+let bbSes=[],bbEC=null,bbRuns={},bbDocs=[],bbPerson='',bbRec={},bbSet={min:60,max:80,term:1},bbDone={},bbView=null,bbS=null,bbTmp=null;
 let bbTab='weekly',bbSub='all',bbSort='abc',bbAS='all',bbDay=null,bbF={subj:'',loc:'',days:[],edit:null};
 const bbEsc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const bbHash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h.toString(36)};
 const bbSj=n=>SUBJECT_META.find(s=>s.name===n);
-const bbVis=d=>!d.loc||d.loc==='공통'||d.loc===bbPerson;
+const bbVis=d=>!bbPerson||!d.loc||d.loc==='공통'||d.loc===bbPerson;
 const bbWk=u=>!!(u&&u.a&&(u.l==='X'||Math.round(u.c*100/u.a)<bbSet.max));
 const bbT=(x,t)=>(x&&x.T&&x.T[t])||{a:0,c:0,l:''};
 const bbCol=r=>r===null?'var(--text3)':r>=bbSet.max?'var(--teal)':r<bbSet.min?'var(--red)':'var(--amber)';
@@ -2509,6 +2509,7 @@ function bbEff(){  // 통계 = 기존(통합) 기록 + 확정된 풀이(세션)�
 }
 const bbLab=(t,c)=>`<span class="bb-lb" style="--c:${c}">${bbEsc(t)}</span>`;
 function bbLoadP(){
+  if(!bbPerson){bbRec={};bbSet={min:60,max:80,term:1};bbDone={};bbRuns={};bbSes=[];bbEC=null;return}
   const g=k=>{try{return JSON.parse(localStorage.getItem(k+bbPerson)||'null')}catch(e){return null}};
   bbRec=g(BB.R)||{};bbSet=Object.assign({min:60,max:80,term:1},g(BB.S));bbDone=g(BB.N)||{};bbRuns=g('imgo_bb_runs_')||{};bbSes=g('imgo_bb_ses_')||[];bbEC=null;
   Object.values(bbRec).forEach(d=>Object.values(d).forEach(x=>{if(!x.T){x.T={1:{a:x.a||0,c:x.c||0,l:x.l||''}};delete x.a;delete x.c;delete x.l}}));
@@ -2516,8 +2517,8 @@ function bbLoadP(){
 (function(){try{if(localStorage.getItem('imgo_bb_v2'))return;
   Object.keys(localStorage).filter(k=>k.indexOf('imgo_bb_')===0&&k!=='imgo_bb_fs'&&k!=='imgo_bb_person').forEach(k=>localStorage.removeItem(k));
   localStorage.setItem('imgo_bb_v2','1')}catch(e){}})();
-(function(){try{bbDocs=JSON.parse(localStorage.getItem(BB.D)||'[]')}catch(e){bbDocs=[]}bbPerson=localStorage.getItem(BB.P)||'재언';bbLoadP()})();
-function bbSave(){try{const w=(k,v)=>localStorage.setItem(k,JSON.stringify(v));w(BB.D,bbDocs);w(BB.R+bbPerson,bbRec);w(BB.S+bbPerson,bbSet);w(BB.N+bbPerson,bbDone);w('imgo_bb_runs_'+bbPerson,bbRuns);w('imgo_bb_ses_'+bbPerson,bbSes);bbEC=null;localStorage.setItem(BB.P,bbPerson)}catch(e){alert('저장 실패 (용량 초과?)')}}
+(function(){try{bbDocs=JSON.parse(localStorage.getItem(BB.D)||'[]')}catch(e){bbDocs=[]}bbPerson='';bbLoadP()})();   // 뽀개기 최초 진입 시 재언/태현 미선택이 기본값
+function bbSave(){try{const w=(k,v)=>localStorage.setItem(k,JSON.stringify(v));w(BB.D,bbDocs);if(!bbPerson){bbEC=null;return}w(BB.R+bbPerson,bbRec);w(BB.S+bbPerson,bbSet);w(BB.N+bbPerson,bbDone);w('imgo_bb_runs_'+bbPerson,bbRuns);w('imgo_bb_ses_'+bbPerson,bbSes);bbEC=null;localStorage.setItem(BB.P,bbPerson)}catch(e){alert('저장 실패 (용량 초과?)')}}
 
 // ── 파서 ──
 const BB_OK=new Set(['P','DIV','B','STRONG','I','EM','U','BR','TABLE','TBODY','THEAD','TR','H2','H3','H4','UL','OL','LI','SUB','SUP']);
@@ -2556,9 +2557,11 @@ function bbAgg(id,t,keys){
 function bbRender(){
   const el=document.getElementById('bbRoot');if(!el)return;bbPopX();
   if(bbView)return bbRenderDoc(el);
-  el.innerHTML=`<div class="bb-top">${['재언','태현'].map(p=>`<button class="ttab ${p===bbPerson?'on':''}" onclick="bbWho('${p}')">${p}</button>`).join('')}<span class="bb-sp"></span><button class="apply-btn-sm" onclick="bbOpenAdd()">등록</button><button class="apply-btn-sm" onclick="bbOpenSet()">설정</button></div>
-  <div class="bb-top">${[['weekly','WEEKLY 뽀개기'],['list','전체 목록'],['ana','분석']].map(([k,n])=>`<button class="ttab ${bbTab===k?'on':''}" onclick="bbTab='${k}';bbRender()">${n}</button>`).join('')}</div>
-  <div class="bb-cs" style="margin-bottom:12px">${bbPerson} · 현재 ${bbSet.term}텀 · 목표 ${bbSet.min}~${bbSet.max}% <span id="bbSy" style="margin-left:6px;color:var(--text3)">${bbSyncLabel()}</span></div>`+(bbTab==='weekly'?bbWeekly():bbTab==='list'?bbList():bbAna());
+  const off=!bbPerson,dis=off?' disabled style="opacity:.35;pointer-events:none"':'';
+  el.innerHTML=`<div class="bb-top">${['재언','태현'].map(p=>`<button class="ttab ${p===bbPerson?'on':''}" onclick="bbWho('${p}')">${p}</button>`).join('')}<span class="bb-sp"></span><button class="apply-btn-sm" onclick="bbOpenAdd()">등록</button>${off?'':`<button class="apply-btn-sm" onclick="bbOpenSet()">설정</button>`}</div>
+  <div class="bb-top">${[['weekly','WEEKLY 뽀개기'],['list','전체 목록'],['ana','분석']].map(([k,n])=>`<button class="ttab ${!off&&bbTab===k?'on':''}"${dis}${off?'':` onclick="bbTab='${k}';bbRender()"`}>${n}</button>`).join('')}</div>`
+  +(off?`<div class="bb-cs" style="padding:30px 0;text-align:center;line-height:1.8">재언 또는 태현을 선택하면 시작돼요.</div>`
+  :`<div class="bb-cs" style="margin-bottom:12px">${bbPerson} · 현재 ${bbSet.term}텀 · 목표 ${bbSet.min}~${bbSet.max}% <span id="bbSy" style="margin-left:6px;color:var(--text3)">${bbSyncLabel()}</span></div>`+(bbTab==='weekly'?bbWeekly():bbTab==='list'?bbList():bbAna()));
 }
 function bbWho(p){bbSave();bbPush();bbPerson=p;bbLoadP();bbSave();bbRender();bbSync()}
 function bbCard(d,extra,done){
@@ -2963,7 +2966,7 @@ async function bbAdd(){
   if(bbF.edit){tg=bbDocs.find(d=>d.id===bbF.edit);if(!bbEdBlanks(tg))return;Object.assign(tg,f);hh=0}
   else{
     if(!bbTmp){alert('먼저 내용을 붙여넣어주세요');return}
-    try{await bbPush(bbPerson);await bbPull(bbPerson)}catch(e){}   // 등록 직전 서버 목록 확인
+    try{if(bbPerson){await bbPush(bbPerson);await bbPull(bbPerson)}else await bbPush()}catch(e){}   // 등록 직전 서버 목록 확인
     if(bbF.append){   // 기존 문서 맨 아래에 추가 (앞쪽 빈칸 번호가 안 바뀌어 기록 유지)
       tg=bbDocs.find(d=>d.id===bbF.append);if(!tg){alert('대상 문서를 찾을 수 없어요');return}
       tg.html=(tg.html||'')+bbTmp.html;tg.n=(tg.n||0)+bbTmp.n;hh=1;
@@ -3050,10 +3053,10 @@ const bbStSet=(w,s)=>{try{localStorage.setItem(BB_SK+w,JSON.stringify(s))}catch(
 function bbSyncLabel(){const n=Object.keys(bbQRead(bbPerson)).length;return bbSyErr?`⚠ 동기화 실패${n?' · 대기 '+n:''}`:n?`↻ 대기 ${n}`:bbSyOk?'☁ 동기화됨'+(bbSyT?' '+bbSyT:''):''}
 function bbSyUI(){const e=document.getElementById('bbSy');if(e)e.textContent=bbSyncLabel()}
 function bbSched(){clearTimeout(bbSchT);bbSchT=setTimeout(()=>bbPush(),50);bbSyUI()}
-function bbEnq(kind,key,item){const q=bbQRead(bbPerson);if(item.ts===undefined)item.ts=Date.now();if(kind==='docs'&&q[key]&&q[key].item.h)item.h=1;q[key]={kind,item};bbQWrite(bbPerson,q);bbSched()}
+function bbEnq(kind,key,item){const au=bbPerson||'재언';const q=bbQRead(au);if(item.ts===undefined)item.ts=Date.now();if(kind==='docs'&&q[key]&&q[key].item.h)item.h=1;q[key]={kind,item};bbQWrite(au,q);bbSched()}
 function bbEnqDoc(d,h){const ts=Date.now();d.ts=ts;bbEnq('docs','docs|'+d.id,{id:d.id,ts,h:h?1:0})}
 async function bbPush(who){
-  who=who||bbPerson;if(bbBusy[who])return;bbBusy[who]=1;
+  who=who||bbPerson||'재언';if(bbBusy[who])return;bbBusy[who]=1;
   try{
     for(let g=0;g<50;g++){
       const q=bbQRead(who),ks=Object.keys(q);if(!ks.length)break;
@@ -3129,7 +3132,7 @@ async function bbPull(who,full){
 }
 const bbFullDone={};let bbSyT='';
 async function bbSync(){
-  if(bbSyncing)return;bbSyncing=true;const who=bbPerson;
+  if(!bbPerson||bbSyncing)return;bbSyncing=true;const who=bbPerson;
   try{
     await bbPush(who);
     const full=!bbFullDone[who];
