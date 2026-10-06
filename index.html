@@ -2316,7 +2316,7 @@ async function submitRecord(){
 const BB={D:'imgo_bb_docs',R:'imgo_bb_rec_',P:'imgo_bb_person',S:'imgo_bb_set_',N:'imgo_bb_done_'};
 const BB_DAYS=['월','화','수','목','금','토','일'];
 let bbSes=[],bbEC=null,bbRuns={},bbDocs=[],bbPerson='재언',bbRec={},bbSet={min:60,max:80,term:1},bbDone={},bbView=null,bbS=null,bbTmp=null;
-let bbTab='weekly',bbSub='all',bbSort='abc',bbAS='all',bbDay=null,bbF={subj:'',loc:'',day:'',edit:null};
+let bbTab='weekly',bbSub='all',bbSort='abc',bbAS='all',bbDay=null,bbF={subj:'',loc:'',days:[],edit:null};
 const bbEsc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const bbHash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h.toString(36)};
 const bbSj=n=>SUBJECT_META.find(s=>s.name===n);
@@ -2325,6 +2325,8 @@ const bbWk=u=>!!(u&&u.a&&(u.l==='X'||Math.round(u.c*100/u.a)<bbSet.max));
 const bbT=(x,t)=>(x&&x.T&&x.T[t])||{a:0,c:0,l:''};
 const bbCol=r=>r===null?'var(--text3)':r>=bbSet.max?'var(--teal)':r<bbSet.min?'var(--red)':'var(--amber)';
 const bbDK=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const bbDays=v=>typeof v==='number'?[v]:(typeof v==='string'&&v?[...new Set(v.split(/[|,]/).map(Number).filter(n=>Number.isInteger(n)&&n>=0&&n<=6))].sort((a,b)=>a-b):[]);
+const bbDayStore=a=>{a=[...new Set(a)].sort((x,y)=>x-y);return a.length===0?'':a.length===1?a[0]:a.join('|')};
 const bbWK=i=>{const n=new Date(),t=(n.getDay()+6)%7;n.setDate(n.getDate()-t+i);return bbDK(n)};
 function bbRunsOf(id){const m=Object.assign({},bbRuns[id]||{});bbSes.forEach(s=>{if(s.doc===id)m[s.term]=(m[s.term]||0)+1});return m}
 const bbRn=id=>bbRunsOf(id)[bbSet.term]||0;
@@ -2388,13 +2390,13 @@ function bbRender(){
 function bbWho(p){bbSave();bbPush();bbPerson=p;bbLoadP();bbSave();bbRender();bbSync()}
 function bbCard(d,extra,done){
   const s=bbAgg(d.id,bbSet.term),sj=bbSj(d.subj);
-  const lb=(d.subj?bbLab(d.subj,sj?sj.color:'var(--text3)'):'')+(d.loc?bbLab(d.loc+(typeof d.day==='number'?'·'+BB_DAYS[d.day]:''),'var(--text2)'):'');
+  const lb=(d.subj?bbLab(d.subj,sj?sj.color:'var(--text3)'):'')+(d.loc?bbLab(d.loc+(bbDays(d.day).length?'·'+bbDays(d.day).map(i=>BB_DAYS[i]).join('·'):''),'var(--text2)'):'');
   return `<div class="bb-card" ${done?'style="border-color:var(--accent);background:var(--accent3)"':''} onclick="bbOpen('${d.id}')"><div style="display:flex;align-items:center"><div style="flex:1"><div class="bb-ct">${done?'<span class="bb-ck">✓</span>':''}${lb}${bbEsc(d.title)}</div><div class="bb-cs">학습 ${s.l}/${d.n} · 풀이 ${bbRn(d.id)}회 · ${bbSet.term}텀 정답률 <b style="color:${bbCol(s.rate)}">${s.rate===null?'-':s.rate+'%'}</b>${s.w?' · 약점 '+s.w:''}</div></div>${extra||''}</div></div>`;
 }
 function bbWeekly(){
   const now=new Date(),td=(now.getDay()+6)%7;if(bbDay===null)bbDay=td;
   const dt=new Date(now);dt.setDate(now.getDate()-td+bbDay);const key=bbDK(dt),dn=bbDone[key]||{};
-  const L=bbDocs.filter(d=>bbVis(d)&&d.loc&&d.day===bbDay),nd=L.filter(d=>dn[d.id]).length;
+  const L=bbDocs.filter(d=>bbVis(d)&&d.loc&&bbDays(d.day).includes(bbDay)),nd=L.filter(d=>dn[d.id]).length;
   return `<div class="pp-tabs" style="margin-bottom:10px">${BB_DAYS.map((x,i)=>`<button class="pp-day ${i===bbDay?'sel':''} ${i===td?'today':''}" onclick="bbDay=${i};bbRender()">${x}</button>`).join('')}</div>
   <div class="bb-cs" style="margin-bottom:8px">${dt.getMonth()+1}/${dt.getDate()}(${BB_DAYS[bbDay]}) · ${nd}/${L.length} 완료</div>`
   +(L.length?L.map(d=>bbCard(d,`<button class="apply-btn-sm" style="${dn[d.id]?'':'background:none;color:var(--accent);border:1px solid var(--accent)'}" onclick="event.stopPropagation();bbDn('${key}','${d.id}')">${dn[d.id]?'✓ 완료됨':'완료하기'}</button>`,dn[d.id])).join(''):'<div class="bb-cs" style="padding:24px 0;text-align:center">이 요일에 지정된 뽀개기가 없어요.<br>등록 시 구분(공통/재언/태현)과 요일을 고르면 여기에 떠요.</div>');
@@ -2436,7 +2438,7 @@ function bbFinish(){
   const d=bbDocs.find(x=>x.id===bbView);if(!d)return;
   const now=Date.now(),ses={id:'s'+now.toString(36)+Math.random().toString(36).slice(2,5),doc:d.id,term:bbSet.term,ts:now,j:Object.assign({},bbS?bbS.judged:{})};
   bbSes.push(ses);bbEnq('ses','ses|'+ses.id,{sid:ses.id,docId:d.id,term:ses.term,at:now,ts:now,j:ses.j});
-  if(typeof d.day==='number'&&d.loc){const k=bbWK(d.day);(bbDone[k]=bbDone[k]||{})[d.id]=1;bbEnq('done',`done|${k}|${d.id}`,{date:k,docId:d.id,done:1})}
+  const dys=bbDays(d.day);if(dys.length&&d.loc){const td0=(new Date().getDay()+6)%7,dd=dys.includes(bbDay)?bbDay:dys.includes(td0)?td0:dys[0],k=bbWK(dd);(bbDone[k]=bbDone[k]||{})[d.id]=1;bbEnq('done',`done|${k}|${d.id}`,{date:k,docId:d.id,done:1})}
   bbSave();bbView=null;bbRender();scrollTo(0,0);
 }
 function bbRenderDoc(el){
@@ -2484,12 +2486,12 @@ function bbClose(){const o=document.getElementById('bbOv');if(o)o.remove();bbTmp
 function bbModal(h){bbClose();const o=document.createElement('div');o.className='bb-ov';o.id='bbOv';o.innerHTML=`<div class="bb-md">${h}</div>`;document.body.appendChild(o)}
 function bbFRender(){
   document.getElementById('bbFx').innerHTML=`<div class="bb-cs" style="margin:8px 0 4px">과목</div><div class="bb-top">${SUBJECT_META.map(s=>`<button class="bb-sj ${bbF.subj===s.name?'on':''}" style="--c:${s.color}" onclick="bbF.subj=bbF.subj==='${s.name}'?'':'${s.name}';bbFRender()">${s.name}</button>`).join('')}</div>
-  <div class="bb-cs" style="margin:8px 0 4px">구분 (커스텀)</div><div class="bb-top">${['공통','재언','태현'].map(x=>`<button class="bb-sj ${bbF.loc===x?'on':''}" style="--c:var(--text2)" onclick="bbF.loc=bbF.loc==='${x}'?'':'${x}';if(!bbF.loc)bbF.day='';bbFRender()">${x}</button>`).join('')}</div>`
-  +(bbF.loc?`<div class="bb-cs" style="margin:8px 0 4px">요일</div><div class="bb-top">${BB_DAYS.map((x,i)=>`<button class="bb-sj ${bbF.day===i?'on':''}" style="--c:var(--blue)" onclick="bbF.day=${i};bbFRender()">${x}</button>`).join('')}<button class="bb-sj ${bbF.day===''?'on':''}" style="--c:var(--text3)" onclick="bbF.day='';bbFRender()">없음</button></div>`:'');
+  <div class="bb-cs" style="margin:8px 0 4px">구분 (커스텀)</div><div class="bb-top">${['공통','재언','태현'].map(x=>`<button class="bb-sj ${bbF.loc===x?'on':''}" style="--c:var(--text2)" onclick="bbF.loc=bbF.loc==='${x}'?'':'${x}';if(!bbF.loc)bbF.days=[];bbFRender()">${x}</button>`).join('')}</div>`
+  +(bbF.loc?`<div class="bb-cs" style="margin:8px 0 4px">요일 (여러 개 선택 가능)</div><div class="bb-top">${BB_DAYS.map((x,i)=>`<button class="bb-sj ${bbF.days.includes(i)?'on':''}" style="--c:var(--blue)" onclick="bbF.days=bbF.days.includes(${i})?bbF.days.filter(z=>z!==${i}):[...bbF.days,${i}].sort((a,b)=>a-b);bbFRender()">${x}</button>`).join('')}<button class="bb-sj ${bbF.days.length===0?'on':''}" style="--c:var(--text3)" onclick="bbF.days=[];bbFRender()">없음</button></div>`:'');
 }
 function bbOpenAdd(id){
   const e=id&&bbDocs.find(d=>d.id===id);bbTmp=null;
-  bbF=e?{subj:e.subj||'',loc:e.loc||'',day:e.day===undefined?'':e.day,edit:id}:{subj:'',loc:'',day:'',edit:null};
+  bbF=e?{subj:e.subj||'',loc:e.loc||'',days:bbDays(e.day),edit:id}:{subj:'',loc:'',days:[],edit:null};
   bbModal(`<div class="sec-title">${e?'수정':'뽀개기 문서 등록'}</div>`+(e?'':`<textarea id="bbIn" style="height:100px" placeholder="북마크로 복사한 내용을 붙여넣으세요 (Ctrl+V)" oninput="bbPrev()"></textarea><div id="bbPv" class="bb-cs" style="margin:8px 0">붙여넣으면 자동으로 분석해요.</div>`)
   +(e?`<div class="bb-cs" style="margin:0 0 6px">정보 (제목·과목·구분)</div>`:'')+`<input id="bbTi" placeholder="제목" value="${e?bbEsc(e.title):''}"><div id="bbFx"></div>`
   +(e?`<div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div class="bb-cs" style="margin:0 0 6px">기록 (풀이 1회 단위로 삭제하면 정답률·약점·풀이 횟수가 다시 계산돼요)</div><div id="bbRecBox">${bbRecHTML(id)}</div>`:'')
@@ -2504,7 +2506,7 @@ function bbPrev(){
   if(!bbF.subj){bbF.subj=bbGuess(t.title);bbFRender()}
 }
 function bbAdd(){
-  const ti=document.getElementById('bbTi').value.trim()||'제목 없음',f={title:ti,subj:bbF.subj,loc:bbF.loc,day:bbF.day};let tg=null,hh=0;
+  const ti=document.getElementById('bbTi').value.trim()||'제목 없음',f={title:ti,subj:bbF.subj,loc:bbF.loc,day:bbDayStore(bbF.days)};let tg=null,hh=0;
   if(bbF.edit){tg=bbDocs.find(d=>d.id===bbF.edit);Object.assign(tg,f)}
   else{
     if(!bbTmp){alert('먼저 내용을 붙여넣어주세요');return}
