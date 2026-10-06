@@ -2315,7 +2315,7 @@ async function submitRecord(){
 // ==================== 뽀개기 ====================
 const BB={D:'imgo_bb_docs',R:'imgo_bb_rec_',P:'imgo_bb_person',S:'imgo_bb_set_',N:'imgo_bb_done_'};
 const BB_DAYS=['월','화','수','목','금','토','일'];
-let bbRuns={},bbDocs=[],bbPerson='재언',bbRec={},bbSet={min:60,max:80,term:1},bbDone={},bbView=null,bbS=null,bbTmp=null;
+let bbSes=[],bbEC=null,bbRuns={},bbDocs=[],bbPerson='재언',bbRec={},bbSet={min:60,max:80,term:1},bbDone={},bbView=null,bbS=null,bbTmp=null;
 let bbTab='weekly',bbSub='all',bbSort='abc',bbAS='all',bbDay=null,bbF={subj:'',loc:'',day:'',edit:null};
 const bbEsc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const bbHash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h.toString(36)};
@@ -2326,15 +2326,23 @@ const bbT=(x,t)=>(x&&x.T&&x.T[t])||{a:0,c:0,l:''};
 const bbCol=r=>r===null?'var(--text3)':r>=bbSet.max?'var(--teal)':r<bbSet.min?'var(--red)':'var(--amber)';
 const bbDK=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const bbWK=i=>{const n=new Date(),t=(n.getDay()+6)%7;n.setDate(n.getDate()-t+i);return bbDK(n)};
-const bbRn=id=>(bbRuns[id]||{})[bbSet.term]||0;
+function bbRunsOf(id){const m=Object.assign({},bbRuns[id]||{});bbSes.forEach(s=>{if(s.doc===id)m[s.term]=(m[s.term]||0)+1});return m}
+const bbRn=id=>bbRunsOf(id)[bbSet.term]||0;
+function bbEff(){  // 통계 = 기존(통합) 기록 + 확정된 풀이(세션)들
+  if(bbEC)return bbEC;const E={};
+  const get=(id,k)=>{const d=E[id]=E[id]||{};return d[k]=d[k]||{T:{}}};
+  for(const id in bbRec)for(const k in bbRec[id])for(const t in (bbRec[id][k].T||{})){const x=bbRec[id][k].T[t];if(x.a)get(id,k).T[t]={a:x.a,c:x.c,l:x.l,ts:x.ts||0}}
+  bbSes.slice().sort((p,q)=>p.ts-q.ts).forEach(s=>{for(const k in (s.j||{})){const o=get(s.doc,k).T,x=o[s.term]=o[s.term]||{a:0,c:0,l:'',ts:0};x.a++;if(s.j[k]==='O')x.c++;x.l=s.j[k];x.ts=s.ts}});
+  return bbEC=E;
+}
 const bbLab=(t,c)=>`<span class="bb-lb" style="--c:${c}">${bbEsc(t)}</span>`;
 function bbLoadP(){
   const g=k=>{try{return JSON.parse(localStorage.getItem(k+bbPerson)||'null')}catch(e){return null}};
-  bbRec=g(BB.R)||{};bbSet=Object.assign({min:60,max:80,term:1},g(BB.S));bbDone=g(BB.N)||{};bbRuns=g('imgo_bb_runs_')||{};
+  bbRec=g(BB.R)||{};bbSet=Object.assign({min:60,max:80,term:1},g(BB.S));bbDone=g(BB.N)||{};bbRuns=g('imgo_bb_runs_')||{};bbSes=g('imgo_bb_ses_')||[];bbEC=null;
   Object.values(bbRec).forEach(d=>Object.values(d).forEach(x=>{if(!x.T){x.T={1:{a:x.a||0,c:x.c||0,l:x.l||''}};delete x.a;delete x.c;delete x.l}}));
 }
 (function(){try{bbDocs=JSON.parse(localStorage.getItem(BB.D)||'[]')}catch(e){bbDocs=[]}bbPerson=localStorage.getItem(BB.P)||'재언';bbLoadP()})();
-function bbSave(){try{const w=(k,v)=>localStorage.setItem(k,JSON.stringify(v));w(BB.D,bbDocs);w(BB.R+bbPerson,bbRec);w(BB.S+bbPerson,bbSet);w(BB.N+bbPerson,bbDone);w('imgo_bb_runs_'+bbPerson,bbRuns);localStorage.setItem(BB.P,bbPerson)}catch(e){alert('저장 실패 (용량 초과?)')}}
+function bbSave(){try{const w=(k,v)=>localStorage.setItem(k,JSON.stringify(v));w(BB.D,bbDocs);w(BB.R+bbPerson,bbRec);w(BB.S+bbPerson,bbSet);w(BB.N+bbPerson,bbDone);w('imgo_bb_runs_'+bbPerson,bbRuns);w('imgo_bb_ses_'+bbPerson,bbSes);bbEC=null;localStorage.setItem(BB.P,bbPerson)}catch(e){alert('저장 실패 (용량 초과?)')}}
 
 // ── 파서 ──
 const BB_OK=new Set(['P','DIV','B','STRONG','I','EM','U','BR','TABLE','TBODY','THEAD','TR','H2','H3','H4','UL','OL','LI','SUB','SUP']);
@@ -2362,7 +2370,7 @@ function bbParse(raw){
 }
 function bbBox(doc){const b=document.createElement('div');b.innerHTML=doc.html;let i=0;b.querySelectorAll('.blank').forEach(e=>{e.className='bb-b';e.dataset.k=(i++)+'_'+bbHash(e.textContent)});return b}
 function bbAgg(id,t,keys){
-  const r=bbRec[id]||{};let a=0,c=0,w=0,l=0;
+  const r=bbEff()[id]||{};let a=0,c=0,w=0,l=0;
   for(const k in r){if(keys&&!keys.has(k))continue;const T=r[k].T||{};
     if(t==='all'){for(const n in T){a+=T[n].a;c+=T[n].c}}else if(T[t]){a+=T[t].a;c+=T[t].c}
     const u=T[bbSet.term];if(u&&u.a)l++;if(bbWk(u))w++}
@@ -2404,9 +2412,9 @@ function bbList(){
 function bbAna(){
   const sc=bbAS,mk=x=>{const T=x.T||{};if(sc==='all'){let a=0,c=0;for(const n in T){a+=T[n].a;c+=T[n].c}return{a,c}}return T[sc]||{a:0,c:0}};
   const rt=(c,a)=>a?Math.round(c*100/a):null,V=bbDocs.filter(bbVis);let A=0,C=0,R=0,low=0;const sj={},dr=[],bl=[];
-  V.forEach(d=>{const r=bbRec[d.id]||{},tx={};bbBox(d).querySelectorAll('.bb-b').forEach(e=>tx[e.dataset.k]=e.textContent);let a=0,c=0;
+  V.forEach(d=>{const r=bbEff()[d.id]||{},tx={};bbBox(d).querySelectorAll('.bb-b').forEach(e=>tx[e.dataset.k]=e.textContent);let a=0,c=0;
     for(const k in r){const m=mk(r[k]);a+=m.a;c+=m.c;if(m.a>m.c)bl.push({d,k,t:tx[k]||'?',a:m.a,c:m.c})}
-    A+=a;C+=c;const n=d.subj||'기타',o=(sj[n]=sj[n]||{a:0,c:0,n:0});o.a+=a;o.c+=c;const m2=bbRuns[d.id]||{},rn=sc==='all'?Object.values(m2).reduce((x,y)=>x+y,0):(m2[sc]||0);R+=rn;o.n+=rn;
+    A+=a;C+=c;const n=d.subj||'기타',o=(sj[n]=sj[n]||{a:0,c:0,n:0});o.a+=a;o.c+=c;const m2=bbRunsOf(d.id),rn=sc==='all'?Object.values(m2).reduce((x,y)=>x+y,0):(m2[sc]||0);R+=rn;o.n+=rn;
     if(a){dr.push({d,a,c,r:rt(c,a)});if(rt(c,a)<bbSet.min)low++}});
   dr.sort((x,y)=>x.r-y.r);bl.sort((x,y)=>x.c/x.a-y.c/y.a||(y.a-y.c)-(x.a-x.c));
   const rows=[...SUBJECT_META.map(s=>[s.name,s.color]),...(sj['기타']?[['기타','var(--text3)']]:[])].filter(([n])=>sj[n]&&sj[n].a).map(([n,c])=>({n,c,r:rt(sj[n].c,sj[n].a),a:sj[n].a,rn:sj[n].n}));
@@ -2426,15 +2434,14 @@ function bbOpen(id,k){
 }
 function bbFinish(){
   const d=bbDocs.find(x=>x.id===bbView);if(!d)return;
-  const m=(bbRuns[d.id]=bbRuns[d.id]||{});m[bbSet.term]=(m[bbSet.term]||0)+1;
-  if(typeof d.day==='number'&&d.loc){const k=bbWK(d.day);(bbDone[k]=bbDone[k]||{})[d.id]=1}
-  bbEnq('runs',`runs|${d.id}|${bbSet.term}`,{docId:d.id,term:bbSet.term,runs:m[bbSet.term]});
-  if(typeof d.day==='number'&&d.loc){const k=bbWK(d.day);bbEnq('done',`done|${k}|${d.id}`,{date:k,docId:d.id,done:1})}
+  const now=Date.now(),ses={id:'s'+now.toString(36)+Math.random().toString(36).slice(2,5),doc:d.id,term:bbSet.term,ts:now,j:Object.assign({},bbS?bbS.judged:{})};
+  bbSes.push(ses);bbEnq('ses','ses|'+ses.id,{sid:ses.id,docId:d.id,term:ses.term,at:now,ts:now,j:ses.j});
+  if(typeof d.day==='number'&&d.loc){const k=bbWK(d.day);(bbDone[k]=bbDone[k]||{})[d.id]=1;bbEnq('done',`done|${k}|${d.id}`,{date:k,docId:d.id,done:1})}
   bbSave();bbView=null;bbRender();scrollTo(0,0);
 }
 function bbRenderDoc(el){
   const d=bbDocs.find(x=>x.id===bbView);if(!d){bbView=null;return bbRender()}
-  const box=bbBox(d),r=bbRec[d.id]||{},S=bbS,ks=[...box.querySelectorAll('.bb-b')].map(e=>e.dataset.k),cu=k=>bbT(r[k],bbSet.term);
+  const box=bbBox(d),r=bbEff()[d.id]||{},S=bbS,ks=[...box.querySelectorAll('.bb-b')].map(e=>e.dataset.k),cu=k=>bbT(r[k],bbSet.term);
   const sets={all:new Set(ks),weak:new Set(ks.filter(k=>bbWk(cu(k)))),new:new Set(ks.filter(k=>!cu(k).a))};
   if(!S.tgt)S.tgt=sets[S.filter];
   box.querySelectorAll('.bb-b').forEach(e=>{const k=e.dataset.k;if(!S.tgt.has(k))e.className='bb-plain';else if(S.judged[k])e.className='bb-b open '+(S.judged[k]==='O'?'ok':'ng')});
@@ -2442,13 +2449,14 @@ function bbRenderDoc(el){
   const js=Object.values(S.judged),jo=js.filter(x=>x==='O').length,st=bbAgg(d.id,bbSet.term);
   const mc=(v,t)=>`<button class="ttab ${S.mode===v?'on':''}" onclick="bbS.mode='${v}';bbRender()">${t}</button>`;
   const fc=(f,t)=>`<button class="ttab ${S.filter===f?'on':''}" onclick="bbS.filter='${f}';bbS.tgt=null;bbRender()">${t} ${sets[f].size}</button>`;
-  el.innerHTML=`<div class="bb-top"><button class="bb-btn" onclick="bbView=null;bbRender()">← 목록</button><b style="font-size:13px">${bbEsc(d.title)}</b><span class="bb-sp"></span><button class="bb-btn" onclick="bbOpenAdd('${d.id}')">정보 수정</button><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div>
+  el.innerHTML=`<div class="bb-top"><button class="bb-btn" onclick="bbLeave()">← 목록</button><b style="font-size:13px">${bbEsc(d.title)}</b><span class="bb-sp"></span><button class="bb-btn" onclick="bbOpenAdd('${d.id}')">정보 수정</button><button class="bb-btn" onclick="bbOpenRec()">기록 수정</button><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div>
   <div class="bb-top">${mc('study','학습')}${mc('test','테스트')}<span style="width:8px"></span>${fc('all','전체')}${fc('weak','약점만')}${fc('new','안 푼 것')}</div>
-  <div class="bb-cs" style="margin-bottom:8px">${S.mode==='test'?`이번 판정 ${js.length}/${S.tgt.size} · O ${jo} · ${js.length?Math.round(jo*100/js.length):0}% · `:''}${bbSet.term}텀 정답률 <b style="color:${bbCol(st.rate)}">${st.rate===null?'-':st.rate+'%'}</b> (목표 ${bbSet.min}~${bbSet.max}%) · 약점 ${st.w}개 · 풀이 ${bbRn(d.id)}회</div>
+  <div class="bb-cs" style="margin-bottom:8px">${S.mode==='test'?`이번 판정 ${js.length}/${S.tgt.size} · O ${jo} · ${js.length?Math.round(jo*100/js.length):0}% · (완료하기를 눌러야 기록돼요) · `:''}${bbSet.term}텀 정답률 <b style="color:${bbCol(st.rate)}">${st.rate===null?'-':st.rate+'%'}</b> (목표 ${bbSet.min}~${bbSet.max}%) · 약점 ${st.w}개 · 풀이 ${bbRn(d.id)}회</div>
   <div class="bb-top"><button class="bb-btn" onclick="bbAll(1)">전체 열기</button><button class="bb-btn" onclick="bbAll(0)">전체 가리기</button><button class="bb-btn ${S.rv?'pri':''}" onclick="bbS.rv=!bbS.rv;bbRender()">정답률 보기</button><button class="apply-btn-sm" onclick="bbFinish()">완료하기</button>${S.mode==='test'?`<button class="bb-btn" onclick="bbUndo()">↩ 판정 취소</button><button class="bb-btn" onclick="bbS.judged={};bbS.undo=[];bbRender()">이번 판정 초기화</button>`:''}</div>
   <div class="bb-doc ${S.mode}" id="bbDoc" onclick="bbClick(event)"></div><button class="bb-fab" onclick="bbFinish()">✓ 완료</button>`;
   document.getElementById('bbDoc').appendChild(box);
 }
+function bbLeave(){if(bbS&&Object.keys(bbS.judged).length&&!confirm('완료하기를 누르지 않으면 이번 판정은 기록되지 않아요. 나갈까요?'))return;bbView=null;bbRender()}
 function bbAll(v){document.querySelectorAll('#bbDoc .bb-b').forEach(e=>e.classList.toggle('open',!!v));bbPopX()}
 function bbPopX(){const p=document.getElementById('bbPop');if(p)p.remove()}
 function bbClick(ev){
@@ -2462,16 +2470,12 @@ function bbClick(ev){
 }
 function bbRedraw(){const y=scrollY;bbRender();scrollTo(0,y)}
 function bbJ(k,ok){
-  bbPopX();const id=bbView,r=(bbRec[id]=bbRec[id]||{}),t=bbSet.term,x=r[k]||{T:{}},y=bbT(x,t);
-  bbS.undo.push({k,prev:r[k]?JSON.parse(JSON.stringify(r[k])):null});
-  const ts=Date.now();x.T[t]={a:y.a+1,c:y.c+(ok?1:0),l:ok?'O':'X',ts};r[k]=x;bbS.judged[k]=ok?'O':'X';bbEnq('records',`records|${id}|${k}|${t}`,{docId:id,blankKey:k,term:t,a:y.a+1,c:y.c+(ok?1:0),l:ok?'O':'X',ts});
-  bbSave();bbRedraw();
+  bbPopX();bbS.undo.push({k});bbS.judged[k]=ok?'O':'X';bbRedraw();
 }
 function bbUndo(){
-  const u=bbS.undo.pop();if(!u)return;const r=bbRec[bbView];
-  if(u.prev)r[u.k]=u.prev;else delete r[u.k];delete bbS.judged[u.k];{const c=bbT(r[u.k],bbSet.term);bbEnq('records',`records|${bbView}|${u.k}|${bbSet.term}`,{docId:bbView,blankKey:u.k,term:bbSet.term,a:c.a,c:c.c,l:c.l||''})}bbSave();bbRedraw();
+  const u=bbS.undo.pop();if(!u)return;delete bbS.judged[u.k];bbRedraw();
 }
-function bbDel(id){if(!confirm('이 문서를 삭제할까요? 공유 문서라 다른 사람 목록에서도 사라지고, 내 기록도 삭제돼요.'))return;bbDocs=bbDocs.filter(d=>d.id!==id);delete bbRec[id];delete bbRuns[id];bbEnq('docs','docs|'+id,{id,del:1});bbSave();bbView=null;bbRender()}
+function bbDel(id){if(!confirm('이 문서를 삭제할까요? 공유 문서라 다른 사람 목록에서도 사라지고, 내 기록도 삭제돼요.'))return;bbDocs=bbDocs.filter(d=>d.id!==id);delete bbRec[id];delete bbRuns[id];bbSes=bbSes.filter(s=>s.doc!==id);bbEnq('docs','docs|'+id,{id,del:1});bbSave();bbView=null;bbRender()}
 
 // ── 등록 / 수정 / 설정 ──
 function bbGuess(t){const s=SUBJECT_META.find(s=>{const p=s.name.split('·');if(s.name.includes('통합'))p.push('바른','슬기','즐거');if(s.name.includes('총론'))p.push('창의적');return p.some(w=>t.includes(w))});return s?s.name:''}
@@ -2522,6 +2526,40 @@ function bbSetSave(){
   if(!(mn>=0&&mx<=100&&mn<mx)){alert('최소 < 최대 (0~100) 로 입력해주세요');return}
   bbSet={min:mn,max:mx,term:tm,ts:Date.now()};bbS=null;bbEnq('settings','settings|'+bbPerson,{min:mn,max:mx,term:tm,ts:bbSet.ts});bbSave();bbClose();bbRender();
 }
+// ── 기록 수정 (풀이 1회 단위로 조회·삭제) ──
+function bbOpenRec(){
+  const id=bbView,d=bbDocs.find(x=>x.id===id);if(!d)return;
+  const z=n=>String(n).padStart(2,'0'),fm=ts=>{const o=new Date(ts);return `${o.getMonth()+1}/${o.getDate()} ${z(o.getHours())}:${z(o.getMinutes())}`};
+  const L=bbSes.filter(s=>s.doc===id).sort((p,q)=>q.ts-p.ts);
+  const row=(attr,t1,t2)=>`<label class="bb-card" style="display:flex;gap:10px;align-items:center"><input type="checkbox" class="bbRc" ${attr} onchange="bbRecCnt()" style="width:auto;flex:none"><div style="flex:1;min-width:0"><div class="bb-ct">${t1}</div><div class="bb-cs">${t2}</div></div></label>`;
+  const ses=L.map(s=>{const v=Object.values(s.j||{}),o=v.filter(x=>x==='O').length;
+    return row(`data-s="${s.id}"`,fm(s.ts)+' 풀이',`${s.term}텀 · `+(v.length?`${v.length}개 판정 · ⭕ ${o} · ❌ ${v.length-o} · 정답률 ${Math.round(o*100/v.length)}%`:'학습 완료 (판정 없음)'))}).join('');
+  const lg=[],r=bbRec[id]||{},rn=bbRuns[id]||{},ts=new Set(Object.keys(rn).filter(t=>rn[t]>0));
+  for(const k in r)for(const t in (r[k].T||{}))if(r[k].T[t].a>0)ts.add(t);
+  [...ts].sort((a,b)=>b-a).forEach(t=>{let n=0;for(const k in r)if(r[k].T&&r[k].T[t]&&r[k].T[t].a>0)n++;
+    lg.push(row(`data-l="${t}"`,'기존 기록 (통합)',`${t}텀 · 풀이 ${rn[t]||0}회 · 빈칸 ${n}개 판정 (세부 풀이 내역 없음)`))});
+  bbModal(`<div class="sec-title">기록 수정</div><div class="bb-cs" style="margin-bottom:10px">${bbEsc(d.title)} · 풀이 1회 단위로 삭제하면 정답률·약점·풀이 횟수가 다시 계산돼요</div>`
+  +`<div class="bb-top" style="margin:12px 0 6px"><span class="bb-cs" style="margin:0">풀이 ${L.length}회 · 최신순</span><span class="bb-sp"></span>${L.length+lg.length?`<button class="bb-btn" onclick="bbRecAll()">전체 선택</button>`:''}</div>`
+  +(ses||lg.length?ses+lg.join(''):'<div class="bb-cs" style="padding:16px 0;text-align:center">기록이 없어요.</div>')
+  +`<div class="bb-top" style="margin:14px 0 0"><span class="bb-sp"></span><button class="bb-btn" onclick="bbClose()">닫기</button><button class="bb-btn" id="bbRcDel" style="color:var(--red)" onclick="bbRecDel()" disabled>선택 삭제</button></div>`);
+}
+function bbRecCnt(){const n=document.querySelectorAll('.bbRc:checked').length,b=document.getElementById('bbRcDel');if(b){b.disabled=!n;b.textContent=n?`선택 삭제 (${n})`:'선택 삭제'}}
+function bbRecAll(){const cs=[...document.querySelectorAll('.bbRc')],on=cs.some(c=>!c.checked);cs.forEach(c=>c.checked=on);bbRecCnt()}
+function bbRecDel(){
+  const id=bbView,cs=[...document.querySelectorAll('.bbRc:checked')];if(!cs.length)return;
+  if(!confirm(`선택한 풀이 기록 ${cs.length}개를 삭제할까요? 그 풀이에서 판정한 내용이 모두 지워져요.`))return;
+  const now=Date.now();
+  cs.forEach(c=>{
+    if(c.dataset.s){const i=bbSes.findIndex(s=>s.id===c.dataset.s);if(i<0)return;const s=bbSes[i];bbSes.splice(i,1);
+      bbEnq('ses','ses|'+s.id,{sid:s.id,docId:s.doc,term:s.term,at:s.ts,ts:now,del:1})}
+    else{const t=+c.dataset.l,r=bbRec[id]||{};   // 기존(통합) 기록: 해당 텀 판정·풀이 횟수 일괄 삭제
+      for(const k in r){if(r[k].T&&r[k].T[t]){delete r[k].T[t];bbEnq('records',`records|${id}|${k}|${t}`,{docId:id,blankKey:k,term:t,a:0,c:0,l:'',ts:now});if(!Object.keys(r[k].T).length)delete r[k]}}
+      if(bbRuns[id]&&bbRuns[id][t]){delete bbRuns[id][t];bbEnq('runs',`runs|${id}|${t}`,{docId:id,term:t,runs:0,set:1})}}
+  });
+  if(bbS)bbS.tgt=null;
+  bbSave();bbRender();bbOpenRec();
+}
+
 // ── 뽀개기 동기화 (Apps Script / target:'bbSync') ──
 // 변경은 큐에 쌓았다가 일괄 전송(오프라인·새로고침에도 유지). 서버는 ts가 큰 쪽이 이김.
 const BB_QK='imgo_bb_q_',BB_SK='imgo_bb_sy_';
@@ -2540,13 +2578,14 @@ async function bbPush(who){
   try{
     for(let g=0;g<50;g++){
       const q=bbQRead(who),ks=Object.keys(q);if(!ks.length)break;
-      const b={target:'bbSync',author:who,docs:[],records:[],runs:[],done:[]},sent=[];let nd=0,nr=0;
+      const b={target:'bbSync',author:who,docs:[],records:[],runs:[],done:[],ses:[]},sent=[];let nd=0,nr=0,ns=0;
       for(const k of ks){
         const o=q[k],it=o.item;
         if(o.kind==='docs'){
           if(it.del){if(nd>=3)continue;nd++;b.docs.push({id:it.id,ts:it.ts,deleted:1})}
           else{const d=bbDocs.find(x=>x.id===it.id);if(d){if(nd>=3)continue;nd++;const p={id:d.id,ts:it.ts,title:d.title,subj:d.subj||'',loc:d.loc||'',day:d.day===undefined?'':d.day,src:d.src||'',n:d.n||0};if(it.h)p.html=d.html;b.docs.push(p)}}
-        }else if(o.kind==='settings')b.settings=it;
+        }else if(o.kind==='ses'){if(ns>=40)continue;ns++;b.ses.push(it.del?{sid:it.sid,docId:it.docId,term:it.term,at:it.at,ts:it.ts,deleted:1}:it)}
+        else if(o.kind==='settings')b.settings=it;
         else{if(nr>=400)continue;nr++;b[o.kind].push(it)}
         sent.push(k);
       }
@@ -2563,6 +2602,7 @@ function bbRemap(o,n){  // 같은 글(src)이 다른 id로 있을 때 기록을 
   if(bbRec[o]){const t=bbRec[n]=bbRec[n]||{};for(const k in bbRec[o])if(!t[k])t[k]=bbRec[o][k];delete bbRec[o]}
   if(bbRuns[o]){const t=bbRuns[n]=bbRuns[n]||{};for(const m in bbRuns[o])t[m]=Math.max(t[m]||0,bbRuns[o][m]);delete bbRuns[o]}
   for(const d in bbDone)if(bbDone[d][o]){bbDone[d][n]=1;delete bbDone[d][o]}
+  bbSes.forEach(s=>{if(s.doc===o)s.doc=n});
 }
 async function bbPull(who){
   const st=bbStGet(who);
@@ -2582,17 +2622,27 @@ async function bbPull(who){
   });
   (r.records||[]).forEach(x=>{
     if(pd(`records|${x.docId}|${x.blankKey}|${x.term}`))return;
-    const d=(bbRec[x.docId]=bbRec[x.docId]||{}),b=(d[x.blankKey]=d[x.blankKey]||{T:{}}),l=b.T[x.term];
+    const d=bbRec[x.docId]||{},b=d[x.blankKey],l=b&&b.T&&b.T[x.term];
     if(l&&x.ts<=(l.ts||0))return;
-    b.T[x.term]={a:x.a,c:x.c,l:x.l,ts:x.ts};ch=true;
+    if(!x.a&&!x.c){if(l){delete b.T[x.term];if(!Object.keys(b.T).length)delete d[x.blankKey];ch=true}return}
+    const dd=(bbRec[x.docId]=bbRec[x.docId]||{}),bb=(dd[x.blankKey]=dd[x.blankKey]||{T:{}});
+    bb.T[x.term]={a:x.a,c:x.c,l:x.l,ts:x.ts};ch=true;
   });
   (r.runs||[]).forEach(x=>{
-    const m=(bbRuns[x.docId]=bbRuns[x.docId]||{});if((m[x.term]||0)<x.runs){m[x.term]=x.runs;ch=true}
+    if(pd(`runs|${x.docId}|${x.term}`))return;
+    const m=(bbRuns[x.docId]=bbRuns[x.docId]||{});
+    if(!x.runs){if(m[x.term]){delete m[x.term];ch=true}}else if(m[x.term]!==x.runs){m[x.term]=x.runs;ch=true}
   });
   (r.done||[]).forEach(x=>{
     if(pd(`done|${x.date}|${x.docId}`))return;
     const m=(bbDone[x.date]=bbDone[x.date]||{});
     if(x.done){if(!m[x.docId]){m[x.docId]=1;ch=true}}else if(m[x.docId]){delete m[x.docId];ch=true}
+  });
+  (r.ses||[]).forEach(x=>{
+    if(pd('ses|'+x.sid))return;
+    const i=bbSes.findIndex(v=>v.id===x.sid);
+    if(x.deleted){if(i>=0){bbSes.splice(i,1);ch=true}return}
+    if(i<0){bbSes.push({id:x.sid,doc:x.docId,term:x.term,ts:x.at,j:x.j||{}});ch=true}
   });
   const s=r.settings;
   if(s&&!pd('settings|'+who)&&(bbSet.ts===undefined||s.ts>bbSet.ts)){bbSet={min:s.min,max:s.max,term:s.term,ts:s.ts};if(!bbView)bbS=null;ch=true}
@@ -2605,6 +2655,7 @@ function bbMigrate(who){  // 최초 1회: 로컬 데이터 전체를 ts 기준�
   bbDocs.forEach(d=>put('docs','docs|'+d.id,{id:d.id,ts:d.ts||0,h:1}));
   for(const id in bbRec)for(const k in bbRec[id])for(const t in (bbRec[id][k].T||{})){const x=bbRec[id][k].T[t];put('records',`records|${id}|${k}|${t}`,{docId:id,blankKey:k,term:+t,a:x.a,c:x.c,l:x.l||'',ts:x.ts||0})}
   for(const id in bbRuns)for(const t in bbRuns[id])put('runs',`runs|${id}|${t}`,{docId:id,term:+t,runs:bbRuns[id][t],ts:0});
+  bbSes.forEach(s=>put('ses','ses|'+s.id,{sid:s.id,docId:s.doc,term:s.term,at:s.ts,ts:s.ts,j:s.j}));
   for(const dt in bbDone)for(const id in bbDone[dt])put('done',`done|${dt}|${id}`,{date:dt,docId:id,done:1,ts:0});
   put('settings','settings|'+who,{min:bbSet.min,max:bbSet.max,term:bbSet.term,ts:bbSet.ts||0});
   bbQWrite(who,q);
