@@ -341,6 +341,7 @@ body.light .nc-stitle{color:var(--text3)}
     <div id="examList"></div>
   </div>
 
+  <div id="examLoadMsg" style="display:none;font-size:13px;color:var(--text3);padding:12px 0"></div>
   <div id="examPanel-person" style="display:none">
     <div style="margin-bottom:12px">
       <div class="subj-tabs" id="examSectionTabs" style="margin:0"></div>
@@ -1195,16 +1196,19 @@ function dedupeLatest(rows, keyFn){
   return Object.values(map);
 }
 
-async function showExamPerson(who, btn){
-  document.querySelectorAll('#examPersonTabs .ttab').forEach(t=>t.classList.remove('on'));
-  if(btn) btn.classList.add('on');
-  examPerson = who==='status' ? null : who;
-  document.getElementById('examPanel-status').style.display = who==='status' ? '' : 'none';
-  const panel = document.getElementById('examPanel-person');
-  if(who==='status'){ panel.style.display = 'none'; return; }
-  // 데이터/렌더링이 끝나기 전까지는 패널을 숨겨서 이전 사람의 화면이 잠깐 보이는 것을 막는다.
-  panel.style.display = 'none';
-  await fetchExamData();
+let examPersonSeq = 0;
+// 타임아웃 포함 서버 조회: 성공하면 데이터 객체, 실패하면 null (examData는 건드리지 않음)
+async function fetchExamDataSafe(ms){
+  try{
+    const res = await Promise.race([
+      fetch(MOCK_EXAM_API_URL+'?target=all').then(r=>r.json()),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms||15000))
+    ]);
+    if(res && res.ok) return { scores: res.scores||[], averages: res.averages||[], wrongAnswers: res.wrongAnswers||[], goals: res.goals||[] };
+  }catch(e){ console.error('exam data fetch failed', e); }
+  return null;
+}
+function renderExamPersonPanel(){
   buildExamControls();
   buildExamSectionTabs();
   applyExamSection();
@@ -1214,6 +1218,46 @@ async function showExamPerson(who, btn){
   renderAvgRateChart();
   buildWrongExamSelects();
   renderWrongList();
+}
+async function showExamPerson(who, btn){
+  document.querySelectorAll('#examPersonTabs .ttab').forEach(t=>t.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  examPerson = who==='status' ? null : who;
+  const my = ++examPersonSeq;
+  document.getElementById('examPanel-status').style.display = who==='status' ? '' : 'none';
+  const panel = document.getElementById('examPanel-person');
+  const msg = document.getElementById('examLoadMsg');
+  msg.style.display = 'none';
+  if(who==='status'){ panel.style.display = 'none'; return; }
+
+  if(examLoaded){
+    // 받아둔 데이터로 선택한 사람 화면을 바로 그린다 (두 사람 데이터가 이미 들어 있음)
+    renderExamPersonPanel();
+    panel.style.display = '';
+    // 뒤에서 조용히 갱신: 실제로 바뀌었고 기록창이 닫혀 있을 때만 다시 그림
+    const fresh = await fetchExamDataSafe();
+    if(my!==examPersonSeq || !fresh) return;
+    if(JSON.stringify(fresh)===JSON.stringify(examData)) return;
+    examData = fresh;
+    const mb = document.getElementById('recordModalBg');
+    if(mb && mb.style.display!=='none') return;
+    renderExamPersonPanel();
+    return;
+  }
+
+  // 처음 한 번만: 다 받을 때까지 패널을 숨기고 로딩 표시 (이전 사람 화면이 비치지 않게)
+  panel.style.display = 'none';
+  msg.style.display = '';
+  msg.textContent = '불러오는 중...';
+  const fresh = await fetchExamDataSafe();
+  if(my!==examPersonSeq) return;
+  if(!fresh){
+    msg.innerHTML = '불러오지 못했습니다. <a href="#" onclick="showExamPerson(examPerson,document.querySelector(\'#examPersonTabs .ttab.on\'));return false" style="color:var(--accent)">다시 시도</a>';
+    return;
+  }
+  examData = fresh; examLoaded = true;
+  msg.style.display = 'none';
+  renderExamPersonPanel();
   panel.style.display = '';
 }
 
@@ -2034,11 +2078,27 @@ function renderStudyWrongPage(){
 }
 
 // ---- 오답 탭: 모의고사 오답 (모의고사 탭의 오답 기록과 동일 표시, 작성자는 swAuthor) ----
-let swxLoading = false;
+let swxLoading = false, swxFailed = false, swxSeq = 0;
 async function swxEnsure(){
-  swxLoading = true; swxRenderAll();
-  await fetchExamData();
+  const my = ++swxSeq;
+  swxFailed = false;
+  // 이미 받아둔 데이터가 있으면 바로 보여주고 뒤에서 조용히 갱신, 처음이면 로딩 표시
+  swxLoading = !examLoaded;
+  swxRenderAll();
+  let ok = false;
+  try{
+    const res = await Promise.race([
+      fetch(MOCK_EXAM_API_URL+'?target=all').then(r=>r.json()),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),15000))
+    ]);
+    if(res && res.ok){
+      examData = { scores: res.scores||[], averages: res.averages||[], wrongAnswers: res.wrongAnswers||[], goals: res.goals||[] };
+      examLoaded = true; ok = true;
+    }
+  }catch(e){ console.error('swx fetch failed', e); }
+  if(my!==swxSeq) return;
   swxLoading = false;
+  swxFailed = !ok && !examLoaded;
   if(swMode==='exam') swxRenderAll();
 }
 function swxRenderAll(){
@@ -2079,6 +2139,7 @@ function swxRenderList(){
   if(!el) return;
   const empty = '<div style="font-size:13px;color:var(--text3)">기록된 오답이 없습니다.</div>';
   if(swxLoading){ el.innerHTML = '<div style="font-size:13px;color:var(--text3)">불러오는 중...</div>'; return; }
+  if(swxFailed){ el.innerHTML = '<div style="font-size:13px;color:var(--text3)">불러오지 못했습니다. <a href="#" onclick="swxEnsure();return false" style="color:var(--accent)">다시 시도</a></div>'; return; }
   const mode = document.getElementById('swxQueryMode').value;
   const rowStyle = 'display:flex;gap:8px;padding:8px 10px;background:var(--bg3,rgba(127,119,221,.06));border-radius:8px;font-size:13px;margin-bottom:6px';
 
