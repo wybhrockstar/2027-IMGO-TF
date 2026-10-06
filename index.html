@@ -2316,7 +2316,7 @@ async function submitRecord(){
 const BB={D:'imgo_bb_docs',R:'imgo_bb_rec_',P:'imgo_bb_person',S:'imgo_bb_set_',N:'imgo_bb_done_'};
 const BB_DAYS=['월','화','수','목','금','토','일'];
 let bbRuns={},bbDocs=[],bbPerson='재언',bbRec={},bbSet={min:60,max:80,term:1},bbDone={},bbView=null,bbS=null,bbTmp=null;
-let bbTab='weekly',bbSub='all',bbSort='wrong',bbAS='all',bbDay=null,bbF={subj:'',loc:'',day:'',edit:null};
+let bbTab='weekly',bbSub='all',bbSort='abc',bbAS='all',bbDay=null,bbF={subj:'',loc:'',day:'',edit:null};
 const bbEsc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const bbHash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h.toString(36)};
 const bbSj=n=>SUBJECT_META.find(s=>s.name===n);
@@ -2380,7 +2380,7 @@ function bbWho(p){bbSave();bbPerson=p;bbLoadP();bbSave();bbRender()}
 function bbCard(d,extra,done){
   const s=bbAgg(d.id,bbSet.term),sj=bbSj(d.subj);
   const lb=(d.subj?bbLab(d.subj,sj?sj.color:'var(--text3)'):'')+(d.loc?bbLab(d.loc+(typeof d.day==='number'?'·'+BB_DAYS[d.day]:''),'var(--text2)'):'');
-  return `<div class="bb-card" ${done?'style="border-color:var(--accent);background:var(--accent3)"':''} onclick="bbOpen('${d.id}')"><div style="display:flex;align-items:center"><div style="flex:1"><div class="bb-ct">${done?'<span class="bb-ck">✓</span>':''}${lb}${bbEsc(d.title)}</div><div class="bb-cs">빈칸 ${d.n} · 학습 ${s.l}/${d.n} · 풀이 ${bbRn(d.id)}회 · ${bbSet.term}텀 정답률 <b style="color:${bbCol(s.rate)}">${s.rate===null?'-':s.rate+'%'}</b>${s.w?' · 약점 '+s.w:''}</div></div>${extra||''}</div></div>`;
+  return `<div class="bb-card" ${done?'style="border-color:var(--accent);background:var(--accent3)"':''} onclick="bbOpen('${d.id}')"><div style="display:flex;align-items:center"><div style="flex:1"><div class="bb-ct">${done?'<span class="bb-ck">✓</span>':''}${lb}${bbEsc(d.title)}</div><div class="bb-cs">학습 ${s.l}/${d.n} · 풀이 ${bbRn(d.id)}회 · ${bbSet.term}텀 정답률 <b style="color:${bbCol(s.rate)}">${s.rate===null?'-':s.rate+'%'}</b>${s.w?' · 약점 '+s.w:''}</div></div>${extra||''}</div></div>`;
 }
 function bbWeekly(){
   const now=new Date(),td=(now.getDay()+6)%7;if(bbDay===null)bbDay=td;
@@ -2388,16 +2388,16 @@ function bbWeekly(){
   const L=bbDocs.filter(d=>bbVis(d)&&d.loc&&d.day===bbDay),nd=L.filter(d=>dn[d.id]).length;
   return `<div class="pp-tabs" style="margin-bottom:10px">${BB_DAYS.map((x,i)=>`<button class="pp-day ${i===bbDay?'sel':''} ${i===td?'today':''}" onclick="bbDay=${i};bbRender()">${x}</button>`).join('')}</div>
   <div class="bb-cs" style="margin-bottom:8px">${dt.getMonth()+1}/${dt.getDate()}(${BB_DAYS[bbDay]}) · ${nd}/${L.length} 완료</div>`
-  +(L.length?L.map(d=>bbCard(d,`<button class="apply-btn-sm" style="${dn[d.id]?'color:var(--accent);border-color:var(--accent)':''}" onclick="event.stopPropagation();bbDn('${key}','${d.id}')">${dn[d.id]?'✓ 완료됨':'완료하기'}</button>`,dn[d.id])).join(''):'<div class="bb-cs" style="padding:24px 0;text-align:center">이 요일에 지정된 뽀개기가 없어요.<br>등록 시 구분(공통/재언/태현)과 요일을 고르면 여기에 떠요.</div>');
+  +(L.length?L.map(d=>bbCard(d,`<button class="apply-btn-sm" style="${dn[d.id]?'':'background:none;color:var(--accent);border:1px solid var(--accent)'}" onclick="event.stopPropagation();bbDn('${key}','${d.id}')">${dn[d.id]?'✓ 완료됨':'완료하기'}</button>`,dn[d.id])).join(''):'<div class="bb-cs" style="padding:24px 0;text-align:center">이 요일에 지정된 뽀개기가 없어요.<br>등록 시 구분(공통/재언/태현)과 요일을 고르면 여기에 떠요.</div>');
 }
 function bbDn(key,id){const m=(bbDone[key]=bbDone[key]||{});if(m[id])delete m[id];else m[id]=1;bbSave();bbRender()}
 function bbList(){
-  const L=bbDocs.filter(bbVis).filter(d=>bbSub==='all'||(bbSub==='custom'?!!d.loc:d.subj===bbSub));
+  const L=bbDocs.filter(bbVis).filter(d=>bbSub==='all'||(bbSub==='custom'?(d.loc&&d.loc!=='공통'):d.subj===bbSub));
   const w=d=>{const s=bbAgg(d.id,bbSet.term);return s.rate===null?-1:100-s.rate},k=(a,b)=>a.title.localeCompare(b.title,'ko');
   L.sort(bbSort==='wrong'?(a,b)=>w(b)-w(a)||k(a,b):k);
   const sj=(v,t,c)=>`<button class="bb-sj ${bbSub===v?'on':''}" style="--c:${c}" onclick="bbSub='${v}';bbRender()">${t}</button>`;
   return `<div class="bb-top">${sj('all','전체','var(--text2)')}${sj('custom','커스텀','var(--text2)')}${SUBJECT_META.map(s=>sj(s.name,s.name,s.color)).join('')}</div>
-  <div class="bb-top">${[['wrong','오답률 높은 순'],['abc','이름 순']].map(([v,t])=>`<button class="ttab ${bbSort===v?'on':''}" onclick="bbSort='${v}';bbRender()">${t}</button>`).join('')}</div>`
+  <div class="bb-top">${[['abc','이름 순'],['wrong','오답률 높은 순']].map(([v,t])=>`<button class="ttab ${bbSort===v?'on':''}" onclick="bbSort='${v}';bbRender()">${t}</button>`).join('')}</div>`
   +(L.length?L.map(d=>bbCard(d)).join(''):'<div class="bb-cs" style="padding:30px 0;text-align:center;line-height:1.8">문서가 없어요.<br>블로그에서 북마크로 복사한 뒤 [등록]에 붙여넣으세요.</div>');
 }
 function bbAna(){
@@ -2407,15 +2407,15 @@ function bbAna(){
     for(const k in r){const m=mk(r[k]);a+=m.a;c+=m.c;if(m.a>m.c)bl.push({d,k,t:tx[k]||'?',a:m.a,c:m.c})}
     A+=a;C+=c;const n=d.subj||'기타',o=(sj[n]=sj[n]||{a:0,c:0});o.a+=a;o.c+=c;
     if(a){dr.push({d,a,c,r:rt(c,a)});if(rt(c,a)<bbSet.min)low++}});
-  dr.sort((x,y)=>x.r-y.r);bl.sort((x,y)=>(y.a-y.c)-(x.a-x.c)||(x.c/x.a)-(y.c/y.a));
+  dr.sort((x,y)=>x.r-y.r);bl.sort((x,y)=>(y.a-y.c)/y.a-(x.a-x.c)/x.a||(y.a-y.c)-(x.a-x.c));
   const rows=[...SUBJECT_META.map(s=>[s.name,s.color]),...(sj['기타']?[['기타','var(--text3)']]:[])].filter(([n])=>sj[n]&&sj[n].a).map(([n,c])=>({n,c,r:rt(sj[n].c,sj[n].a),a:sj[n].a}));
   const worst=rows.slice().sort((x,y)=>x.r-y.r)[0],tr=rt(C,A);
   const ch=['all',...Array.from({length:bbSet.term},(_,i)=>i+1)].map(v=>`<button class="ttab ${bbAS===v?'on':''}" onclick="bbAS=${v==='all'?"'all'":v};bbRender()">${v==='all'?'전체 텀':v+'텀'}</button>`).join('');
   const H=t=>`<div class="sec-title" style="margin:18px 0 8px">${t}</div>`,none='<div class="bb-cs">아직 기록이 없어요.</div>';
   return `<div class="bb-top">${ch}</div>`+(A?`<div class="bb-card" style="cursor:default">총 ${A}회 풀이 · 정답률 <b style="color:${bbCol(tr)}">${tr}%</b><div class="bb-cs">목표 미달 문서 ${low}개${worst?` · 가장 약한 과목: ${bbEsc(worst.n)} (${worst.r}%)`:''}</div></div>`:none)
   +H('과목별 정답률')+(rows.length?rows.map(o=>`<div class="bb-row"><b style="color:${o.c}">${bbEsc(o.n)}</b><div class="bb-bar"><i style="width:${o.r}%;background:${bbCol(o.r)}"></i></div><span style="width:70px;text-align:right;color:${bbCol(o.r)}">${o.r}% (${o.a})</span></div>`).join(''):none)
-  +H('문서 오답률 순위')+(dr.length?dr.slice(0,10).map((x,i)=>`<div class="bb-card" onclick="bbOpen('${x.d.id}')"><div class="bb-ct">${i+1}. ${bbEsc(x.d.title)}</div><div class="bb-cs">오답률 <b style="color:${bbCol(x.r)}">${100-x.r}%</b> · ${x.c}/${x.a} 정답</div></div>`).join(''):none)
-  +H('자주 틀리는 빈칸 TOP 15')+(bl.length?bl.slice(0,15).map(x=>`<div class="bb-card" onclick="bbOpen('${x.d.id}','${x.k}')"><div class="bb-ct">${bbEsc(x.t)}</div><div class="bb-cs">${bbEsc(x.d.title)} · ${x.a}회 중 ${x.a-x.c}회 오답</div></div>`).join(''):none);
+  +H('문서 오답률 순위 TOP 15')+(dr.length?dr.slice(0,15).map((x,i)=>`<div class="bb-card" onclick="bbOpen('${x.d.id}')"><div class="bb-ct">${i+1}. ${bbEsc(x.d.title)}</div><div class="bb-cs">오답률 <b style="color:${bbCol(x.r)}">${100-x.r}%</b> · ${x.c}/${x.a} 정답</div></div>`).join(''):none)
+  +H('자주 틀리는 빈칸 TOP 15')+(bl.length?bl.slice(0,15).map((x,i)=>`<div class="bb-card" onclick="bbOpen('${x.d.id}','${x.k}')"><div class="bb-ct">${i+1}. ${bbEsc(x.t)}</div><div class="bb-cs">${bbEsc(x.d.title)} · 오답률 ${Math.round((x.a-x.c)*100/x.a)}% (${x.a}회 중 ${x.a-x.c}회 오답)</div></div>`).join(''):none);
 }
 
 // ── 문서 ──
@@ -2435,7 +2435,7 @@ function bbRenderDoc(el){
   const sets={all:new Set(ks),weak:new Set(ks.filter(k=>cu(k).l==='X')),new:new Set(ks.filter(k=>!cu(k).a))};
   if(!S.tgt)S.tgt=sets[S.filter];
   box.querySelectorAll('.bb-b').forEach(e=>{const k=e.dataset.k;if(!S.tgt.has(k))e.className='bb-plain';else if(S.judged[k])e.className='bb-b open '+(S.judged[k]==='O'?'ok':'ng')});
-  if(S.rv)box.querySelectorAll('.bb-b').forEach(e=>{const x=cu(e.dataset.k),p=x.a?Math.round(x.c*100/x.a):null,c=bbCol(p);e.classList.add('open');e.style.background='color-mix(in srgb,'+c+' 28%,transparent)';e.style.outline='1px solid '+c;e.insertAdjacentHTML('afterend','<small style="color:'+c+';margin-left:3px;font-weight:700">'+(p===null?'-':p+'%')+'</small>')});
+  if(S.rv)box.querySelectorAll('.bb-b').forEach(e=>{const x=cu(e.dataset.k),p=x.a?Math.round(x.c*100/x.a):null,c=p===null?'var(--text3)':p>=bbSet.max?'var(--teal)':p<bbSet.min?'var(--red)':'var(--amber)';e.classList.add('open');e.style.background='color-mix(in srgb,'+c+' 28%,transparent)';e.style.outline='1px solid '+c;e.insertAdjacentHTML('afterend','<small style="color:'+c+';margin-left:3px;font-weight:700">'+(p===null?'-':p+'%')+'</small>')});
   const js=Object.values(S.judged),jo=js.filter(x=>x==='O').length,st=bbAgg(d.id,bbSet.term);
   const mc=(v,t)=>`<button class="ttab ${S.mode===v?'on':''}" onclick="bbS.mode='${v}';bbRender()">${t}</button>`;
   const fc=(f,t)=>`<button class="ttab ${S.filter===f?'on':''}" onclick="bbS.filter='${f}';bbS.tgt=null;bbRender()">${t} ${sets[f].size}</button>`;
