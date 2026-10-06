@@ -200,6 +200,33 @@ body.light .nc-stitle{color:var(--text3)}
 .exam-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);min-width:28px;text-align:right;padding-top:2px}
 .exam-name{font-size:13px;color:var(--text);flex:1;line-height:1.5}
 .exam-essay{font-size:10px;color:var(--amber);background:rgba(255,179,71,.15);border:1px solid rgba(255,179,71,.3);padding:1px 6px;border-radius:8px;white-space:nowrap;margin-left:4px;vertical-align:middle}
+
+/* ── 뽀개기 ── */
+.bb-top{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.bb-sp{flex:1}
+.bb-btn{padding:6px 14px;font-size:12px;border-radius:20px;border:1px solid var(--border2);background:none;color:var(--text2);transition:.15s}
+.bb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.bb-btn.pri{background:var(--accent2);border-color:var(--accent);color:var(--accent)}
+.bb-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:.15s}
+.bb-card:hover{border-color:var(--accent)}
+.bb-ct{font-weight:500}
+.bb-cs{font-size:11px;color:var(--text3);margin-top:3px}
+.bb-doc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px;font-size:14px;line-height:2.1;overflow-x:auto}
+.bb-doc table{border-collapse:collapse;width:100%;margin:8px 0}
+.bb-doc td{border:1px solid var(--border2);padding:6px 8px;vertical-align:top}
+.bb-doc td.bb-th{background:var(--accent3);text-align:center;font-weight:500}
+.bb-doc h2{font-size:15px;margin:10px 0}
+.bb-doc h3{font-size:14px;color:var(--accent);margin:14px 0 4px}
+.bb-doc p{margin:2px 0}
+.bb-doc .contentbox{border:1px solid var(--border2);border-radius:var(--rs);padding:8px 12px;margin:6px 0}
+.bb-b{background:var(--accent2);color:transparent;border-radius:4px;cursor:pointer;padding:1px 3px;transition:.1s;user-select:none;-webkit-user-select:none}
+.bb-b.open{color:var(--text);background:var(--accent3);outline:1px solid var(--accent)}
+@media(hover:hover){.bb-doc.study .bb-b:hover{color:var(--text);background:var(--accent3);outline:1px solid var(--accent)}}
+.bb-b.ok{outline:2px solid var(--accent)}
+.bb-b.ng{outline:2px solid var(--red);background:rgba(255,95,95,.14)}
+.bb-pop{position:absolute;z-index:300;background:var(--bg2);border:1px solid var(--border3);border-radius:10px;padding:4px;display:flex;gap:4px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.bb-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
+.bb-md{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:16px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
 </style>
 </head>
 <body>
@@ -219,6 +246,7 @@ body.light .nc-stitle{color:var(--text3)}
   <button class="ntab on" onclick="goPage('schedule',this)">스터디 현황</button>
   <button class="ntab" onclick="goPage('studywrong',this)">스터디 오답</button>
   <button class="ntab" onclick="goPage('lectures',this)">강의 목록</button>
+  <button class="ntab" onclick="goPage('bbogae',this)">뽀개기</button>
   <button class="ntab" onclick="goPage('exams',this)">모의고사</button>
   <button class="ntab" onclick="goPage('notice',this)">공지사항</button>
 </nav>
@@ -253,6 +281,9 @@ body.light .nc-stitle{color:var(--text3)}
   <div class="lec-list" id="lectureList"></div>
 </div>
 
+
+<!-- ======= PAGE: BBOGAE ======= -->
+<div class="page main" id="page-bbogae"><div id="bbRoot"></div></div>
 
 <!-- ======= PAGE: EXAMS ======= -->
 <div class="page main" id="page-exams">
@@ -1023,6 +1054,7 @@ function goPage(name,btn){
   if(name==='lectures')buildSubjectTabs();
   if(name==='exams')renderExams();
   if(name==='studywrong')renderStudyWrongPage();
+  if(name==='bbogae')bbRender();
 }
 
 // ==================== MOCK EXAM RECORD (재언/태현) ====================
@@ -2264,6 +2296,137 @@ async function submitRecord(){
   }catch(e){
     statusEl.textContent='저장 실패: '+e;
   }
+}
+
+
+// ==================== 뽀개기 ====================
+const BB={D:'imgo_bb_docs',R:'imgo_bb_rec_',P:'imgo_bb_person'};
+let bbDocs=[],bbPerson='재언',bbRec={},bbView=null,bbTerm='all',bbS=null,bbTmp=null;
+const bbEsc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const bbHash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h.toString(36)};
+function bbLoadRec(){try{bbRec=JSON.parse(localStorage.getItem(BB.R+bbPerson)||'{}')}catch(e){bbRec={}}}
+(function(){try{bbDocs=JSON.parse(localStorage.getItem(BB.D)||'[]')}catch(e){bbDocs=[]}bbPerson=localStorage.getItem(BB.P)||'재언';bbLoadRec()})();
+function bbSave(){try{localStorage.setItem(BB.D,JSON.stringify(bbDocs));localStorage.setItem(BB.R+bbPerson,JSON.stringify(bbRec));localStorage.setItem(BB.P,bbPerson)}catch(e){alert('저장 실패 (용량 초과?)')}}
+
+// 붙여넣은 HTML → 허용 태그만 남기고 스타일 제거
+const BB_OK=new Set(['P','DIV','B','STRONG','I','EM','U','BR','TABLE','TBODY','THEAD','TR','H2','H3','H4','UL','OL','LI','SUB','SUP']);
+const BB_SKIP=new Set(['SCRIPT','STYLE','INS','IFRAME','FIGURE','IMG','BUTTON','INPUT','TEXTAREA','SVG','NOSCRIPT']);
+function bbClean(src,out){
+  src.childNodes.forEach(n=>{
+    if(n.nodeType===3){out.appendChild(document.createTextNode(n.nodeValue));return}
+    if(n.nodeType!==1||BB_SKIP.has(n.tagName))return;
+    const t=n.tagName;let el=null;
+    if(t==='SPAN'&&n.classList.contains('blank')){el=document.createElement('span');el.className='blank';el.textContent=n.textContent.trim();out.appendChild(el);return}
+    if(t==='TD'||t==='TH'){
+      el=document.createElement('td');
+      ['colspan','rowspan'].forEach(a=>{const v=parseInt(n.getAttribute(a));if(v>1&&v<20)el.setAttribute(a,v)});
+      if(/background/.test(n.getAttribute('style')||'')&&!n.querySelector('.blank'))el.className='bb-th';
+    }else if(BB_OK.has(t)){
+      el=document.createElement(t.toLowerCase());
+      if(t==='DIV'&&n.classList.contains('contentbox'))el.className='contentbox';
+    }
+    if(el){bbClean(n,el);out.appendChild(el)}else bbClean(n,out);
+  });
+}
+function bbParse(raw){
+  raw=raw.trim();let m={title:'',src:'',html:raw};
+  if(raw.startsWith('IMGO_BBOGAE::')){try{m=JSON.parse(raw.slice(13))}catch(e){return null}}
+  const d=new DOMParser().parseFromString('<body>'+m.html+'</body>','text/html');
+  const box=document.createElement('div');bbClean(d.body,box);
+  box.querySelectorAll('p,div:not(.contentbox)').forEach(e=>{if(!e.textContent.replace(/\u00a0/g,'').trim()&&!e.querySelector('table,br'))e.remove()});
+  const n=box.querySelectorAll('.blank').length;
+  return n?{title:m.title||'',src:m.src||'',html:box.innerHTML,n}:null;
+}
+function bbBox(doc){const b=document.createElement('div');b.innerHTML=doc.html;let i=0;b.querySelectorAll('.blank').forEach(e=>{e.className='bb-b';e.dataset.k=(i++)+'_'+bbHash(e.textContent)});return b}
+function bbStat(doc){const r=bbRec[doc.id]||{};let a=0,c=0,w=0,l=0;Object.values(r).forEach(x=>{a+=x.a;c+=x.c;if(x.l==='X')w++;if(x.a)l++});return{a,c,w,l,rate:a?Math.round(c*100/a):null}}
+
+// ── 목록 / 문서 화면 ──
+function bbRender(){
+  const el=document.getElementById('bbRoot');if(!el)return;
+  bbPopX();
+  if(bbView){bbRenderDoc(el);return}
+  const list=bbDocs.filter(d=>bbTerm==='all'||String(d.term)===bbTerm);
+  el.innerHTML=`<div class="bb-top">${['재언','태현'].map(p=>`<button class="ttab ${p===bbPerson?'on':''}" onclick="bbWho('${p}')">${p}</button>`).join('')}<span class="bb-sp"></span><button class="bb-btn pri" onclick="bbOpenAdd()">+ 등록</button></div>
+  <div class="term-tabs">${['all','1','2','3'].map(t=>`<button class="ttab ${t===bbTerm?'on':''}" onclick="bbTerm='${t}';bbRender()">${t==='all'?'전체':t+'텀'}</button>`).join('')}</div>`
+  +(list.length?list.map(d=>{const s=bbStat(d);return `<div class="bb-card" onclick="bbOpen('${d.id}')"><div class="bb-ct">${bbEsc(d.title)}</div><div class="bb-cs">${bbEsc(d.subj||'과목 없음')} · ${d.term?d.term+'텀':'텀 미지정'} · 빈칸 ${d.n}개 · 학습 ${s.l}/${d.n} · 정답률 ${s.rate===null?'-':s.rate+'%'}${s.w?' · 약점 '+s.w:''}</div></div>`}).join('')
+  :'<div class="bb-cs" style="padding:30px 0;text-align:center;line-height:1.8">등록된 문서가 없어요.<br>블로그에서 북마크로 복사한 뒤 [+ 등록]에 붙여넣으세요.</div>');
+}
+function bbWho(p){bbSave();bbPerson=p;bbLoadRec();bbSave();bbRender()}
+function bbOpen(id){bbView=id;bbS={mode:'study',filter:'all',judged:{},undo:[],tgt:null};bbRender();scrollTo(0,0)}
+function bbRenderDoc(el){
+  const d=bbDocs.find(x=>x.id===bbView);if(!d){bbView=null;return bbRender()}
+  const box=bbBox(d),r=bbRec[d.id]||{},S=bbS;
+  if(!S.tgt){S.tgt=new Set();box.querySelectorAll('.bb-b').forEach(e=>{const k=e.dataset.k,x=r[k];if(S.filter==='all'||(S.filter==='weak'&&x&&x.l==='X')||(S.filter==='new'&&!(x&&x.a)))S.tgt.add(k)})}
+  box.querySelectorAll('.bb-b').forEach(e=>{const k=e.dataset.k;if(!S.tgt.has(k))e.className='bb-plain';else if(S.judged[k])e.className='bb-b open '+(S.judged[k]==='O'?'ok':'ng')});
+  const js=Object.values(S.judged),jo=js.filter(x=>x==='O').length,st=bbStat(d);
+  const chip=(g,v,t)=>`<button class="ttab ${S[g]===v?'on':''}" onclick="bbS.${g}='${v}';bbS.tgt=null;bbRender()">${t}</button>`;
+  el.innerHTML=`<div class="bb-top"><button class="bb-btn" onclick="bbView=null;bbRender()">← 목록</button><b style="font-size:13px">${bbEsc(d.title)}</b><span class="bb-sp"></span><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div>
+  <div class="bb-top">${chip('mode','study','학습')}${chip('mode','test','테스트')}<span style="width:8px"></span>${chip('filter','all','전체')}${chip('filter','weak','약점만')}${chip('filter','new','안 푼 것')}</div>
+  <div class="bb-cs" style="margin-bottom:8px">${S.mode==='test'?`이번 판정 ${js.length}/${S.tgt.size} · O ${jo} · ${js.length?Math.round(jo*100/js.length):0}% · `:''}누적 정답률 ${st.rate===null?'-':st.rate+'%'} (${bbPerson})</div>
+  <div class="bb-top"><button class="bb-btn" onclick="bbAll(1)">전체 열기</button><button class="bb-btn" onclick="bbAll(0)">전체 가리기</button>${S.mode==='test'?`<button class="bb-btn" onclick="bbUndo()">↩ 판정 취소</button><button class="bb-btn" onclick="bbS.judged={};bbS.undo=[];bbRender()">이번 판정 초기화</button>`:''}</div>
+  <div class="bb-doc ${S.mode}" id="bbDoc" onclick="bbClick(event)"></div>`;
+  document.getElementById('bbDoc').appendChild(box);
+}
+function bbAll(v){document.querySelectorAll('#bbDoc .bb-b').forEach(e=>e.classList.toggle('open',!!v));bbPopX()}
+function bbPopX(){const p=document.getElementById('bbPop');if(p)p.remove()}
+function bbClick(ev){
+  const b=ev.target.closest('.bb-b');bbPopX();if(!b)return;
+  const o=b.classList.toggle('open'),k=b.dataset.k;
+  if(bbS.mode==='test'&&o&&!bbS.judged[k]){
+    const p=document.createElement('div');p.className='bb-pop';p.id='bbPop';
+    p.innerHTML=`<button class="bb-btn" style="color:var(--accent)" onclick="bbJ('${k}',1)">⭕ 맞음</button><button class="bb-btn" style="color:var(--red)" onclick="bbJ('${k}',0)">❌ 틀림</button>`;
+    const q=b.getBoundingClientRect();
+    p.style.top=(q.bottom+scrollY+4)+'px';p.style.left=Math.max(8,Math.min(q.left+scrollX,innerWidth-200))+'px';
+    document.body.appendChild(p);
+  }
+}
+function bbRedraw(){const y=scrollY;bbRender();scrollTo(0,y)}
+function bbJ(k,ok){
+  bbPopX();const id=bbView,r=(bbRec[id]=bbRec[id]||{}),x=r[k]||{a:0,c:0};
+  bbS.undo.push({k,prev:r[k]?{...r[k]}:null});
+  r[k]={a:x.a+1,c:x.c+(ok?1:0),l:ok?'O':'X',t:Date.now()};
+  bbS.judged[k]=ok?'O':'X';bbSave();bbRedraw();
+}
+function bbUndo(){
+  const u=bbS.undo.pop();if(!u)return;const r=bbRec[bbView];
+  if(u.prev)r[u.k]=u.prev;else delete r[u.k];
+  delete bbS.judged[u.k];bbSave();bbRedraw();
+}
+function bbDel(id){
+  if(!confirm('이 문서와 내 기록을 삭제할까요?'))return;
+  bbDocs=bbDocs.filter(d=>d.id!==id);delete bbRec[id];bbSave();bbView=null;bbRender();
+}
+
+// ── 등록 ──
+const BB_SUBJ=['국어','수학','사회','과학','영어','음악','미술','체육','도덕','실과','총론','창체','창의적','바른','슬기','즐거','특수','가정','한문'];
+function bbClose(){const o=document.getElementById('bbOv');if(o)o.remove();bbTmp=null}
+function bbOpenAdd(){
+  const o=document.createElement('div');o.className='bb-ov';o.id='bbOv';
+  o.innerHTML=`<div class="bb-md"><div class="sec-title">뽀개기 문서 등록</div>
+  <textarea id="bbIn" style="height:110px" placeholder="북마크로 복사한 내용을 붙여넣으세요 (Ctrl+V)" oninput="bbPrev()"></textarea>
+  <div id="bbPv" class="bb-cs" style="margin:8px 0">붙여넣으면 자동으로 분석해요.</div>
+  <input id="bbTi" placeholder="제목" style="margin-bottom:6px">
+  <div style="display:flex;gap:6px"><input id="bbSu" placeholder="과목 (예: 미술)" list="bbSl"><select id="bbTe"><option value="">텀 미지정</option><option>1</option><option>2</option><option>3</option></select></div>
+  <datalist id="bbSl">${[...new Set(bbDocs.map(d=>d.subj).filter(Boolean))].map(s=>`<option>${bbEsc(s)}</option>`).join('')}</datalist>
+  <div class="bb-top" style="margin:12px 0 0"><span class="bb-sp"></span><button class="bb-btn" onclick="bbClose()">취소</button><button class="bb-btn pri" onclick="bbAdd()">저장</button></div></div>`;
+  document.body.appendChild(o);
+}
+function bbPrev(){
+  const t=bbParse(document.getElementById('bbIn').value),pv=document.getElementById('bbPv');
+  bbTmp=t;
+  if(!t){pv.style.color='var(--red)';pv.textContent='빈칸(span.blank)을 찾지 못했어요. 북마크로 복사한 내용이 맞는지 확인해주세요.';return}
+  pv.style.color='var(--accent)';pv.textContent=`빈칸 ${t.n}개 인식 ✓`;
+  const ti=document.getElementById('bbTi'),su=document.getElementById('bbSu');
+  if(!ti.value)ti.value=t.title;
+  if(!su.value){const g=BB_SUBJ.find(s=>t.title.includes(s));if(g)su.value=g==='창의적'?'창체':g}
+}
+function bbAdd(){
+  if(!bbTmp){alert('먼저 내용을 붙여넣어주세요');return}
+  const f={title:document.getElementById('bbTi').value.trim()||'제목 없음',subj:document.getElementById('bbSu').value.trim(),term:document.getElementById('bbTe').value,src:bbTmp.src,html:bbTmp.html,n:bbTmp.n};
+  const ex=f.src&&bbDocs.find(d=>d.src===f.src);
+  if(ex){if(!confirm('같은 글이 이미 있어요. 내용을 덮어쓸까요? (기록은 유지돼요)'))return;Object.assign(ex,f)}
+  else bbDocs.push({id:'d'+Date.now().toString(36),...f});
+  bbSave();bbClose();bbRender();
 }
 
 // ==================== THEME ====================
