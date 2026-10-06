@@ -2325,7 +2325,7 @@ const bbWk=u=>!!(u&&u.a&&(u.l==='X'||Math.round(u.c*100/u.a)<bbSet.max));
 const bbT=(x,t)=>(x&&x.T&&x.T[t])||{a:0,c:0,l:''};
 const bbCol=r=>r===null?'var(--text3)':r>=bbSet.max?'var(--teal)':r<bbSet.min?'var(--red)':'var(--amber)';
 const bbDK=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const bbDays=v=>typeof v==='number'?[v]:(typeof v==='string'&&v?[...new Set(v.split(/[|,]/).map(Number).filter(n=>Number.isInteger(n)&&n>=0&&n<=6))].sort((a,b)=>a-b):[]);
+const bbDays=v=>typeof v==='number'?(Number.isInteger(v)&&v>=0&&v<=6?[v]:[]):(typeof v==='string'&&v?[...new Set(v.split(/[|,]/).map(Number).filter(n=>Number.isInteger(n)&&n>=0&&n<=6))].sort((a,b)=>a-b):[]);
 const bbDayStore=a=>{a=[...new Set(a)].sort((x,y)=>x-y);return a.length===0?'':a.length===1?a[0]:a.join('|')};
 const bbWK=i=>{const n=new Date(),t=(n.getDay()+6)%7;n.setDate(n.getDate()-t+i);return bbDK(n)};
 function bbRunsOf(id){const m=Object.assign({},bbRuns[id]||{});bbSes.forEach(s=>{if(s.doc===id)m[s.term]=(m[s.term]||0)+1});return m}
@@ -2343,6 +2343,9 @@ function bbLoadP(){
   bbRec=g(BB.R)||{};bbSet=Object.assign({min:60,max:80,term:1},g(BB.S));bbDone=g(BB.N)||{};bbRuns=g('imgo_bb_runs_')||{};bbSes=g('imgo_bb_ses_')||[];bbEC=null;
   Object.values(bbRec).forEach(d=>Object.values(d).forEach(x=>{if(!x.T){x.T={1:{a:x.a||0,c:x.c||0,l:x.l||''}};delete x.a;delete x.c;delete x.l}}));
 }
+(function(){try{if(localStorage.getItem('imgo_bb_v2'))return;
+  Object.keys(localStorage).filter(k=>k.indexOf('imgo_bb_')===0&&k!=='imgo_bb_fs'&&k!=='imgo_bb_person').forEach(k=>localStorage.removeItem(k));
+  localStorage.setItem('imgo_bb_v2','1')}catch(e){}})();
 (function(){try{bbDocs=JSON.parse(localStorage.getItem(BB.D)||'[]')}catch(e){bbDocs=[]}bbPerson=localStorage.getItem(BB.P)||'재언';bbLoadP()})();
 function bbSave(){try{const w=(k,v)=>localStorage.setItem(k,JSON.stringify(v));w(BB.D,bbDocs);w(BB.R+bbPerson,bbRec);w(BB.S+bbPerson,bbSet);w(BB.N+bbPerson,bbDone);w('imgo_bb_runs_'+bbPerson,bbRuns);w('imgo_bb_ses_'+bbPerson,bbSes);bbEC=null;localStorage.setItem(BB.P,bbPerson)}catch(e){alert('저장 실패 (용량 초과?)')}}
 
@@ -2385,7 +2388,7 @@ function bbRender(){
   if(bbView)return bbRenderDoc(el);
   el.innerHTML=`<div class="bb-top">${['재언','태현'].map(p=>`<button class="ttab ${p===bbPerson?'on':''}" onclick="bbWho('${p}')">${p}</button>`).join('')}<span class="bb-sp"></span><button class="apply-btn-sm" onclick="bbOpenAdd()">등록</button><button class="apply-btn-sm" onclick="bbOpenSet()">설정</button></div>
   <div class="bb-top">${[['weekly','WEEKLY 뽀개기'],['list','전체 목록'],['ana','분석']].map(([k,n])=>`<button class="ttab ${bbTab===k?'on':''}" onclick="bbTab='${k}';bbRender()">${n}</button>`).join('')}</div>
-  <div class="bb-cs" style="margin-bottom:12px">${bbPerson} · 현재 ${bbSet.term}텀 · 목표 ${bbSet.min}~${bbSet.max}% <span id="bbSy" style="margin-left:6px;color:var(--text3)">${bbSyncLabel()}</span></div>`+(bbTab==='weekly'?bbWeekly():bbTab==='list'?bbList():bbAna());
+  <div class="bb-cs" style="margin-bottom:12px">${bbPerson} · 현재 ${bbSet.term}텀 · 목표 ${bbSet.min}~${bbSet.max}% <span id="bbSy" style="margin-left:6px;color:var(--text3)">${bbSyncLabel()}</span><button class="bb-btn" style="padding:2px 10px;margin-left:6px" onclick="bbManual()" title="서버에서 다시 받기">↻</button></div>`+(bbTab==='weekly'?bbWeekly():bbTab==='list'?bbList():bbAna());
 }
 function bbWho(p){bbSave();bbPush();bbPerson=p;bbLoadP();bbSave();bbRender();bbSync()}
 function bbCard(d,extra,done){
@@ -2505,11 +2508,12 @@ function bbPrev(){
   const ti=document.getElementById('bbTi');if(!ti.value)ti.value=t.title;
   if(!bbF.subj){bbF.subj=bbGuess(t.title);bbFRender()}
 }
-function bbAdd(){
+async function bbAdd(){
   const ti=document.getElementById('bbTi').value.trim()||'제목 없음',f={title:ti,subj:bbF.subj,loc:bbF.loc,day:bbDayStore(bbF.days)};let tg=null,hh=0;
   if(bbF.edit){tg=bbDocs.find(d=>d.id===bbF.edit);Object.assign(tg,f)}
   else{
     if(!bbTmp){alert('먼저 내용을 붙여넣어주세요');return}
+    try{await bbPush(bbPerson);await bbPull(bbPerson)}catch(e){}   // 등록 직전 서버 목록 확인
     Object.assign(f,{src:bbTmp.src,html:bbTmp.html,n:bbTmp.n});
     const ex=f.src&&bbDocs.find(d=>d.src===f.src);
     if(ex){if(!confirm('같은 글이 이미 있어요. 내용을 덮어쓸까요? (기록은 유지돼요)'))return;Object.assign(ex,f);tg=ex;hh=1}
@@ -2538,7 +2542,7 @@ function bbOpenSet(){
   <div class="bb-cs">현재 진행 중인 텀</div><div style="display:flex;gap:6px"><input id="bbTm" type="number" min="1" value="${bbSet.term}"><button class="bb-btn" onclick="const i=document.getElementById('bbTm');i.value=+i.value+1">새 텀 시작 (+1)</button></div>
   <div class="bb-cs" style="margin-top:6px">새 텀을 시작하면 정답률·약점·안 푼 것이 0부터 다시 집계돼요. 이전 텀 기록은 분석 탭에서 볼 수 있어요.</div>
   <div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div>
-  <div class="bb-cs">문서 글꼴 크기 (뽀개기 문서 속 내용에만 적용 · 글꼴끼리 비율 유지)</div>
+  <div class="bb-cs">문서 글꼴 크기 (뽀개기 문서 속 내용에만 적용 · 이 기기에만 저장돼요)</div>
   <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin:8px 0"><button class="bb-btn" style="width:40px" onclick="bbFsStep(-1)">−</button><b id="bbFsPct" style="min-width:60px;text-align:center">100%</b><button class="bb-btn" style="width:40px" onclick="bbFsStep(1)">+</button><button class="bb-btn" onclick="bbFsSet(1)">기본</button></div>
   <input id="bbFsR" type="range" min="60" max="180" step="5" value="100" oninput="bbFsSet(this.value/100)" style="padding:0;border:none;background:none">
   <div class="bb-doc study" style="padding:8px 12px;margin-top:8px"><h3>미리보기 제목</h3><p>이렇게 보여요. <span class="bb-b open">빈칸</span> 내용이 있는 문장입니다.</p></div>
@@ -2593,9 +2597,9 @@ const bbQRead=w=>{try{return JSON.parse(localStorage.getItem(BB_QK+w)||'{}')}cat
 const bbQWrite=(w,q)=>{try{localStorage.setItem(BB_QK+w,JSON.stringify(q))}catch(e){}};
 const bbStGet=w=>{try{return Object.assign({since:0,mig:0},JSON.parse(localStorage.getItem(BB_SK+w)||'{}'))}catch(e){return{since:0,mig:0}}};
 const bbStSet=(w,s)=>{try{localStorage.setItem(BB_SK+w,JSON.stringify(s))}catch(e){}};
-function bbSyncLabel(){const n=Object.keys(bbQRead(bbPerson)).length;return bbSyErr?`⚠ 동기화 실패${n?' · 대기 '+n:''}`:n?`↻ 대기 ${n}`:bbSyOk?'☁ 동기화됨':''}
+function bbSyncLabel(){const n=Object.keys(bbQRead(bbPerson)).length;return bbSyErr?`⚠ 동기화 실패${n?' · 대기 '+n:''}`:n?`↻ 대기 ${n}`:bbSyOk?'☁ 동기화됨'+(bbSyT?' '+bbSyT:''):''}
 function bbSyUI(){const e=document.getElementById('bbSy');if(e)e.textContent=bbSyncLabel()}
-function bbSched(){clearTimeout(bbSchT);bbSchT=setTimeout(()=>bbPush(),1200);bbSyUI()}
+function bbSched(){clearTimeout(bbSchT);bbSchT=setTimeout(()=>bbPush(),50);bbSyUI()}
 function bbEnq(kind,key,item){const q=bbQRead(bbPerson);if(item.ts===undefined)item.ts=Date.now();if(kind==='docs'&&q[key]&&q[key].item.h)item.h=1;q[key]={kind,item};bbQWrite(bbPerson,q);bbSched()}
 function bbEnqDoc(d,h){const ts=Date.now();d.ts=ts;bbEnq('docs','docs|'+d.id,{id:d.id,ts,h:h?1:0})}
 async function bbPush(who){
@@ -2617,24 +2621,21 @@ async function bbPush(who){
       if(!sent.length)break;
       const r=await(await fetch(MOCK_EXAM_API_URL,{method:'POST',body:JSON.stringify(b)})).json();
       if(!r.ok)throw new Error(r.error||'sync');
+      // 서버가 구버전이면 모르는 항목을 무시하고도 ok를 돌려줌 → 항목별 saved 확인
+      if(!r.saved||['docs','records','runs','done','ses'].some(k=>b[k].length&&typeof r.saved[k]!=='number')||(b.settings&&typeof r.saved.settings!=='number'))throw new Error('server outdated');
       const q2=bbQRead(who);sent.forEach(k=>{if(q2[k]&&q2[k].item.ts===q[k].item.ts)delete q2[k]});bbQWrite(who,q2);
     }
     bbSyErr=false;bbSyOk=true;
   }catch(e){bbSyErr=true;clearTimeout(bbRT);bbRT=setTimeout(()=>bbPush(who),30000)}
   finally{bbBusy[who]=0;bbSyUI()}
 }
-function bbRemap(o,n){  // 같은 글(src)이 다른 id로 있을 때 기록을 서버 id로 합침
-  if(bbRec[o]){const t=bbRec[n]=bbRec[n]||{};for(const k in bbRec[o])if(!t[k])t[k]=bbRec[o][k];delete bbRec[o]}
-  if(bbRuns[o]){const t=bbRuns[n]=bbRuns[n]||{};for(const m in bbRuns[o])t[m]=Math.max(t[m]||0,bbRuns[o][m]);delete bbRuns[o]}
-  for(const d in bbDone)if(bbDone[d][o]){bbDone[d][n]=1;delete bbDone[d][o]}
-  bbSes.forEach(s=>{if(s.doc===o)s.doc=n});
-}
-async function bbPull(who){
+async function bbPull(who,full){
   const st=bbStGet(who);
-  const r=await(await fetch(`${MOCK_EXAM_API_URL}?target=bb&author=${encodeURIComponent(who)}&since=${st.since||0}`)).json();
+  const r=await(await fetch(`${MOCK_EXAM_API_URL}?target=bb&author=${encodeURIComponent(who)}&since=${full?0:(st.since||0)}`)).json();
   if(!r.ok)throw new Error(r.error||'pull');
   if(who!==bbPerson)return;
   const q=bbQRead(who),pd=k=>!!q[k];let ch=false;   // 전송 대기 중인 항목은 로컬 우선
+  if(full&&!Object.keys(q).length){bbDocs=[];bbRec={};bbRuns={};bbDone={};bbSes=[];bbSet={min:60,max:80,term:1};bbS=null;ch=true}   // 전체 받기: 서버 내용으로 통째로 교체
   (r.docs||[]).forEach(sd=>{
     if(pd('docs|'+sd.id))return;
     const i=bbDocs.findIndex(d=>d.id===sd.id),l=bbDocs[i];
@@ -2642,9 +2643,10 @@ async function bbPull(who){
     if(l&&sd.ts<=(l.ts||0))return;
     const nd={id:sd.id,title:sd.title,subj:sd.subj,loc:sd.loc,day:sd.day,src:sd.src,n:sd.n,html:sd.html,ts:sd.ts};
     if(l)bbDocs[i]=nd;
-    else{const j=nd.src?bbDocs.findIndex(d=>d.id!==nd.id&&d.src===nd.src):-1;if(j>=0){bbRemap(bbDocs[j].id,nd.id);bbDocs.splice(j,1)}bbDocs.push(nd)}
+    else bbDocs.push(nd);
     ch=true;
   });
+  if(bbView&&!bbDocs.some(d=>d.id===bbView))bbView=null;
   (r.records||[]).forEach(x=>{
     if(pd(`records|${x.docId}|${x.blankKey}|${x.term}`))return;
     const d=bbRec[x.docId]||{},b=d[x.blankKey],l=b&&b.T&&b.T[x.term];
@@ -2675,27 +2677,20 @@ async function bbPull(who){
   st.since=r.serverTime;bbStSet(who,st);
   if(ch&&!bbView)bbRender();
 }
-function bbMigrate(who){  // 최초 1회: 로컬 데이터 전체를 ts 기준으로 올림 (서버에 더 최신이 있으면 서버가 이김)
-  const q=bbQRead(who),put=(kind,key,item)=>{if(!q[key])q[key]={kind,item}};
-  bbDocs.forEach(d=>put('docs','docs|'+d.id,{id:d.id,ts:d.ts||0,h:1}));
-  for(const id in bbRec)for(const k in bbRec[id])for(const t in (bbRec[id][k].T||{})){const x=bbRec[id][k].T[t];put('records',`records|${id}|${k}|${t}`,{docId:id,blankKey:k,term:+t,a:x.a,c:x.c,l:x.l||'',ts:x.ts||0})}
-  for(const id in bbRuns)for(const t in bbRuns[id])put('runs',`runs|${id}|${t}`,{docId:id,term:+t,runs:bbRuns[id][t],ts:0});
-  bbSes.forEach(s=>put('ses','ses|'+s.id,{sid:s.id,docId:s.doc,term:s.term,at:s.ts,ts:s.ts,j:s.j}));
-  for(const dt in bbDone)for(const id in bbDone[dt])put('done',`done|${dt}|${id}`,{date:dt,docId:id,done:1,ts:0});
-  put('settings','settings|'+who,{min:bbSet.min,max:bbSet.max,term:bbSet.term,ts:bbSet.ts||0});
-  bbQWrite(who,q);
-}
+const bbFullDone={};let bbSyT='';
 async function bbSync(){
   if(bbSyncing)return;bbSyncing=true;const who=bbPerson;
   try{
     await bbPush(who);
-    await bbPull(who);
-    const st=bbStGet(who);
-    if(!st.mig&&who===bbPerson){bbMigrate(who);st.mig=1;bbStSet(who,st);await bbPush(who)}
-    bbSyOk=true;
+    const full=!bbFullDone[who];
+    if(full&&Object.keys(bbQRead(who)).length)throw new Error('pending');   // 못 보낸 게 있으면 서버 내용으로 덮기 전에 중단
+    await bbPull(who,full);bbFullDone[who]=true;
+    const d=new Date();bbSyT=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    bbSyOk=true;bbSyErr=false;
   }catch(e){bbSyErr=true}
-  finally{bbSyncing=false;bbSyUI()}
+  finally{bbSyncing=false;bbSyUI();if(!bbSyErr&&!bbView&&document.getElementById('bbRoot'))bbRender()}
 }
+function bbManual(){bbFullDone[bbPerson]=false;bbSync()}
 document.addEventListener('visibilitychange',()=>{const e=document.getElementById('bbRoot');if(!document.hidden&&e&&e.offsetParent)bbSync()});
 window.addEventListener('online',()=>bbPush());
 
