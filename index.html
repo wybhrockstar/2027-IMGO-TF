@@ -893,7 +893,7 @@ function buildWeekly(){
   const edu=x.edu.map(e=>`${e[0]} <span class="pp-g">(${e[1]}자)</span>`).join(' + ')+` <span class="pp-gb">[총 ${total}자]</span>`;
   const row=(lab,val)=>`<div class="pp-row"><div class="pp-lab">${lab}</div><div class="pp-val">${val}</div></div>`;
   document.getElementById('ppBody').innerHTML=
-    `<div class="pp-tabs">${tabs}</div><div class="pp-card">${row('역량','ALL')}${row('모형',model)}${row('교육과정',edu)}${row('총론·창체',x.gen)}</div>`;
+    `<div class="pp-tabs">${tabs}</div><div class="pp-card">${row('역량','ALL')}${row('총론·창체',x.gen)}${row('모형',model)}${row('교육과정',edu)}</div>`;
 }
 function ppPick(i){ ppSel=i; ppSelDay=new Date().toDateString(); buildWeekly(); }
 // 날짜가 바뀌면 2주 캘린더와 뽀개기 요일이 같이 오늘로 갱신되도록 주기적으로 확인
@@ -2395,24 +2395,34 @@ function bbRender(){
 function bbWho(p){bbSave();bbPush();bbPerson=p;bbLoadP();bbSave();bbRender();bbSync()}
 function bbCard(d,extra,done){
   const s=bbAgg(d.id,bbSet.term),sj=bbSj(d.subj);
-  const lb=(d.subj?bbLab(d.subj,sj?sj.color:'var(--text3)'):'')+(d.loc?bbLab(d.loc+(bbDays(d.day).length?'·'+bbDays(d.day).map(i=>BB_DAYS[i]).join('·'):''),'var(--text2)'):'');
-  return `<div class="bb-card" ${done?'style="border-color:var(--accent);background:var(--accent3)"':''} onclick="bbOpen('${d.id}')"><div style="display:flex;align-items:center"><div style="flex:1"><div class="bb-ct">${done?'<span class="bb-ck">✓</span>':''}${lb}${bbEsc(d.title)}</div><div class="bb-cs">학습 ${s.l}/${d.n} · 풀이 ${bbRn(d.id)}회 · ${bbSet.term}텀 정답률 <b style="color:${bbCol(s.rate)}">${s.rate===null?'-':s.rate+'%'}</b>${s.w?' · 약점 '+s.w:''}</div></div>${extra||''}</div></div>`;
+  const ds=bbDays(d.day),dl=ds.length===7?'매일':ds.map(i=>BB_DAYS[i]).join('·');
+  const lb=(d.subj?bbLab(d.subj,sj?sj.color:'var(--text3)'):'')+(d.loc?bbLab(d.loc+(ds.length?'·'+dl:''),'var(--text2)'):'');
+  return `<div class="bb-card" ${done===2?'style="border-color:var(--amber);opacity:.85"':done?'style="border-color:var(--accent);background:var(--accent3)"':''} onclick="bbOpen('${d.id}')"><div style="display:flex;align-items:center"><div style="flex:1"><div class="bb-ct">${done===2?'<span class="bb-ck" style="background:var(--amber);width:auto;padding:0 6px;border-radius:9px">PASS</span>':done?'<span class="bb-ck">✓</span>':''}${lb}${bbEsc(d.title)}</div><div class="bb-cs">학습 ${s.l}/${d.n} · 풀이 ${bbRn(d.id)}회 · ${bbSet.term}텀 정답률 <b style="color:${bbCol(s.rate)}">${s.rate===null?'-':s.rate+'%'}</b>${s.w?' · 약점 '+s.w:''}</div></div>${extra||''}</div></div>`;
 }
+const bbGrp=d=>/역량/.test(d.title)?0:d.subj==='총론·창체'?1:/모형/.test(d.title)?2:3;   // 역량 / 총론·창체 / 모형 / 교육과정
 function bbWeekly(){
   const now=new Date(),td=(now.getDay()+6)%7;if(bbDay===null)bbDay=td;
   const dt=new Date(now);dt.setDate(now.getDate()-td+bbDay);const key=bbDK(dt),dn=bbDone[key]||{};
-  const L=bbDocs.filter(d=>bbVis(d)&&d.loc&&bbDays(d.day).includes(bbDay)),nd=L.filter(d=>dn[d.id]).length;
+  const L=bbDocs.filter(d=>bbVis(d)&&d.loc&&bbDays(d.day).includes(bbDay)).sort((a,b)=>bbGrp(a)-bbGrp(b)),nd=L.filter(d=>dn[d.id]).length;
+  const btn=d=>{const v=dn[d.id];
+    if(v===1)return `<button class="apply-btn-sm" onclick="event.stopPropagation();bbDn('${key}','${d.id}')">✓ 완료됨</button>`;
+    const ob='background:none;color:var(--accent);border:1px solid var(--accent)';
+    const ps=v===2?`<button class="apply-btn-sm" style="background:var(--amber);color:#111;border:1px solid var(--amber);margin-right:6px" onclick="event.stopPropagation();bbPs('${key}','${d.id}')" title="눌러서 PASS 취소">PASS됨</button>`:`<button class="apply-btn-sm" style="background:none;color:var(--text2);border:1px solid var(--border2);margin-right:6px" onclick="event.stopPropagation();bbPs('${key}','${d.id}')">PASS</button>`;
+    return `<span style="display:flex;white-space:nowrap">${ps}<button class="apply-btn-sm" style="${ob}" onclick="event.stopPropagation();bbDn('${key}','${d.id}')">완료하기</button></span>`};
   return `<div class="pp-tabs" style="margin-bottom:10px">${BB_DAYS.map((x,i)=>`<button class="pp-day ${i===bbDay?'sel':''} ${i===td?'today':''}" onclick="bbDay=${i};bbRender()">${x}</button>`).join('')}</div>
   <div class="bb-cs" style="margin-bottom:8px">${dt.getMonth()+1}/${dt.getDate()}(${BB_DAYS[bbDay]}) · ${nd}/${L.length} 완료</div>`
-  +(L.length?L.map(d=>bbCard(d,`<button class="apply-btn-sm" style="${dn[d.id]?'':'background:none;color:var(--accent);border:1px solid var(--accent)'}" onclick="event.stopPropagation();bbDn('${key}','${d.id}')">${dn[d.id]?'✓ 완료됨':'완료하기'}</button>`,dn[d.id])).join(''):'<div class="bb-cs" style="padding:24px 0;text-align:center">이 요일에 지정된 뽀개기가 없어요.<br>등록 시 구분(공통/재언/태현)과 요일을 고르면 여기에 떠요.</div>');
+  +(L.length?L.map(d=>bbCard(d,btn(d),dn[d.id])).join(''):'<div class="bb-cs" style="padding:24px 0;text-align:center">이 요일에 지정된 뽀개기가 없어요.<br>등록 시 구분(공통/재언/태현)과 요일을 고르면 여기에 떠요.</div>');
 }
-function bbDn(key,id){const m=(bbDone[key]=bbDone[key]||{});if(m[id])delete m[id];else m[id]=1;bbEnq('done',`done|${key}|${id}`,{date:key,docId:id,done:m[id]?1:0});bbSave();bbRender()}
+// 완료 상태: 1=완료, 2=PASS (풀이 없이 넘김, 완료 카운트에는 포함 · 풀이 횟수에는 안 침)
+function bbSetDn(key,id,v){const m=(bbDone[key]=bbDone[key]||{});if(v)m[id]=v;else delete m[id];bbEnq('done',`done|${key}|${id}`,{date:key,docId:id,done:v});bbSave();bbRender()}
+function bbDn(key,id){const m=bbDone[key]||{};bbSetDn(key,id,m[id]===1?0:1)}
+function bbPs(key,id){const m=bbDone[key]||{};if(m[id]===1)return;bbSetDn(key,id,m[id]===2?0:2)}
 function bbList(){
-  const L=bbDocs.filter(bbVis).filter(d=>bbSub==='all'||(bbSub==='custom'?(d.loc&&d.loc!=='공통'):d.subj===bbSub));
-  const w=d=>{const s=bbAgg(d.id,bbSet.term);return s.rate===null?-1:100-s.rate},k=(a,b)=>a.title.localeCompare(b.title,'ko');
-  const si=d=>{const i=SUBJECT_META.findIndex(s=>s.name===d.subj);return i<0?99:i};L.sort(bbSort==='wrong'?(a,b)=>w(b)-w(a)||k(a,b):(a,b)=>si(a)-si(b)||k(a,b));
+  const L=bbDocs.filter(bbVis).filter(d=>bbSub==='all'||(bbSub==='custom'?(d.loc&&d.loc!=='공통'):bbSub==='none'?!d.subj:d.subj===bbSub));
+  const w=d=>{const s=bbAgg(d.id,bbSet.term);return s.rate===null?-1:100-s.rate},k=(a,b)=>a.title.localeCompare(b.title,'ko',{numeric:true});
+  const si=d=>{const i=SUBJECT_META.findIndex(s=>s.name===d.subj);return !d.subj?-1:i<0?99:i};L.sort(bbSort==='wrong'?(a,b)=>w(b)-w(a)||k(a,b):(a,b)=>si(a)-si(b)||k(a,b));
   const sj=(v,t,c)=>`<button class="bb-sj ${bbSub===v?'on':''}" style="--c:${c}" onclick="bbSub='${v}';bbRender()">${t}</button>`;
-  return `<div class="bb-top">${sj('all','전체','var(--text2)')}${sj('custom','커스텀','var(--text2)')}${SUBJECT_META.map(s=>sj(s.name,s.name,s.color)).join('')}</div>
+  return `<div class="bb-top">${sj('all','전체','var(--text2)')}${sj('custom','커스텀','var(--text2)')}${sj('none','기타','var(--text2)')}${SUBJECT_META.map(s=>sj(s.name,s.name,s.color)).join('')}</div>
   <div class="bb-top">${[['abc','이름 순'],['wrong','오답률 높은 순']].map(([v,t])=>`<button class="ttab ${bbSort===v?'on':''}" onclick="bbSort='${v}';bbRender()">${t}</button>`).join('')}</div>`
   +(L.length?L.map(d=>bbCard(d)).join(''):'<div class="bb-cs" style="padding:30px 0;text-align:center;line-height:1.8">문서가 없어요.<br>블로그에서 북마크로 복사한 뒤 [등록]에 붙여넣으세요.</div>');
 }
@@ -2459,7 +2469,8 @@ function bbRenderDoc(el){
   el.innerHTML=`<div class="bb-top"><button class="bb-btn" onclick="bbLeave()">← 목록</button><b style="font-size:13px">${bbEsc(d.title)}</b><span class="bb-sp"></span><button class="bb-btn" onclick="bbOpenAdd('${d.id}')">수정</button><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div>
   <div class="bb-top">${mc('study','학습')}${mc('test','테스트')}<span style="width:8px"></span>${fc('all','전체')}${fc('weak','약점만')}${fc('new','안 푼 것')}</div>
   <div class="bb-cs" style="margin-bottom:8px">${S.mode==='test'?`이번 판정 ${js.length}/${S.tgt.size} · O ${jo} · ${js.length?Math.round(jo*100/js.length):0}% · `:''}${bbSet.term}텀 정답률 <b style="color:${bbCol(st.rate)}">${st.rate===null?'-':st.rate+'%'}</b> (목표 ${bbSet.min}~${bbSet.max}%) · 약점 ${st.w}개 · 풀이 ${bbRn(d.id)}회</div>
-  <div class="bb-top"><button class="bb-btn" onclick="bbAll(1)">전체 열기</button><button class="bb-btn" onclick="bbAll(0)">전체 가리기</button><button class="bb-btn ${S.rv?'pri':''}" onclick="bbS.rv=!bbS.rv;bbRender()">정답률 보기</button></div>${S.mode==='test'?`
+  <div class="bb-top"><button class="bb-btn" onclick="bbAll(1)">전체 열기</button><button class="bb-btn" onclick="bbAll(0)">전체 가리기</button><button class="bb-btn ${S.rv?'pri':''}" onclick="bbS.rv=!bbS.rv;bbRender()">정답률 보기</button><button id="bbFsB" class="bb-btn ${S.fs?'pri':''}" onclick="bbFsTog()">글꼴 크기</button></div>
+  <div id="bbFsBar" style="display:${S.fs?'flex':'none'};align-items:center;justify-content:center;gap:10px;margin:0 0 10px;flex-wrap:wrap"><button class="bb-btn" style="width:40px" onclick="bbFsStep(-1)">−</button><b id="bbFsPct" style="min-width:52px;text-align:center">${Math.round(bbFs*100)}%</b><button class="bb-btn" style="width:40px" onclick="bbFsStep(1)">+</button><button class="bb-btn" onclick="bbFsSet(1)">기본</button><input id="bbFsR" type="range" min="60" max="180" step="5" value="${Math.round(bbFs*100)}" oninput="bbFsSet(this.value/100)" style="padding:0;border:none;background:none;flex:1;min-width:120px"></div>${S.mode==='test'?`
   <div class="bb-top"><button class="bb-btn" onclick="bbUndo()">↩ 판정 취소</button><button class="bb-btn" onclick="bbS.judged={};bbS.undo=[];bbRender()">이번 판정 초기화</button><button class="apply-btn-sm" onclick="bbFinish()">완료하기</button></div>`:''}
   <div class="bb-doc ${S.mode}" id="bbDoc" onclick="bbClick(event)"></div>${S.mode==='test'?`<button class="bb-fab" onclick="bbFinish()">✓ 완료</button>`:''}`;
   document.getElementById('bbDoc').appendChild(box);
@@ -2506,9 +2517,33 @@ function bbOpenAdd(id){
   <div id="bbMgBar" class="bb-top" style="display:none;margin:6px 0 0"><button class="bb-btn pri" onpointerdown="event.preventDefault()" onclick="bbMergeSel()">✂ 선택한 부분을 하나의 빈칸으로</button></div>`)
   +(e?`<div class="bb-cs" style="margin:0 0 6px">정보 (제목·과목·구분)</div>`:'')+`<input id="bbTi" placeholder="제목" value="${e?bbEsc(e.title):''}"><div id="bbFx"></div>`
   +(e?'':`<div class="bb-cs" style="margin:10px 0 4px">등록 위치</div><select id="bbAp" onchange="bbApSet(this.value)"><option value="">새 문서로 등록</option>${bbDocs.filter(bbVis).map(d=>`<option value="${d.id}">${bbEsc(d.title)} · 맨 아래에 추가</option>`).join('')}</select>`)
-  +(e?`<div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div class="bb-cs" style="margin:0 0 6px">기록 (풀이 1회 단위로 삭제하면 정답률·약점·풀이 횟수가 다시 계산돼요)</div><div id="bbRecBox">${bbRecHTML(id)}</div>`:'')
-  +`<div class="bb-top" style="margin:14px 0 0"><span class="bb-sp"></span><button class="bb-btn" onclick="bbClose()">${e?'닫기':'취소'}</button><button class="bb-btn pri" onclick="bbAdd()">${e?'정보 저장':'저장'}</button></div>`);
+  +(e?`<div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div class="bb-cs" style="margin:0 0 6px">빈칸 수정 · 빈칸을 누르면 해제, 드래그하면 선택한 부분이 하나의 빈칸이 돼요 (건드리지 않은 빈칸의 기록은 유지돼요)</div>
+  <div id="bbPv" class="bb-cs" style="margin:0 0 6px"></div><div id="bbPv2" class="bb-doc study bbpv" onclick="bbBmClick(event)" onpointerup="bbPUp(event,0)" style="max-height:38vh;overflow:auto;padding:8px;margin:0 0 6px"></div>
+  <div id="bbMgBar" class="bb-top" style="display:none;margin:6px 0 0"><button class="bb-btn pri" onpointerdown="event.preventDefault()" onclick="bbMergeSel()">✂ 선택한 부분을 하나의 빈칸으로</button></div>
+  <div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div class="bb-cs" style="margin:0 0 6px">기록 (풀이 1회 단위로 삭제하면 정답률·약점·풀이 횟수가 다시 계산돼요)</div><div id="bbRecBox">${bbRecHTML(id)}</div>`:'')
+  +`<div class="bb-top" style="margin:14px 0 0"><span class="bb-sp"></span><button class="bb-btn" onclick="bbClose()">${e?'닫기':'취소'}</button><button class="bb-btn pri" onclick="bbAdd()">${e?'저장':'저장'}</button></div>`);
   bbFRender();
+  if(e){const pv=document.getElementById('bbPv2'),t=document.createElement('div');t.innerHTML=e.html||'';let i=0;
+    t.querySelectorAll('.blank').forEach(x=>{x.dataset.ok=(i++)+'_'+bbHash(x.textContent)});   // 원래 빈칸 표시 (기록 이전용)
+    pv.innerHTML=t.innerHTML;bbBm={title:'',src:''};bbBmSync()}
+}
+// 빈칸 수정 저장: 건드리지 않은 빈칸은 새 번호로 옮겨 기록(정답률·풀이 판정)을 유지, 바뀐 빈칸의 기록만 삭제
+function bbEdBlanks(tg){
+  const pv=document.getElementById('bbPv2');if(!pv)return true;
+  const cl=pv.cloneNode(true),map={},nk=[];let i=0;
+  cl.querySelectorAll('.blank').forEach(x=>{const k=(i++)+'_'+bbHash(x.textContent);nk.push(k);if(x.dataset.ok)map[x.dataset.ok]=k;x.removeAttribute('data-ok')});
+  const ok=[...bbBox(tg).querySelectorAll('.bb-b')].map(x=>x.dataset.k);
+  if(ok.join('|')===nk.join('|'))return true;
+  if(!nk.length){alert('빈칸이 하나 이상 있어야 해요');return false}
+  if(!confirm(`빈칸을 ${ok.length}개 → ${nk.length}개로 바꿀까요? 바뀐 빈칸의 기록은 삭제되고, 그대로인 빈칸의 기록은 유지돼요.`))return false;
+  const id=tg.id,now=Date.now(),r=bbRec[id]||{},nr={};
+  for(const k in r)for(const t in (r[k].T||{}))if(map[k]!==k)bbEnq('records',`records|${id}|${k}|${t}`,{docId:id,blankKey:k,term:+t,a:0,c:0,l:'',ts:now});
+  for(const k in r)if(map[k]){const m=map[k];nr[m]={T:r[k].T};for(const t in r[k].T){const x=r[k].T[t];if(m!==k)bbEnq('records',`records|${id}|${m}|${t}`,{docId:id,blankKey:m,term:+t,a:x.a,c:x.c,l:x.l,ts:now})}}
+  bbRec[id]=nr;
+  bbSes.forEach(s=>{if(s.doc!==id)return;const j={};for(const k in (s.j||{}))if(map[k])j[map[k]]=s.j[k];s.j=j;bbEnq('ses','ses|'+s.id,{sid:s.id,docId:id,term:s.term,at:s.ts,ts:now,j})});
+  tg.html=cl.innerHTML;tg.n=nk.length;bbEnqDoc(tg,1);
+  if(bbS){bbS.judged={};bbS.undo=[];bbS.tgt=null}
+  return true;
 }
 function bbPrev(){
   const t=bbParse(document.getElementById('bbIn').value),pv=document.getElementById('bbPv'),bx=document.getElementById('bbPv2');bbTmp=t;
@@ -2744,7 +2779,7 @@ function bbMergeRun(cv){
   const m=cv?bbCvApply():bbBmMerge();
   if(m){const e=document.getElementById(cv?'bbCvSt':'bbPv');if(e){e.style.color='var(--red)';e.textContent=m}}
 }
-function bbMergeSel(){bbMergeRun(document.getElementById('bbP1').style.display!=='none')}
+function bbMergeSel(){const p=document.getElementById('bbP1');bbMergeRun(!!p&&p.style.display!=='none')}
 function bbPUp(e,cv){if(e.pointerType==='touch')return;setTimeout(()=>bbMergeRun(!!cv),0)}
 document.addEventListener('selectionchange',()=>{
   const s=getSelection(),pv=['bbCvPv','bbPv2'].map(i=>document.getElementById(i)).find(e=>e&&e.offsetParent);
@@ -2755,7 +2790,7 @@ document.addEventListener('selectionchange',()=>{
 });
 async function bbAdd(){
   const ti=document.getElementById('bbTi').value.trim()||'제목 없음',f={title:ti,subj:bbF.subj,loc:bbF.loc,day:bbDayStore(bbF.days)};let tg=null,hh=0;
-  if(bbF.edit){tg=bbDocs.find(d=>d.id===bbF.edit);Object.assign(tg,f)}
+  if(bbF.edit){tg=bbDocs.find(d=>d.id===bbF.edit);if(!bbEdBlanks(tg))return;Object.assign(tg,f);hh=0}
   else{
     if(!bbTmp){alert('먼저 내용을 붙여넣어주세요');return}
     try{await bbPush(bbPerson);await bbPull(bbPerson)}catch(e){}   // 등록 직전 서버 목록 확인
@@ -2774,35 +2809,30 @@ async function bbAdd(){
 }
 
 // ── 뽀개기 문서 글꼴 크기 (문서 내용에만 적용, 이 기기에 저장) ──
-let bbFs=1,bbFsSaved=1;
-try{const v=parseFloat(localStorage.getItem('imgo_bb_fs'));if(v>=0.6&&v<=1.8)bbFs=bbFsSaved=v}catch(e){}
+let bbFs=1;
+try{const v=parseFloat(localStorage.getItem('imgo_bb_fs'));if(v>=0.6&&v<=1.8)bbFs=v}catch(e){}
 document.documentElement.style.setProperty('--bbfs',bbFs);
 function bbFsSet(v){
   bbFs=Math.min(1.8,Math.max(0.6,Math.round(parseFloat(v)*100)/100));
   document.documentElement.style.setProperty('--bbfs',bbFs);
   const p=document.getElementById('bbFsPct'),r=document.getElementById('bbFsR');
   if(p)p.textContent=Math.round(bbFs*100)+'%';if(r)r.value=Math.round(bbFs*100);
+  try{localStorage.setItem('imgo_bb_fs',bbFs)}catch(e){}
 }
+function bbFsTog(){if(!bbS)return;bbS.fs=!bbS.fs;const e=document.getElementById('bbFsBar');if(e)e.style.display=bbS.fs?'flex':'none';const b=document.getElementById('bbFsB');if(b)b.classList.toggle('pri',bbS.fs)}
 function bbFsStep(d){bbFsSet(bbFs+d*0.05)}
-function bbSetCancel(){bbFsSet(bbFsSaved);bbClose()}
 function bbOpenSet(){
   bbModal(`<div class="sec-title">${bbPerson} 설정</div>
   <div class="bb-cs">최소 목표 정답률 (미만이면 빨강)</div><input id="bbMn" type="number" min="0" max="100" value="${bbSet.min}" style="margin-bottom:8px">
   <div class="bb-cs">최대 목표 정답률 (이상이면 초록, 사이는 주황)</div><input id="bbMx" type="number" min="0" max="100" value="${bbSet.max}" style="margin-bottom:8px">
   <div class="bb-cs">현재 진행 중인 텀</div><div style="display:flex;gap:6px"><input id="bbTm" type="number" min="1" value="${bbSet.term}"><button class="bb-btn" onclick="const i=document.getElementById('bbTm');i.value=+i.value+1">새 텀 시작 (+1)</button></div>
   <div class="bb-cs" style="margin-top:6px">새 텀을 시작하면 정답률·약점·안 푼 것이 0부터 다시 집계돼요. 이전 텀 기록은 분석 탭에서 볼 수 있어요.</div>
-  <div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div>
-  <div class="bb-cs">문서 글꼴 크기 (뽀개기 문서 속 내용에만 적용 · 이 기기에만 저장돼요)</div>
-  <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin:8px 0"><button class="bb-btn" style="width:40px" onclick="bbFsStep(-1)">−</button><b id="bbFsPct" style="min-width:60px;text-align:center">100%</b><button class="bb-btn" style="width:40px" onclick="bbFsStep(1)">+</button><button class="bb-btn" onclick="bbFsSet(1)">기본</button></div>
-  <input id="bbFsR" type="range" min="60" max="180" step="5" value="100" oninput="bbFsSet(this.value/100)" style="padding:0;border:none;background:none">
-  <div class="bb-doc study" style="padding:8px 12px;margin-top:8px"><h3>미리보기 제목</h3><p>이렇게 보여요. <span class="bb-b open">빈칸</span> 내용이 있는 문장입니다.</p></div>
-  <div class="bb-top" style="margin:14px 0 0"><span class="bb-sp"></span><button class="bb-btn" onclick="bbSetCancel()">취소</button><button class="bb-btn pri" onclick="bbSetSave()">저장</button></div>`);
-  bbFsSaved=bbFs;bbFsSet(bbFs);
+  <div class="bb-top" style="margin:14px 0 0"><span class="bb-sp"></span><button class="bb-btn" onclick="bbClose()">취소</button><button class="bb-btn pri" onclick="bbSetSave()">저장</button></div>`);
 }
 function bbSetSave(){
   const mn=+document.getElementById('bbMn').value,mx=+document.getElementById('bbMx').value,tm=Math.max(1,Math.floor(+document.getElementById('bbTm').value||1));
   if(!(mn>=0&&mx<=100&&mn<mx)){alert('최소 < 최대 (0~100) 로 입력해주세요');return}
-  try{localStorage.setItem('imgo_bb_fs',bbFs)}catch(e){}bbFsSaved=bbFs;bbSet={min:mn,max:mx,term:tm,ts:Date.now()};bbS=null;bbEnq('settings','settings|'+bbPerson,{min:mn,max:mx,term:tm,ts:bbSet.ts});bbSave();bbClose();bbRender();
+  bbSet={min:mn,max:mx,term:tm,ts:Date.now()};bbS=null;bbEnq('settings','settings|'+bbPerson,{min:mn,max:mx,term:tm,ts:bbSet.ts});bbSave();bbClose();bbRender();
 }
 // ── 기록 수정 (풀이 1회 단위로 조회·삭제) ──
 function bbOpenRec(){bbOpenAdd(bbView)}
@@ -2913,7 +2943,7 @@ async function bbPull(who,full){
   (r.done||[]).forEach(x=>{
     if(pd(`done|${x.date}|${x.docId}`))return;
     const m=(bbDone[x.date]=bbDone[x.date]||{});
-    if(x.done){if(!m[x.docId]){m[x.docId]=1;ch=true}}else if(m[x.docId]){delete m[x.docId];ch=true}
+    if(x.done){if(m[x.docId]!==x.done){m[x.docId]=x.done;ch=true}}else if(m[x.docId]){delete m[x.docId];ch=true}
   });
   (r.ses||[]).forEach(x=>{
     if(pd('ses|'+x.sid))return;
