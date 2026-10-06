@@ -2321,8 +2321,9 @@ const bbEsc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const bbHash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h.toString(36)};
 const bbSj=n=>SUBJECT_META.find(s=>s.name===n);
 const bbVis=d=>!d.loc||d.loc==='공통'||d.loc===bbPerson;
+const bbWk=u=>!!(u&&u.a&&(u.l==='X'||Math.round(u.c*100/u.a)<bbSet.max));
 const bbT=(x,t)=>(x&&x.T&&x.T[t])||{a:0,c:0,l:''};
-const bbCol=r=>r===null?'var(--text3)':r>=bbSet.max?'var(--accent)':r<bbSet.min?'var(--red)':'var(--amber)';
+const bbCol=r=>r===null?'var(--text3)':r>=bbSet.max?'var(--teal)':r<bbSet.min?'var(--red)':'var(--amber)';
 const bbDK=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const bbWK=i=>{const n=new Date(),t=(n.getDay()+6)%7;n.setDate(n.getDate()-t+i);return bbDK(n)};
 const bbRn=id=>(bbRuns[id]||{})[bbSet.term]||0;
@@ -2364,7 +2365,7 @@ function bbAgg(id,t,keys){
   const r=bbRec[id]||{};let a=0,c=0,w=0,l=0;
   for(const k in r){if(keys&&!keys.has(k))continue;const T=r[k].T||{};
     if(t==='all'){for(const n in T){a+=T[n].a;c+=T[n].c}}else if(T[t]){a+=T[t].a;c+=T[t].c}
-    const u=T[bbSet.term];if(u&&u.a)l++;if(u&&u.l==='X')w++}
+    const u=T[bbSet.term];if(u&&u.a)l++;if(bbWk(u))w++}
   return{a,c,w,l,rate:a?Math.round(c*100/a):null};
 }
 
@@ -2412,10 +2413,10 @@ function bbAna(){
   const worst=rows.slice().sort((x,y)=>x.r-y.r)[0],tr=rt(C,A);
   const ch=['all',...Array.from({length:bbSet.term},(_,i)=>i+1)].map(v=>`<button class="ttab ${bbAS===v?'on':''}" onclick="bbAS=${v==='all'?"'all'":v};bbRender()">${v==='all'?'전체 텀':v+'텀'}</button>`).join('');
   const H=t=>`<div class="sec-title" style="margin:18px 0 8px">${t}</div>`,none='<div class="bb-cs">아직 기록이 없어요.</div>';
-  return `<div class="bb-top">${ch}</div>`+(A?`<div class="bb-card" style="cursor:default">총 ${R}회 풀이 · 정답률 <b style="color:${bbCol(tr)}">${tr}%</b><div class="bb-cs">목표 미달 문서 ${low}개${worst?` · 가장 약한 과목: ${bbEsc(worst.n)} (${worst.r}%)`:''}</div></div>`:none)
+  return `<div class="bb-top">${ch}</div>`+(A?`<div class="bb-card" style="cursor:default">총 ${R}회 풀이 · 정답률 <b style="color:${bbCol(tr)}">${tr}%</b><div class="bb-cs">목표 미달 문서 ${low}개 · 약점 ${V.reduce((n,d)=>n+bbAgg(d.id,bbSet.term).w,0)}개${worst?` · 가장 약한 과목: ${bbEsc(worst.n)} (${worst.r}%)`:''}</div></div>`:none)
   +H('과목별 정답률')+(rows.length?rows.map(o=>`<div class="bb-row"><b style="color:${o.c}">${bbEsc(o.n)}</b><div class="bb-bar"><i style="width:${o.r}%;background:${bbCol(o.r)}"></i></div><span style="width:70px;text-align:right;color:${bbCol(o.r)}">${o.r}% (${o.rn}회)</span></div>`).join(''):none)
   +H('문서 오답률 순위 TOP 15')+(dr.length?dr.slice(0,15).map((x,i)=>`<div class="bb-card" onclick="bbOpen('${x.d.id}')"><div class="bb-ct">${i+1}. ${bbEsc(x.d.title)}</div><div class="bb-cs">정답률 <b style="color:${bbCol(x.r)}">${x.r}%</b> · ${x.c}/${x.a} 정답</div></div>`).join(''):none)
-  +H('자주 틀리는 빈칸 TOP 15')+(bl.length?bl.slice(0,15).map((x,i)=>`<div class="bb-card" onclick="bbOpen('${x.d.id}','${x.k}')"><div class="bb-ct">${i+1}. ${bbEsc(x.t)}</div><div class="bb-cs">${bbEsc(x.d.title)} · 정답률 ${Math.round(x.c*100/x.a)}% (${x.a}회 중 ${x.c}회 정답)</div></div>`).join(''):none);
+  +H('자주 틀리는 빈칸 TOP 15')+(bl.length?bl.slice(0,15).map((x,i)=>`<div class="bb-card" onclick="bbOpen('${x.d.id}','${x.k}')"><div class="bb-ct">${i+1}. ${bbEsc(x.t)}</div><div class="bb-cs">${bbEsc(x.d.title)} · 정답률 <b style="color:${bbCol(Math.round(x.c*100/x.a))}">${Math.round(x.c*100/x.a)}%</b> (${x.a}회 중 ${x.c}회 정답)</div></div>`).join(''):none);
 }
 
 // ── 문서 ──
@@ -2432,17 +2433,17 @@ function bbFinish(){
 function bbRenderDoc(el){
   const d=bbDocs.find(x=>x.id===bbView);if(!d){bbView=null;return bbRender()}
   const box=bbBox(d),r=bbRec[d.id]||{},S=bbS,ks=[...box.querySelectorAll('.bb-b')].map(e=>e.dataset.k),cu=k=>bbT(r[k],bbSet.term);
-  const sets={all:new Set(ks),weak:new Set(ks.filter(k=>cu(k).l==='X')),new:new Set(ks.filter(k=>!cu(k).a))};
+  const sets={all:new Set(ks),weak:new Set(ks.filter(k=>bbWk(cu(k)))),new:new Set(ks.filter(k=>!cu(k).a))};
   if(!S.tgt)S.tgt=sets[S.filter];
   box.querySelectorAll('.bb-b').forEach(e=>{const k=e.dataset.k;if(!S.tgt.has(k))e.className='bb-plain';else if(S.judged[k])e.className='bb-b open '+(S.judged[k]==='O'?'ok':'ng')});
-  if(S.rv)box.querySelectorAll('.bb-b').forEach(e=>{const x=cu(e.dataset.k),p=x.a?Math.round(x.c*100/x.a):null,c=p===null?'#8a8a8a':p>=bbSet.max?'#19ffd1':p<bbSet.min?'#ff4d6d':'#ffb020';e.classList.add('open');e.style.background='color-mix(in srgb,'+c+' 22%,transparent)';e.style.outline='1px solid '+c;e.style.boxShadow='0 0 8px '+c;e.insertAdjacentHTML('afterend','<small style="color:'+c+';margin-left:4px;font-weight:700;text-shadow:0 0 6px '+c+'">'+(p===null?'-':p+'%')+'</small>')});
+  if(S.rv)box.querySelectorAll('.bb-b').forEach(e=>{const x=cu(e.dataset.k),p=x.a?Math.round(x.c*100/x.a):null,c=bbCol(p);e.classList.add('open');e.style.background='color-mix(in srgb,'+c+' 22%,transparent)';e.style.outline='1px solid '+c;e.insertAdjacentHTML('afterend','<small style="color:'+c+';margin-left:4px;font-weight:700">'+(p===null?'-':p+'%')+'</small>')});
   const js=Object.values(S.judged),jo=js.filter(x=>x==='O').length,st=bbAgg(d.id,bbSet.term);
   const mc=(v,t)=>`<button class="ttab ${S.mode===v?'on':''}" onclick="bbS.mode='${v}';bbRender()">${t}</button>`;
   const fc=(f,t)=>`<button class="ttab ${S.filter===f?'on':''}" onclick="bbS.filter='${f}';bbS.tgt=null;bbRender()">${t} ${sets[f].size}</button>`;
   el.innerHTML=`<div class="bb-top"><button class="bb-btn" onclick="bbView=null;bbRender()">← 목록</button><b style="font-size:13px">${bbEsc(d.title)}</b><span class="bb-sp"></span><button class="bb-btn" onclick="bbOpenAdd('${d.id}')">정보 수정</button><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div>
   <div class="bb-top">${mc('study','학습')}${mc('test','테스트')}<span style="width:8px"></span>${fc('all','전체')}${fc('weak','약점만')}${fc('new','안 푼 것')}</div>
   <div class="bb-cs" style="margin-bottom:8px">${S.mode==='test'?`이번 판정 ${js.length}/${S.tgt.size} · O ${jo} · ${js.length?Math.round(jo*100/js.length):0}% · `:''}${bbSet.term}텀 정답률 <b style="color:${bbCol(st.rate)}">${st.rate===null?'-':st.rate+'%'}</b> (목표 ${bbSet.min}~${bbSet.max}%) · 약점 ${st.w}개 · 풀이 ${bbRn(d.id)}회</div>
-  <div class="bb-top"><button class="bb-btn" onclick="bbAll(1)">전체 열기</button><button class="bb-btn" onclick="bbAll(0)">전체 가리기</button><button class="bb-btn ${S.rv?'pri':''}" onclick="bbS.rv=!bbS.rv;bbRender()">정답률 보기</button><button class="bb-btn pri" onclick="bbFinish()">완료하기</button>${S.mode==='test'?`<button class="bb-btn" onclick="bbUndo()">↩ 판정 취소</button><button class="bb-btn" onclick="bbS.judged={};bbS.undo=[];bbRender()">이번 판정 초기화</button>`:''}</div>
+  <div class="bb-top"><button class="bb-btn" onclick="bbAll(1)">전체 열기</button><button class="bb-btn" onclick="bbAll(0)">전체 가리기</button><button class="bb-btn ${S.rv?'pri':''}" onclick="bbS.rv=!bbS.rv;bbRender()">정답률 보기</button><button class="apply-btn-sm" onclick="bbFinish()">완료하기</button>${S.mode==='test'?`<button class="bb-btn" onclick="bbUndo()">↩ 판정 취소</button><button class="bb-btn" onclick="bbS.judged={};bbS.undo=[];bbRender()">이번 판정 초기화</button>`:''}</div>
   <div class="bb-doc ${S.mode}" id="bbDoc" onclick="bbClick(event)"></div><button class="bb-fab" onclick="bbFinish()">✓ 완료</button>`;
   document.getElementById('bbDoc').appendChild(box);
 }
