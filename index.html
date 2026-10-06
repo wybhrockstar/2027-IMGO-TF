@@ -2493,10 +2493,16 @@ function bbFRender(){
   +(bbF.loc?`<div class="bb-cs" style="margin:8px 0 4px">요일 (여러 개 선택 가능)</div><div class="bb-top">${BB_DAYS.map((x,i)=>`<button class="bb-sj ${bbF.days.includes(i)?'on':''}" style="--c:var(--blue)" onclick="bbF.days=bbF.days.includes(${i})?bbF.days.filter(z=>z!==${i}):[...bbF.days,${i}].sort((a,b)=>a-b);bbFRender()">${x}</button>`).join('')}<button class="bb-sj ${bbF.days.length===0?'on':''}" style="--c:var(--text3)" onclick="bbF.days=[];bbFRender()">없음</button></div>`:'');
 }
 function bbOpenAdd(id){
-  const e=id&&bbDocs.find(d=>d.id===id);bbTmp=null;
+  const e=id&&bbDocs.find(d=>d.id===id);bbTmp=null;bbCv={blocks:[],pend:'',html:null,hv:'',pasted:false};
   bbF=e?{subj:e.subj||'',loc:e.loc||'',days:bbDays(e.day),edit:id}:{subj:'',loc:'',days:[],edit:null};
-  bbModal(`<div class="sec-title">${e?'수정':'뽀개기 문서 등록'}</div>`+(e?'':`<textarea id="bbIn" style="height:100px" placeholder="북마크로 복사한 내용을 붙여넣으세요 (Ctrl+V)" oninput="bbPrev()"></textarea><div id="bbPv" class="bb-cs" style="margin:8px 0">붙여넣으면 자동으로 분석해요.</div>`)
+  bbModal(`<div class="sec-title">${e?'수정':'뽀개기 문서 등록'}</div>`+(e?'':`<div class="bb-top"><button id="bbM0" class="ttab on" onclick="bbMode(0)">북마크 붙여넣기</button><button id="bbM1" class="ttab" onclick="bbMode(1)">표·텍스트 변환</button></div>
+  <div id="bbP0"><textarea id="bbIn" style="height:100px" placeholder="북마크로 복사한 내용을 붙여넣으세요 (Ctrl+V)" oninput="bbPrev()"></textarea><div id="bbPv" class="bb-cs" style="margin:8px 0">붙여넣으면 자동으로 분석해요.</div></div>
+  <div id="bbP1" style="display:none"><textarea id="bbCvIn" style="height:90px" placeholder="한글·엑셀·웹의 표나 글을 복사해 붙여넣으세요 (Ctrl+V)&#10;직접 쓸 땐: 탭 또는 | 로 칸 구분, # 제목, [[글자]] = 직접 빈칸" onpaste="bbCvPaste(event)" oninput="bbCvInput()"></textarea>
+  <div class="bb-cs" style="margin:8px 0 4px">빈칸 만드는 기준</div>
+  <div class="bb-top" style="gap:4px 12px;margin-bottom:6px">${[['bbCo1','쉼표(,) 기준',1],['bbCo2','슬래시(/) 기준',1],['bbCo3','가운데점(·) 기준',0],['bbCo4','하이픈(-) 제거',1],['bbCo5','괄호 안은 빈칸 제외',1],['bbCo6','첫 행은 머리글',1],['bbCo7','첫 열도 머리글',0],['bbCo8','일반 문장에도 적용',0]].map(x=>`<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><input type="checkbox" id="${x[0]}" ${x[2]?'checked':''} onchange="bbCvRun()" style="width:auto">${x[1]}</label>`).join('')}</div>
+  <div id="bbCvPv" class="bb-doc study" onclick="bbCvTog(event)" style="max-height:38vh;overflow:auto;padding:8px;margin:0 0 6px"></div><div id="bbCvSt" class="bb-cs">붙여넣으면 미리보기가 나와요.</div></div>`)
   +(e?`<div class="bb-cs" style="margin:0 0 6px">정보 (제목·과목·구분)</div>`:'')+`<input id="bbTi" placeholder="제목" value="${e?bbEsc(e.title):''}"><div id="bbFx"></div>`
+  +(e?'':`<div class="bb-cs" style="margin:10px 0 4px">등록 위치</div><select id="bbAp" onchange="bbApSet(this.value)"><option value="">새 문서로 등록</option>${bbDocs.filter(bbVis).map(d=>`<option value="${d.id}">${bbEsc(d.title)} · 맨 아래에 추가</option>`).join('')}</select>`)
   +(e?`<div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div class="bb-cs" style="margin:0 0 6px">기록 (풀이 1회 단위로 삭제하면 정답률·약점·풀이 횟수가 다시 계산돼요)</div><div id="bbRecBox">${bbRecHTML(id)}</div>`:'')
   +`<div class="bb-top" style="margin:14px 0 0"><span class="bb-sp"></span><button class="bb-btn" onclick="bbClose()">${e?'닫기':'취소'}</button><button class="bb-btn pri" onclick="bbAdd()">${e?'정보 저장':'저장'}</button></div>`);
   bbFRender();
@@ -2508,12 +2514,95 @@ function bbPrev(){
   const ti=document.getElementById('bbTi');if(!ti.value)ti.value=t.title;
   if(!bbF.subj){bbF.subj=bbGuess(t.title);bbFRender()}
 }
+// ── 표·텍스트 변환 (한글/엑셀/웹에서 복사 → 빈칸 문서) ──
+let bbCv={blocks:[],pend:'',html:null,hv:'',pasted:false};
+function bbCvO(){const g=i=>{const e=document.getElementById(i);return e&&e.checked?1:0};return{comma:g('bbCo1'),slash:g('bbCo2'),dot:g('bbCo3'),hy:g('bbCo4'),par:g('bbCo5'),h1:g('bbCo6'),h1c:g('bbCo7'),pt:g('bbCo8')}}
+function bbMode(m){
+  ['bbP0','bbP1'].forEach((id,i)=>document.getElementById(id).style.display=i===m?'':'none');
+  ['bbM0','bbM1'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===m));
+  bbTmp=null;if(m)bbCvRun();else if(document.getElementById('bbIn').value)bbPrev();
+}
+function bbApSet(v){bbF.append=v;['bbTi','bbFx'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display=v?'none':''})}
+function bbCvPaste(e){const h=(e.clipboardData&&e.clipboardData.getData('text/html'))||'';bbCv.pend=/<table/i.test(h)?h:'';bbCv.pasted=true}
+function bbCvInput(){
+  const v=document.getElementById('bbCvIn').value;
+  if(bbCv.pasted){bbCv.pasted=false;bbCv.html=bbCv.pend||null;bbCv.hv=v}
+  bbCv.blocks=bbCvParse(v);bbCvRun();
+}
+function bbCvParse(v){
+  const B=[];
+  if(bbCv.html&&v===bbCv.hv){   // 표가 들어있는 HTML(한글·엑셀·웹): 병합 칸까지 그대로
+    const d=new DOMParser().parseFromString(bbCv.html,'text/html');
+    [...d.querySelectorAll('table')].filter(t=>!t.parentElement.closest('table')).forEach(t=>{
+      B.push({k:'table',rows:[...t.rows].map(r=>[...r.cells].map(c=>{
+        const k=c.cloneNode(true);k.querySelectorAll('br').forEach(b=>b.replaceWith('\n'));k.querySelectorAll('p,div,li').forEach(p=>p.append('\n'));
+        const tx=k.textContent.replace(/[ \t\u00a0\r]+/g,' ').split('\n').map(x=>x.trim()).filter(Boolean).join('\n');
+        return{t:tx,cs:c.colSpan||1,rs:c.rowSpan||1,off:0};
+      }))});
+    });
+    if(B.length)return B;
+  }
+  let tb=null;   // 일반 텍스트: 탭 또는 | 로 칸 구분, # 제목
+  for(const raw of v.split(/\r?\n/)){
+    const l=raw.replace(/\s+$/,''),isT=l.includes('\t'),isP=/^\s*\|/.test(l);
+    if(isT||isP){
+      const cs=isT?l.split('\t'):l.replace(/^\s*\|/,'').replace(/\|\s*$/,'').split('|');
+      if(isP&&cs.every(c=>/^\s*:?-{2,}:?\s*$/.test(c)))continue;
+      if(!tb){tb={k:'table',rows:[]};B.push(tb)}
+      tb.rows.push(cs.map(c=>({t:c.trim(),cs:1,rs:1,off:0})));continue;
+    }
+    tb=null;if(!l.trim())continue;
+    let m;if(m=l.match(/^##\s+(.*)/))B.push({k:'h3',t:m[1]});else if(m=l.match(/^#\s+(.*)/))B.push({k:'h2',t:m[1]});else B.push({k:'p',t:l.trim()});
+  }
+  return B;
+}
+function bbCvSeg(t,o,auto,cls){
+  const E=bbEsc,W=q=>{const a=q.match(/^\s*/)[0],z=q.match(/\s*$/)[0],c=q.trim();return c?E(a)+`<span class="${cls}">${E(c)}</span>`+E(z):E(q)};
+  const seps=(o.comma?',，、':'')+(o.slash?'/／':'')+(o.dot?'·ㆍ・':'');
+  return t.split(/(\[\[[^\]]+\]\])/).map((p,i)=>{
+    if(i%2)return `<span class="${cls}">${E(p.slice(2,-2).trim())}</span>`;
+    if(!auto)return E(p).replace(/\n/g,'<br>');
+    if(o.hy)p=p.replace(/[-‐‑–−]/g,'');
+    let out='',cur='',d=0;
+    const flush=()=>{if(cur)out+=o.par?cur.split(/(\([^)]*\)|（[^）]*）)/).map((q,j)=>j%2?E(q):W(q)).join(''):W(cur);cur=''};
+    for(const ch of p){
+      if(ch==='('||ch==='（')d++;else if((ch===')'||ch==='）')&&d>0)d--;
+      if(d===0&&(ch==='\n'||seps.includes(ch))){flush();out+=ch==='\n'?'<br>':E(ch)}else cur+=ch;
+    }
+    flush();return out;
+  }).join('');
+}
+function bbCvHtml(prev){
+  const o=bbCvO(),cls=prev?'bb-b open':'blank';
+  return bbCv.blocks.map((b,bi)=>{
+    if(b.k==='table')return '<table><tbody>'+b.rows.map((r,ri)=>'<tr>'+r.map((c,ci)=>{
+      const hd=(o.h1&&ri===0)||(o.h1c&&ci===0);
+      const st=(hd?'background:var(--accent3);':'')+(prev?'cursor:pointer;':'')+(prev&&c.off?'outline:1px dashed var(--text3);outline-offset:-3px;':'');
+      return `<td${c.cs>1?` colspan="${c.cs}"`:''}${c.rs>1?` rowspan="${c.rs}"`:''}${st?` style="${st}"`:''}${prev?` data-p="${bi}-${ri}-${ci}"`:''}>${bbCvSeg(c.t,o,!hd&&!c.off,cls)}</td>`;
+    }).join('')+'</tr>').join('')+'</tbody></table>';
+    return `<${b.k}>${bbCvSeg(b.t,o,!!o.pt,cls)}</${b.k}>`;
+  }).join('');
+}
+function bbCvRun(){
+  const pv=document.getElementById('bbCvPv'),st=document.getElementById('bbCvSt');if(!pv)return;
+  if(!bbCv.blocks.length){pv.innerHTML='';st.style.color='var(--text3)';st.textContent='붙여넣으면 미리보기가 나와요.';bbTmp=null;return}
+  pv.innerHTML=bbCvHtml(true);
+  const t=bbParse(bbCvHtml(false));bbTmp=t?{title:'',src:'',html:t.html,n:t.n}:null;
+  st.style.color=t?'var(--accent)':'var(--red)';
+  st.textContent=t?`빈칸 ${t.n}개 인식 ✓ · 칸을 누르면 그 칸만 자동 빈칸에서 제외/포함돼요 (점선 = 제외)`:'빈칸이 없어요. 기준을 바꾸거나 [[글자]]로 직접 지정해 주세요.';
+}
+function bbCvTog(e){const td=e.target.closest('td[data-p]');if(!td)return;const a=td.dataset.p.split('-').map(Number),x=bbCv.blocks[a[0]].rows[a[1]][a[2]];x.off=x.off?0:1;bbCvRun()}
 async function bbAdd(){
   const ti=document.getElementById('bbTi').value.trim()||'제목 없음',f={title:ti,subj:bbF.subj,loc:bbF.loc,day:bbDayStore(bbF.days)};let tg=null,hh=0;
   if(bbF.edit){tg=bbDocs.find(d=>d.id===bbF.edit);Object.assign(tg,f)}
   else{
     if(!bbTmp){alert('먼저 내용을 붙여넣어주세요');return}
     try{await bbPush(bbPerson);await bbPull(bbPerson)}catch(e){}   // 등록 직전 서버 목록 확인
+    if(bbF.append){   // 기존 문서 맨 아래에 추가 (앞쪽 빈칸 번호가 안 바뀌어 기록 유지)
+      tg=bbDocs.find(d=>d.id===bbF.append);if(!tg){alert('대상 문서를 찾을 수 없어요');return}
+      tg.html=(tg.html||'')+bbTmp.html;tg.n=(tg.n||0)+bbTmp.n;hh=1;
+      bbEnqDoc(tg,hh);bbSave();bbClose();bbRender();return;
+    }
     Object.assign(f,{src:bbTmp.src,html:bbTmp.html,n:bbTmp.n});
     const ex=f.src&&bbDocs.find(d=>d.src===f.src);
     if(ex){if(!confirm('같은 글이 이미 있어요. 내용을 덮어쓸까요? (기록은 유지돼요)'))return;Object.assign(ex,f);tg=ex;hh=1}
