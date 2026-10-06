@@ -2394,7 +2394,7 @@ function bbDn(key,id){const m=(bbDone[key]=bbDone[key]||{});if(m[id])delete m[id
 function bbList(){
   const L=bbDocs.filter(bbVis).filter(d=>bbSub==='all'||(bbSub==='custom'?(d.loc&&d.loc!=='공통'):d.subj===bbSub));
   const w=d=>{const s=bbAgg(d.id,bbSet.term);return s.rate===null?-1:100-s.rate},k=(a,b)=>a.title.localeCompare(b.title,'ko');
-  L.sort(bbSort==='wrong'?(a,b)=>w(b)-w(a)||k(a,b):k);
+  const si=d=>{const i=SUBJECT_META.findIndex(s=>s.name===d.subj);return i<0?99:i};L.sort(bbSort==='wrong'?(a,b)=>w(b)-w(a)||k(a,b):(a,b)=>si(a)-si(b)||k(a,b));
   const sj=(v,t,c)=>`<button class="bb-sj ${bbSub===v?'on':''}" style="--c:${c}" onclick="bbSub='${v}';bbRender()">${t}</button>`;
   return `<div class="bb-top">${sj('all','전체','var(--text2)')}${sj('custom','커스텀','var(--text2)')}${SUBJECT_META.map(s=>sj(s.name,s.name,s.color)).join('')}</div>
   <div class="bb-top">${[['abc','이름 순'],['wrong','오답률 높은 순']].map(([v,t])=>`<button class="ttab ${bbSort===v?'on':''}" onclick="bbSort='${v}';bbRender()">${t}</button>`).join('')}</div>`
@@ -2402,20 +2402,20 @@ function bbList(){
 }
 function bbAna(){
   const sc=bbAS,mk=x=>{const T=x.T||{};if(sc==='all'){let a=0,c=0;for(const n in T){a+=T[n].a;c+=T[n].c}return{a,c}}return T[sc]||{a:0,c:0}};
-  const rt=(c,a)=>a?Math.round(c*100/a):null,V=bbDocs.filter(bbVis);let A=0,C=0,low=0;const sj={},dr=[],bl=[];
+  const rt=(c,a)=>a?Math.round(c*100/a):null,V=bbDocs.filter(bbVis);let A=0,C=0,R=0,low=0;const sj={},dr=[],bl=[];
   V.forEach(d=>{const r=bbRec[d.id]||{},tx={};bbBox(d).querySelectorAll('.bb-b').forEach(e=>tx[e.dataset.k]=e.textContent);let a=0,c=0;
     for(const k in r){const m=mk(r[k]);a+=m.a;c+=m.c;if(m.a>m.c)bl.push({d,k,t:tx[k]||'?',a:m.a,c:m.c})}
-    A+=a;C+=c;const n=d.subj||'기타',o=(sj[n]=sj[n]||{a:0,c:0});o.a+=a;o.c+=c;
+    A+=a;C+=c;const n=d.subj||'기타',o=(sj[n]=sj[n]||{a:0,c:0,n:0});o.a+=a;o.c+=c;const m2=bbRuns[d.id]||{},rn=sc==='all'?Object.values(m2).reduce((x,y)=>x+y,0):(m2[sc]||0);R+=rn;o.n+=rn;
     if(a){dr.push({d,a,c,r:rt(c,a)});if(rt(c,a)<bbSet.min)low++}});
-  dr.sort((x,y)=>x.r-y.r);bl.sort((x,y)=>(y.a-y.c)/y.a-(x.a-x.c)/x.a||(y.a-y.c)-(x.a-x.c));
-  const rows=[...SUBJECT_META.map(s=>[s.name,s.color]),...(sj['기타']?[['기타','var(--text3)']]:[])].filter(([n])=>sj[n]&&sj[n].a).map(([n,c])=>({n,c,r:rt(sj[n].c,sj[n].a),a:sj[n].a}));
+  dr.sort((x,y)=>x.r-y.r);bl.sort((x,y)=>x.c/x.a-y.c/y.a||(y.a-y.c)-(x.a-x.c));
+  const rows=[...SUBJECT_META.map(s=>[s.name,s.color]),...(sj['기타']?[['기타','var(--text3)']]:[])].filter(([n])=>sj[n]&&sj[n].a).map(([n,c])=>({n,c,r:rt(sj[n].c,sj[n].a),a:sj[n].a,rn:sj[n].n}));
   const worst=rows.slice().sort((x,y)=>x.r-y.r)[0],tr=rt(C,A);
   const ch=['all',...Array.from({length:bbSet.term},(_,i)=>i+1)].map(v=>`<button class="ttab ${bbAS===v?'on':''}" onclick="bbAS=${v==='all'?"'all'":v};bbRender()">${v==='all'?'전체 텀':v+'텀'}</button>`).join('');
   const H=t=>`<div class="sec-title" style="margin:18px 0 8px">${t}</div>`,none='<div class="bb-cs">아직 기록이 없어요.</div>';
-  return `<div class="bb-top">${ch}</div>`+(A?`<div class="bb-card" style="cursor:default">총 ${A}회 풀이 · 정답률 <b style="color:${bbCol(tr)}">${tr}%</b><div class="bb-cs">목표 미달 문서 ${low}개${worst?` · 가장 약한 과목: ${bbEsc(worst.n)} (${worst.r}%)`:''}</div></div>`:none)
-  +H('과목별 정답률')+(rows.length?rows.map(o=>`<div class="bb-row"><b style="color:${o.c}">${bbEsc(o.n)}</b><div class="bb-bar"><i style="width:${o.r}%;background:${bbCol(o.r)}"></i></div><span style="width:70px;text-align:right;color:${bbCol(o.r)}">${o.r}% (${o.a})</span></div>`).join(''):none)
-  +H('문서 오답률 순위 TOP 15')+(dr.length?dr.slice(0,15).map((x,i)=>`<div class="bb-card" onclick="bbOpen('${x.d.id}')"><div class="bb-ct">${i+1}. ${bbEsc(x.d.title)}</div><div class="bb-cs">오답률 <b style="color:${bbCol(x.r)}">${100-x.r}%</b> · ${x.c}/${x.a} 정답</div></div>`).join(''):none)
-  +H('자주 틀리는 빈칸 TOP 15')+(bl.length?bl.slice(0,15).map((x,i)=>`<div class="bb-card" onclick="bbOpen('${x.d.id}','${x.k}')"><div class="bb-ct">${i+1}. ${bbEsc(x.t)}</div><div class="bb-cs">${bbEsc(x.d.title)} · 오답률 ${Math.round((x.a-x.c)*100/x.a)}% (${x.a}회 중 ${x.a-x.c}회 오답)</div></div>`).join(''):none);
+  return `<div class="bb-top">${ch}</div>`+(A?`<div class="bb-card" style="cursor:default">총 ${R}회 풀이 · 정답률 <b style="color:${bbCol(tr)}">${tr}%</b><div class="bb-cs">목표 미달 문서 ${low}개${worst?` · 가장 약한 과목: ${bbEsc(worst.n)} (${worst.r}%)`:''}</div></div>`:none)
+  +H('과목별 정답률')+(rows.length?rows.map(o=>`<div class="bb-row"><b style="color:${o.c}">${bbEsc(o.n)}</b><div class="bb-bar"><i style="width:${o.r}%;background:${bbCol(o.r)}"></i></div><span style="width:70px;text-align:right;color:${bbCol(o.r)}">${o.r}% (${o.rn}회)</span></div>`).join(''):none)
+  +H('문서 오답률 순위 TOP 15')+(dr.length?dr.slice(0,15).map((x,i)=>`<div class="bb-card" onclick="bbOpen('${x.d.id}')"><div class="bb-ct">${i+1}. ${bbEsc(x.d.title)}</div><div class="bb-cs">정답률 <b style="color:${bbCol(x.r)}">${x.r}%</b> · ${x.c}/${x.a} 정답</div></div>`).join(''):none)
+  +H('자주 틀리는 빈칸 TOP 15')+(bl.length?bl.slice(0,15).map((x,i)=>`<div class="bb-card" onclick="bbOpen('${x.d.id}','${x.k}')"><div class="bb-ct">${i+1}. ${bbEsc(x.t)}</div><div class="bb-cs">${bbEsc(x.d.title)} · 정답률 ${Math.round(x.c*100/x.a)}% (${x.a}회 중 ${x.c}회 정답)</div></div>`).join(''):none);
 }
 
 // ── 문서 ──
@@ -2435,7 +2435,7 @@ function bbRenderDoc(el){
   const sets={all:new Set(ks),weak:new Set(ks.filter(k=>cu(k).l==='X')),new:new Set(ks.filter(k=>!cu(k).a))};
   if(!S.tgt)S.tgt=sets[S.filter];
   box.querySelectorAll('.bb-b').forEach(e=>{const k=e.dataset.k;if(!S.tgt.has(k))e.className='bb-plain';else if(S.judged[k])e.className='bb-b open '+(S.judged[k]==='O'?'ok':'ng')});
-  if(S.rv)box.querySelectorAll('.bb-b').forEach(e=>{const x=cu(e.dataset.k),p=x.a?Math.round(x.c*100/x.a):null,c=p===null?'var(--text3)':p>=bbSet.max?'var(--teal)':p<bbSet.min?'var(--red)':'var(--amber)';e.classList.add('open');e.style.background='color-mix(in srgb,'+c+' 28%,transparent)';e.style.outline='1px solid '+c;e.insertAdjacentHTML('afterend','<small style="color:'+c+';margin-left:3px;font-weight:700">'+(p===null?'-':p+'%')+'</small>')});
+  if(S.rv)box.querySelectorAll('.bb-b').forEach(e=>{const x=cu(e.dataset.k),p=x.a?Math.round(x.c*100/x.a):null,c=p===null?'#8a8a8a':p>=bbSet.max?'#19ffd1':p<bbSet.min?'#ff4d6d':'#ffb020';e.classList.add('open');e.style.background='color-mix(in srgb,'+c+' 22%,transparent)';e.style.outline='1px solid '+c;e.style.boxShadow='0 0 8px '+c;e.insertAdjacentHTML('afterend','<small style="color:'+c+';margin-left:4px;font-weight:700;text-shadow:0 0 6px '+c+'">'+(p===null?'-':p+'%')+'</small>')});
   const js=Object.values(S.judged),jo=js.filter(x=>x==='O').length,st=bbAgg(d.id,bbSet.term);
   const mc=(v,t)=>`<button class="ttab ${S.mode===v?'on':''}" onclick="bbS.mode='${v}';bbRender()">${t}</button>`;
   const fc=(f,t)=>`<button class="ttab ${S.filter===f?'on':''}" onclick="bbS.filter='${f}';bbS.tgt=null;bbRender()">${t} ${sets[f].size}</button>`;
