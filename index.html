@@ -259,9 +259,9 @@ body.light .nc-stitle{color:var(--text3)}
 <!-- NAV -->
 <nav class="nav">
   <button class="ntab on" onclick="goPage('schedule',this)">스터디 현황</button>
-  <button class="ntab" onclick="goPage('studywrong',this)">스터디 오답</button>
   <button class="ntab" onclick="goPage('bbogae',this)">뽀개기</button>
   <button class="ntab" onclick="goPage('exams',this)">모의고사</button>
+  <button class="ntab" onclick="goPage('studywrong',this)">오답</button>
   <button class="ntab" onclick="goPage('lectures',this)">강의 목록</button>
   <button class="ntab" onclick="goPage('notice',this)">공지사항</button>
 </nav>
@@ -280,13 +280,31 @@ body.light .nc-stitle{color:var(--text3)}
 
 <!-- ======= PAGE: STUDY WRONG ANSWERS ======= -->
 <div class="page main" id="page-studywrong">
-  <div class="ttab-wrap" id="swAuthorToggle" style="display:flex;gap:8px;margin-bottom:18px"></div>
+  <div class="ttab-wrap" id="swAuthorToggle" style="display:flex;gap:8px;margin-bottom:18px;align-items:center"></div>
 
   <div class="subj-tabs" id="swSubjectTabs" style="margin-bottom:12px;flex-wrap:wrap"></div>
 
   <div class="subj-tabs" id="swTermTabs" style="margin-bottom:16px"></div>
 
   <div id="swWrongList"></div>
+
+  <!-- 모의고사 오답 (모의고사 탭의 오답 기록과 같은 내용, 보기 전용) -->
+  <div id="swExamWrap" style="display:none">
+    <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
+      <select id="swxQueryMode" onchange="swxModeChange()" style="flex:0 0 72px;min-width:72px">
+        <option value="exam">회차</option>
+        <option value="subject">과목</option>
+      </select>
+      <div id="swxExamRow" style="display:flex;gap:6px;flex:1;min-width:0">
+        <select id="swxExamBase" onchange="swxBaseChange()" style="flex:1;min-width:0"></select>
+        <select id="swxExamRound" onchange="swxRenderList()" style="flex:0 0 72px;min-width:72px"></select>
+      </div>
+      <div id="swxSubjectRow" style="display:none;gap:6px;flex:1;min-width:0">
+        <select id="swxSubjectSelect" onchange="swxRenderList()" style="flex:1;min-width:0"></select>
+      </div>
+    </div>
+    <div id="swxList"></div>
+  </div>
 </div>
 
 <!-- ======= PAGE: LECTURES ======= -->
@@ -1068,7 +1086,7 @@ function goPage(name,btn){
   btn.classList.add('on');
   if(name==='lectures')buildSubjectTabs();
   if(name==='exams')renderExams();
-  if(name==='studywrong')renderStudyWrongPage();
+  if(name==='studywrong'){renderStudyWrongPage();if(swMode==='exam')swxEnsure();}
   if(name==='bbogae'){bbRender();bbSync()}
 }
 
@@ -1901,10 +1919,21 @@ let swTerms = new Set(['all']);
 function buildSwAuthorToggle(){
   const wrap = document.getElementById('swAuthorToggle');
   if(!wrap) return;
-  wrap.innerHTML = ['재언','태현'].map(name=>{
+  const authors = ['재언','태현'].map(name=>{
     const on = swAuthor===name;
     return `<button class="ttab${on?' on':''}" onclick="selectSwAuthor('${name}')">${name}</button>`;
   }).join('');
+  const modes = [['study','스터디 오답'],['exam','모의고사 오답']].map(([v,l])=>{
+    const on = swMode===v;
+    return `<button class="stab${on?' on':''}" style="${on?'border-color:var(--accent);color:var(--accent);background:var(--accent3)':''}" onclick="selectSwMode('${v}')">${l}</button>`;
+  }).join('');
+  wrap.innerHTML = `<div style="display:flex;gap:8px">${authors}</div><div style="display:flex;gap:6px;margin-left:auto">${modes}</div>`;
+}
+let swMode = 'study'; // 'study'(기본) | 'exam'
+function selectSwMode(m){
+  swMode = m;
+  renderStudyWrongPage();
+  if(m==='exam') swxEnsure();
 }
 function selectSwAuthor(name){
   swAuthor = name;
@@ -1952,6 +1981,10 @@ function toggleSwTerm(v){
 
 function renderStudyWrongPage(){
   buildSwAuthorToggle();
+  const isExam = swMode==='exam';
+  ['swSubjectTabs','swTermTabs','swWrongList'].forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display = isExam?'none':''; });
+  const xw = document.getElementById('swExamWrap'); if(xw) xw.style.display = isExam?'':'none';
+  if(isExam){ swxRenderAll(); return; }
   buildSwSubjectSelect();
   buildSwTermTabs();
 
@@ -1998,6 +2031,80 @@ function renderStudyWrongPage(){
       <div style="font-size:13px;color:var(--text);white-space:pre-wrap">${r.note}</div>
     </div>`;
   }).join('');
+}
+
+// ---- 오답 탭: 모의고사 오답 (모의고사 탭의 오답 기록과 동일 표시, 작성자는 swAuthor) ----
+let swxLoading = false;
+async function swxEnsure(){
+  swxLoading = true; swxRenderAll();
+  await fetchExamData();
+  swxLoading = false;
+  if(swMode==='exam') swxRenderAll();
+}
+function swxRenderAll(){
+  const baseSel = document.getElementById('swxExamBase');
+  const subjSel = document.getElementById('swxSubjectSelect');
+  if(!baseSel || !subjSel) return;
+  const tree = examTree();
+  const prevBase = baseSel.value, prevSubj = subjSel.value;
+  baseSel.innerHTML = tree.map(t=>`<option value="${t.base}">${t.base}</option>`).join('');
+  if(prevBase && tree.some(t=>t.base===prevBase)) baseSel.value = prevBase;
+  subjSel.innerHTML = SUBJECT_META.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
+  if(prevSubj) subjSel.value = prevSubj;
+  swxFillRounds();
+  swxApplyMode();
+  swxRenderList();
+}
+function swxApplyMode(){
+  const mode = document.getElementById('swxQueryMode').value;
+  document.getElementById('swxExamRow').style.display = mode==='subject' ? 'none' : 'flex';
+  document.getElementById('swxSubjectRow').style.display = mode==='subject' ? 'flex' : 'none';
+}
+function swxModeChange(){ swxApplyMode(); swxRenderList(); }
+function swxFillRounds(){
+  const base = document.getElementById('swxExamBase').value;
+  const t = examTree().find(x=>x.base===base);
+  const roundSel = document.getElementById('swxExamRound');
+  const prev = roundSel.value;
+  if(!base || !t || (t.rounds.length===1 && t.rounds[0]==='')){
+    roundSel.innerHTML = '<option value="">-</option>';
+  } else {
+    roundSel.innerHTML = t.rounds.map(r=>`<option value="${r}">${r}</option>`).join('');
+    if(prev && t.rounds.includes(prev)) roundSel.value = prev;
+  }
+}
+function swxBaseChange(){ swxFillRounds(); swxRenderList(); }
+function swxRenderList(){
+  const el = document.getElementById('swxList');
+  if(!el) return;
+  const empty = '<div style="font-size:13px;color:var(--text3)">기록된 오답이 없습니다.</div>';
+  if(swxLoading){ el.innerHTML = '<div style="font-size:13px;color:var(--text3)">불러오는 중...</div>'; return; }
+  const mode = document.getElementById('swxQueryMode').value;
+  const rowStyle = 'display:flex;gap:8px;padding:8px 10px;background:var(--bg3,rgba(127,119,221,.06));border-radius:8px;font-size:13px;margin-bottom:6px';
+
+  if(mode==='subject'){
+    const subject = document.getElementById('swxSubjectSelect').value;
+    const s = SUBJECT_META.find(x=>x.name===subject);
+    const rows = examData.wrongAnswers.filter(r=>r.author===swAuthor && r.subject===subject);
+    const dateOf = {}; examData.scores.forEach(r=>{ dateOf[r.examName]=r.examDate; });
+    rows.sort((a,b)=> new Date(dateOf[a.examName]||a.examDate) - new Date(dateOf[b.examName]||b.examDate));
+    const items = rows.map(r=>{
+      const { title, round } = splitExamLabel(r.examName);
+      const roundLabel = round ? (title+' '+round) : title;
+      return `<div style="${rowStyle}"><span style="font-weight:600;min-width:88px;flex-shrink:0;color:${s?s.color:''}">${roundLabel}</span><span style="white-space:pre-wrap">${r.note}</span></div>`;
+    }).join('');
+    el.innerHTML = items || empty;
+    return;
+  }
+
+  const examName = fullExamName(document.getElementById('swxExamBase').value, document.getElementById('swxExamRound').value);
+  const rows = examData.wrongAnswers.filter(r=>r.author===swAuthor && r.examName===examName);
+  const bySubject = {};
+  rows.forEach(r=>{ bySubject[r.subject]=r.note; });
+  const items = SUBJECT_META.filter(s=>bySubject[s.name]).map(s=>
+    `<div style="${rowStyle}"><span style="font-weight:600;min-width:78px;flex-shrink:0;color:${s.color}">${s.name}</span><span style="white-space:pre-wrap">${bySubject[s.name]}</span></div>`
+  ).join('');
+  el.innerHTML = items || empty;
 }
 
 // ---- 오답 기록: 이름+회차 드롭다운 ----
@@ -2390,7 +2497,7 @@ function bbRender(){
   if(bbView)return bbRenderDoc(el);
   el.innerHTML=`<div class="bb-top">${['재언','태현'].map(p=>`<button class="ttab ${p===bbPerson?'on':''}" onclick="bbWho('${p}')">${p}</button>`).join('')}<span class="bb-sp"></span><button class="apply-btn-sm" onclick="bbOpenAdd()">등록</button><button class="apply-btn-sm" onclick="bbOpenSet()">설정</button></div>
   <div class="bb-top">${[['weekly','WEEKLY 뽀개기'],['list','전체 목록'],['ana','분석']].map(([k,n])=>`<button class="ttab ${bbTab===k?'on':''}" onclick="bbTab='${k}';bbRender()">${n}</button>`).join('')}</div>
-  <div class="bb-cs" style="margin-bottom:12px">${bbPerson} · 현재 ${bbSet.term}텀 · 목표 ${bbSet.min}~${bbSet.max}% <span id="bbSy" style="margin-left:6px;color:var(--text3)">${bbSyncLabel()}</span><button class="bb-btn" style="padding:2px 10px;margin-left:6px" onclick="bbManual()" title="서버에서 다시 받기">↻</button></div>`+(bbTab==='weekly'?bbWeekly():bbTab==='list'?bbList():bbAna());
+  <div class="bb-cs" style="margin-bottom:12px">${bbPerson} · 현재 ${bbSet.term}텀 · 목표 ${bbSet.min}~${bbSet.max}% <span id="bbSy" style="margin-left:6px;color:var(--text3)">${bbSyncLabel()}</span></div>`+(bbTab==='weekly'?bbWeekly():bbTab==='list'?bbList():bbAna());
 }
 function bbWho(p){bbSave();bbPush();bbPerson=p;bbLoadP();bbSave();bbRender();bbSync()}
 function bbCard(d,extra,done){
