@@ -226,6 +226,10 @@ body.light .nc-stitle{color:var(--text3)}
 .bb-b.ng{outline:2px solid var(--red);background:rgba(255,95,95,.14)}
 .bb-pop{position:absolute;z-index:300;background:var(--bg2);border:1px solid var(--border3);border-radius:10px;padding:4px;display:flex;gap:4px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .bb-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
+.bb-ov.full{padding:0;background:var(--bg);align-items:stretch;justify-content:stretch}
+.bb-ov.full .bb-md{box-sizing:border-box;max-width:none;max-height:none;height:100%;border:none;border-radius:0;background:var(--bg);padding:14px max(14px,calc((100% - 900px)/2)) 24px}
+.bb-ov.full .bbpv{max-height:none!important}
+.bb-ov.full .bb-md>.bb-top:last-child{position:sticky;bottom:0;background:var(--bg);padding:10px 0;margin:14px 0 0;border-top:1px solid var(--border2)}
 .bb-md{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:16px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
 
 .bb-sj{padding:5px 11px;font-size:12px;border-radius:20px;border:1px solid var(--c);color:var(--c);background:none;transition:.15s}
@@ -242,6 +246,48 @@ body.light .nc-stitle{color:var(--text3)}
 .bb-flash{animation:bbf 2.2s}
 .bbpv .bb-b,.bbpv .blank{user-select:text;-webkit-user-select:text}
 .bbpv .blank{background:var(--accent2);outline:1px solid var(--accent);border-radius:4px;padding:1px 3px;cursor:pointer}
+/* ── 마인드맵 문서 ── */
+.mm{display:flex;flex-direction:column;gap:10px;width:max-content;min-width:100%;padding:4px 2px;line-height:1.5}
+.mm{--ml:var(--border3)}
+.mmb{display:flex;align-items:center}
+.mmn{box-sizing:border-box;border:2px solid var(--text2);border-radius:12px;padding:3px 11px;font-size:.92em;background:var(--bg3);color:var(--text);word-break:keep-all;overflow-wrap:anywhere;white-space:pre-wrap;text-align:center;font-family:'EliceNeolli',sans-serif}
+.mmn.mm0{background:#000;color:#fff;border-color:var(--accent);border-radius:8px;font-weight:700;font-size:1.05em;padding:6px 16px}
+.mmn.mm1{background:rgba(184,165,255,.2);border-color:var(--purple);border-radius:14px;font-weight:500}
+.mmn.mm2{background:rgba(110,181,255,.16);border-color:var(--blue)}
+.mmn.mm3{border:none;background:none;padding:2px 6px;font-size:.88em;text-align:left}
+.mmn.mme{border-radius:999px;border-width:1px;background:none;font-weight:400}
+.mmn.mm3[class*=" mf"]{border-width:2px;border-style:solid;padding:3px 11px}
+.mmn.mf0{background:var(--bg3);border-color:var(--text2)}
+.mmn.mf1{background:color-mix(in srgb,var(--purple) 20%,transparent);border-color:var(--purple)}
+.mmn.mf2{background:color-mix(in srgb,var(--blue) 18%,transparent);border-color:var(--blue)}
+.mmn.mf3{background:color-mix(in srgb,var(--teal) 18%,transparent);border-color:var(--teal)}
+.mmn.mf4{background:color-mix(in srgb,var(--amber) 20%,transparent);border-color:var(--amber)}
+.mm .mmn.mk1{font-family:'OwnglyphCocoa','EliceNeolli',sans-serif}
+.mmc{display:flex;flex-direction:column;margin-left:22px;position:relative}
+.mmc>.mmb{position:relative;padding:4px 0 4px 22px}
+.mmn{flex:none;max-width:340px}
+.mmn.mm3{max-width:560px}
+.mmb>.mmc::before{content:'';position:absolute;left:-22px;top:50%;width:22px;border-top:2px solid var(--ml)}
+.mmc>.mmb::before{content:'';position:absolute;left:0;top:calc(50% + var(--dy,0px));width:22px;border-top:2px solid var(--ml)}
+.mmc>.mmb::after{content:'';position:absolute;left:0;top:0;bottom:0;border-left:2px solid var(--ml)}
+.mmc>.mmb:first-child::after{top:50%}
+.mmc>.mmb:last-child::after{bottom:50%}
+.mmc>.mmb:only-child::after{display:none}
+.mmc.ml2>.mmb:first-child:not(:only-child):not(.mst)::before,.mmc.ml2>.mmb:last-child:not(:only-child):not(.mst)::before{display:none}
+body.bblen .bb-b:not(.open){display:inline-block;width:4.5em;overflow:hidden;white-space:nowrap;vertical-align:bottom}
+.mm.lst{font-size:var(--lf,15px)}
+.mm.lst .mmb{display:block;padding:0!important}
+.mm.lst .mmc{display:block;margin:0 0 0 14px;padding-left:10px;border-left:2px solid var(--border3)}
+.mm.lst .mmb::before,.mm.lst .mmb::after,.mm.lst .mmc::before{display:none!important}
+.mm.lst .mmn{display:block;width:auto!important;max-width:none!important;border:none!important;background:none!important;padding:2px 0!important;text-align:left;color:var(--text)!important}
+.mm.lst .mmn.mm0,.mm.lst .mmn.mm1{font-weight:700}
+.mm.foc .mmx{display:none}
+.mm.foc .mmb.anc>.mmn{display:none}
+.mm.foc .mmb.anc>.mmc{margin-left:0}
+.mm.foc .mmb.anc>.mmc::before,.mm.foc .mmb.anc::before,.mm.foc .mmb.anc::after,.mm.foc .mmb.tgt::before,.mm.foc .mmb.tgt::after{display:none}
+.mm.foc .mmb.anc,.mm.foc .mmb.tgt{padding-left:0!important}
+.mmc.ml2>.mmb:first-child:not(:only-child):not(.mst)::after{width:22px;box-sizing:border-box;border-top:2px solid var(--ml);border-top-left-radius:12px}
+.mmc.ml2>.mmb:last-child:not(:only-child):not(.mst)::after{width:22px;box-sizing:border-box;border-bottom:2px solid var(--ml);border-bottom-left-radius:12px}
 </style>
 </head>
 <body>
@@ -505,6 +551,7 @@ body.light .nc-stitle{color:var(--text3)}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 // ==================== DEFAULT DATA ====================
 const DEFAULT = {
@@ -2528,11 +2575,11 @@ function bbClean(src,out){
     if(n.nodeType===3){out.appendChild(document.createTextNode(n.nodeValue));return}
     if(n.nodeType!==1||BB_SKIP.has(n.tagName))return;
     const t=n.tagName;let el=null;
-    if(t==='SPAN'&&n.classList.contains('blank')){el=document.createElement('span');el.className='blank';el.textContent=n.textContent.trim();out.appendChild(el);return}
+    if(t==='SPAN'&&n.classList.contains('blank')){el=document.createElement('span');el.className='blank';if(n.querySelector('b,u,strong'))bbClean(n,el);else el.textContent=n.textContent.trim();out.appendChild(el);return}
     if(t==='TD'||t==='TH'){el=document.createElement('td');
       ['colspan','rowspan'].forEach(a=>{const v=parseInt(n.getAttribute(a));if(v>1&&v<20)el.setAttribute(a,v)});
       if(/background/.test(n.getAttribute('style')||'')&&!n.querySelector('.blank'))el.className='bb-th';
-    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='DIV'&&n.classList.contains('contentbox'))el.className='contentbox'}
+    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='DIV'){const c=[...n.classList].filter(x=>x==='contentbox'||/^(mm[0-9a-z]?|mf[0-4]|ml[12]|mk1)$/.test(x)).join(' ');if(c)el.className=c;if(/^\d{2,3}$/.test(n.dataset.w||''))el.dataset.w=n.dataset.w}}
     if(el){bbClean(n,el);out.appendChild(el)}else bbClean(n,out);
   });
 }
@@ -2681,21 +2728,25 @@ function bbFRender(){
 function bbOpenAdd(id){
   const e=id&&bbDocs.find(d=>d.id===id);bbTmp=null;bbCv={blocks:[],pend:'',html:null,hv:'',pasted:false};
   bbF=e?{subj:e.subj||'',loc:e.loc||'',days:bbDays(e.day),edit:id}:{subj:'',loc:'',days:[],edit:null};
-  bbModal(`<div class="sec-title">${e?'수정':'뽀개기 문서 등록'}</div>`+(e?'':`<div class="bb-top"><button id="bbM0" class="ttab on" onclick="bbMode(0)">북마크 붙여넣기</button><button id="bbM1" class="ttab" onclick="bbMode(1)">표·텍스트 변환</button></div>
+  bbModal(`<div class="sec-title">${e?'수정':'뽀개기 문서 등록'}</div>`+(e?'':`<div class="bb-top"><button id="bbM0" class="ttab on" onclick="bbMode(0)">북마크 붙여넣기</button><button id="bbM1" class="ttab" onclick="bbMode(1)">표·텍스트 변환</button><button id="bbM2" class="ttab" onclick="bbMode(2)">마인드맵</button></div>
   <div id="bbP0"><textarea id="bbIn" style="height:100px" placeholder="북마크로 복사한 내용을 붙여넣으세요 (Ctrl+V)" oninput="bbPrev()"></textarea><div id="bbPv" class="bb-cs" style="margin:8px 0">붙여넣으면 자동으로 분석해요.</div><div id="bbPv2" class="bb-doc study bbpv" onclick="bbBmClick(event)" onpointerup="bbPUp(event,0)" style="display:none;max-height:38vh;overflow:auto;padding:8px;margin:0 0 6px"></div></div>
   <div id="bbP1" style="display:none"><textarea id="bbCvIn" style="height:90px" placeholder="한글·엑셀·웹의 표나 글을 복사해 붙여넣으세요 (Ctrl+V)&#10;직접 쓸 땐: 탭 또는 | 로 칸 구분, # 제목, [[글자]] = 직접 빈칸" onpaste="bbCvPaste(event)" oninput="bbCvInput()"></textarea>
   <div class="bb-cs" style="margin:8px 0 4px">빈칸 만드는 기준</div>
   ${[[['bbCo1','쉼표(,) 기준'],['bbCo2','슬래시(/) 기준'],['bbCo3','가운뎃점(·) 기준'],['bbCo4','괄호 기준']],[['bbCo5','하이픈(-) 제거'],['bbCo6','가운뎃점(·) 제거'],['bbCo7','괄호 제거']],[['bbCo8','첫 행은 머리글'],['bbCo9','첫 열도 머리글'],['bbCo10','머리글에도 빈칸 적용']]].map(g=>`<div class="bb-top" style="gap:4px 12px;margin-bottom:6px">${g.map(x=>`<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><input type="checkbox" id="${x[0]}" onchange="bbCvRun()" style="width:auto">${x[1]}</label>`).join('')}</div>`).join('')}
   <div id="bbCvPv" class="bb-doc study bbpv" onclick="bbCvTog(event)" onpointerup="bbPUp(event,1)" style="max-height:38vh;overflow:auto;padding:8px;margin:0 0 6px"></div><div id="bbCvSt" class="bb-cs">붙여넣으면 미리보기가 나와요.</div></div>
+  <div id="bbP2" style="display:none"><div class="bb-top"><label class="bb-btn pri" style="cursor:pointer">XMind(.xmind) · OPML 불러오기<input type="file" accept=".xmind,.opml" onchange="bbMmFile(this)" style="display:none"></label><span class="bb-cs">굵게·밑줄은 모양으로만 가져와요 (빈칸과 무관)</span></div><textarea id="bbMmIn" style="height:110px" placeholder="마인드맵을 들여쓰기(탭/스페이스)로 계층을 나눠 붙여넣으세요&#10;기본이론&#10;  스포츠 교육 모델&#10;    특징 ×6 : ① 시즌 ② 팀 소속 ③ 공식 경기&#10;직접 빈칸은 [[글자]]" oninput="bbMmRun()"></textarea>
+  <div class="bb-cs" style="margin:8px 0 4px">자동 빈칸 규칙 (전부 켜 둠 · 필요 없는 것만 끄세요 · 직접 [[ ]] 넣은 줄은 제외)</div>
+  <div class="bb-top" style="gap:4px 12px;margin-bottom:6px">${bbMmRules()}</div>
+  <div id="bbMmPv" class="bb-doc study bbpv" onclick="bbMmClick(event)" style="max-height:40vh;overflow:auto;padding:8px;margin:0 0 6px"></div><div id="bbMmSt" class="bb-cs">붙여넣으면 미리보기가 나와요.</div></div>
   <div id="bbMgBar" class="bb-top" style="display:none;margin:6px 0 0"><button class="bb-btn pri" onpointerdown="event.preventDefault()" onclick="bbMergeSel()">✂ 선택한 부분을 하나의 빈칸으로</button></div>`)
   +(e?`<div class="bb-cs" style="margin:0 0 6px">정보 (제목·과목·구분)</div>`:'')+`<input id="bbTi" placeholder="제목" value="${e?bbEsc(e.title):''}"><div id="bbFx"></div>`
   +(e?'':`<div class="bb-cs" style="margin:10px 0 4px">등록 위치</div><select id="bbAp" onchange="bbApSet(this.value)"><option value="">새 문서로 등록</option>${bbDocs.filter(bbVis).map(d=>`<option value="${d.id}">${bbEsc(d.title)} · 맨 아래에 추가</option>`).join('')}</select>`)
   +(e?`<div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div class="bb-cs" style="margin:0 0 6px">빈칸 수정 · 빈칸을 누르면 해제, 드래그하면 선택한 부분이 하나의 빈칸이 돼요 (건드리지 않은 빈칸의 기록은 유지돼요)</div>
   <div id="bbPv" class="bb-cs" style="margin:0 0 6px"></div><div id="bbPv2" class="bb-doc study bbpv" onclick="bbBmClick(event)" onpointerup="bbPUp(event,0)" style="max-height:38vh;overflow:auto;padding:8px;margin:0 0 6px"></div>
   <div id="bbMgBar" class="bb-top" style="display:none;margin:6px 0 0"><button class="bb-btn pri" onpointerdown="event.preventDefault()" onclick="bbMergeSel()">✂ 선택한 부분을 하나의 빈칸으로</button></div>
-  <div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div class="bb-cs" style="margin:0 0 6px">기록 (풀이 1회 단위로 삭제하면 정답률·약점·풀이 횟수가 다시 계산돼요)</div><div id="bbRecBox">${bbRecHTML(id)}</div>`:'')
+  ${/class="mm"/.test(e.html||'')?bbMmEditBox():''}<div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div class="bb-cs" style="margin:0 0 6px">기록 (풀이 1회 단위로 삭제하면 정답률·약점·풀이 횟수가 다시 계산돼요)</div><div id="bbRecBox">${bbRecHTML(id)}</div>`:'')
   +`<div class="bb-top" style="margin:14px 0 0"><span class="bb-sp"></span><button class="bb-btn" onclick="bbClose()">${e?'닫기':'취소'}</button><button class="bb-btn pri" onclick="bbAdd()">${e?'저장':'저장'}</button></div>`);
-  bbFRender();
+  bbFRender();document.getElementById('bbOv').classList.add('full');   // 폰·PC 모두 전체화면 편집기
   if(e){const pv=document.getElementById('bbPv2'),t=document.createElement('div');t.innerHTML=e.html||'';let i=0;
     t.querySelectorAll('.blank').forEach(x=>{x.dataset.ok=(i++)+'_'+bbHash(x.textContent)});   // 원래 빈칸 표시 (기록 이전용)
     pv.innerHTML=t.innerHTML;bbBm={title:'',src:''};bbBmSync()}
@@ -2731,9 +2782,155 @@ function bbPrev(){
 let bbCv={blocks:[],pend:'',html:null,hv:'',pasted:false};
 function bbCvO(){const g=i=>{const e=document.getElementById(i);return e&&e.checked?1:0};return{comma:g('bbCo1'),slash:g('bbCo2'),dot:g('bbCo3'),pb:g('bbCo4'),hy:g('bbCo5'),rdot:g('bbCo6'),rpar:g('bbCo7'),h1:g('bbCo8'),h1c:g('bbCo9'),hb:g('bbCo10')}}
 function bbMode(m){
-  ['bbP0','bbP1'].forEach((id,i)=>document.getElementById(id).style.display=i===m?'':'none');
-  ['bbM0','bbM1'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===m));
-  bbTmp=null;if(m)bbCvRun();else if(document.getElementById('bbIn').value)bbPrev();
+  ['bbP0','bbP1','bbP2'].forEach((id,i)=>{const e=document.getElementById(id);if(e)e.style.display=i===m?'':'none'});
+  ['bbM0','bbM1','bbM2'].forEach((id,i)=>{const e=document.getElementById(id);if(e)e.classList.toggle('on',i===m)});
+  bbTmp=null;if(m===2)bbMmRun();else if(m)bbCvRun();else if(document.getElementById('bbIn').value)bbPrev();
+}
+// ── 마인드맵 변환 (들여쓰기 목록 → 트리 디자인 + 빈칸) ──
+function bbMmRules(){return [['bbR0','줄 앞 -',1],['bbR1','줄 앞 =',1],['bbR2','줄 앞 • ∙',1],['bbR3','원문자 ①❶',1],['bbR4','쉼표 ,',1],['bbR5','슬래시 /',1],['bbR6','화살표 → ➞',1],['bbR7','등호 =',1],['bbMo3','맨 끝 가지 통빈칸',0]].map(x=>`<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><input type="checkbox" id="${x[0]}" ${x[2]?'checked':''} onchange="bbMmRun()" style="width:auto">${x[1]}</label>`).join('')}
+// 수정 화면: 고친 XMind 파일을 다시 올려 내용을 교체 (글자가 같은 빈칸의 기록은 유지)
+function bbMmEditBox(){return `<div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div class="bb-cs" style="margin:0 0 6px">마인드맵 내용 교체 · XMind에서 고친 파일을 다시 올려요 (글자가 그대로인 빈칸의 기록은 유지돼요)</div>
+<div class="bb-top"><label class="bb-btn pri" style="cursor:pointer">XMind(.xmind) 다시 올리기<input type="file" accept=".xmind,.opml" onchange="bbMmFile(this)" style="display:none"></label></div>
+<textarea id="bbMmIn" style="display:none"></textarea>
+<div class="bb-cs" style="margin:8px 0 4px">자동 빈칸 규칙</div><div class="bb-top" style="gap:4px 12px;margin-bottom:6px">${bbMmRules()}</div>
+<div id="bbMmPv" class="bb-doc study bbpv" onclick="bbMmClick(event)" style="overflow:auto;padding:8px;margin:0 0 6px"></div><div id="bbMmSt" class="bb-cs"></div>`}
+function bbMmReplace(tg){
+  const ob=[...bbBox(tg).querySelectorAll('.bb-b')],nb=[...bbBox({html:bbTmp.html}).querySelectorAll('.bb-b')],n=ob.length,m=nb.length,map={};
+  const dp=Array.from({length:n+1},()=>new Uint16Array(m+1));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)dp[i][j]=ob[i].textContent===nb[j].textContent?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+  for(let i=0,j=0;i<n&&j<m;){if(ob[i].textContent===nb[j].textContent&&dp[i][j]===dp[i+1][j+1]+1){map[ob[i].dataset.k]=nb[j].dataset.k;i++;j++}else if(dp[i+1][j]>=dp[i][j+1])i++;else j++}
+  if(!m){alert('빈칸이 하나 이상 있어야 해요');return false}
+  if(!confirm(`빈칸을 ${n}개 → ${m}개로 바꿀까요? 글자가 그대로인 ${Object.keys(map).length}개의 기록은 유지되고, 나머지 기록은 삭제돼요.`))return false;
+  const id=tg.id,now=Date.now(),r=bbRec[id]||{},nr={};
+  for(const k in r)for(const t in (r[k].T||{}))if(map[k]!==k)bbEnq('records',`records|${id}|${k}|${t}`,{docId:id,blankKey:k,term:+t,a:0,c:0,l:'',ts:now});
+  for(const k in r)if(map[k]){const q=map[k];nr[q]={T:r[k].T};for(const t in r[k].T){const x=r[k].T[t];if(q!==k)bbEnq('records',`records|${id}|${q}|${t}`,{docId:id,blankKey:q,term:+t,a:x.a,c:x.c,l:x.l,ts:now})}}
+  bbRec[id]=nr;
+  bbSes.forEach(z=>{if(z.doc!==id)return;const j={};for(const k in (z.j||{}))if(map[k])j[map[k]]=z.j[k];z.j=j;bbEnq('ses','ses|'+z.id,{sid:z.id,docId:id,term:z.term,at:z.ts,ts:now,j})});
+  tg.html=bbTmp.html;tg.n=m;bbEnqDoc(tg,1);
+  if(bbS){bbS.judged={};bbS.undo=[];bbS.tgt=null}
+  return true;
+}
+function bbMmTree(txt){
+  const root={c:[]},st=[{ind:-1,n:root}];
+  txt.replace(/\r/g,'').split('\n').forEach((raw,i)=>{
+    const m=raw.match(/^([ \t]*)(?:[-*•▪○●■□]\s+)?(◯\s+)?(.*)$/);let t=m[3].trim();if(!t)return;
+    let mt=null;const mk=t.match(/^⟦([^⟧]*)⟧\s*/);if(mk){mt={};mk[1].split(/\s+/).forEach(x=>{if(x)mt[x[0]]=+x.slice(1)});t=t.slice(mk[0].length)}
+    if(!t)return;const ind=m[1].replace(/\t/g,'    ').length,n={t,i,e:!!m[2],c:[],m:mt};
+    while(st.length>1&&st[st.length-1].ind>=ind)st.pop();
+    st[st.length-1].n.c.push(n);st.push({ind,n});
+  });
+  return root.c;
+}
+// 한 노드 안의 줄바꿈은 ⏎, **굵게**, __밑줄__(모양일 뿐), [[직접 빈칸]]
+// 자동 빈칸 규칙 r[0..7] = 줄 앞 - / = / •∙ / 원문자 · 구분자 쉼표 / 슬래시 / →➞ / =  (줄마다 따로 판단, ·는 제외)
+function bbSep(c,r){return(c===','||c==='，')?r[4]:c==='/'?r[5]:(c==='→'||c==='➞')?r[6]:c==='='?r[7]:false}
+function bbMmPieces(s,r,F,B){
+  let out='',cur='',i=0;
+  const flush=()=>{if(!cur)return;cur.split(/(\s*×\s*\d+)/).forEach((p,k)=>{if(k%2){out+=F(p);return}const m=p.match(/^(\s*)([\s\S]*?)(\s*)$/);out+=F(m[1])+(m[2]?B(m[2]):'')+F(m[3])});cur=''};
+  while(i<s.length){
+    const c=s[i];
+    if(c==='('||c==='（'){   // 괄호: 안에 구분자가 있으면 안쪽까지 나누고, 없으면 앞 글자와 한 칸
+      let d=1,j=i+1;while(j<s.length&&d){if(s[j]==='('||s[j]==='（')d++;else if(s[j]===')'||s[j]==='）')d--;j++}
+      const inner=s.slice(i+1,d?j:j-1),cl=d?'':s[j-1];
+      if([...inner].some(x=>bbSep(x,r))){flush();out+=F(c)+bbMmPieces(inner,r,F,B)+F(cl)}else cur+=s.slice(i,j);
+      i=j;continue;
+    }
+    if(bbSep(c,r)){flush();out+=F(c);i++;continue}
+    cur+=c;i++;
+  }
+  flush();return out;
+}
+function bbMmLine(L,r,F,B){
+  const sp=L.match(/^\s*/)[0];let s=L.slice(sp.length),pre=F(sp),lead=false;
+  const m=s.match(/^(-\s+|=\s+|[•∙]\s*)/);
+  if(m){const c=m[1][0];if(c==='-'?r[0]:c==='='?r[1]:r[2]){pre+=F(m[1]);s=s.slice(m[1].length);lead=true}}
+  const CI=/[①-⑳❶-❿]/;
+  if(r[3]&&CI.test(s))return pre+s.split(/(?=[①-⑳❶-❿])/).map(x=>{const k=x.match(/^([①-⑳❶-❿]\s*)([\s\S]*)$/);return k?F(k[1])+bbMmPieces(k[2],r,F,B):(lead?bbMmPieces(x,r,F,B):F(x))}).join('');
+  return pre+((lead||[...s].some(x=>bbSep(x,r)))?bbMmPieces(s,r,F,B):F(s));
+}
+function bbMmTxt(t,o){
+  const F=x=>bbEsc(x).replace(/\*\*([^*]+?)\*\*/g,'<b>$1</b>').replace(/__([^_]+?)__/g,'<u>$1</u>').replace(/⏎/g,'\n'),B=x=>`<span class="blank">${bbEsc(x.replace(/\*\*|__/g,'')).replace(/⏎/g,'\n')}</span>`;
+  if(/\[\[.+?\]\]/.test(t))return t.split(/(\[\[.+?\]\])/).map(x=>/^\[\[.+\]\]$/.test(x)?B(x.slice(2,-2)):F(x)).join('');
+  if(o.leaf)return B(t);
+  let P='',S=[],bo=0,un=0,pos=0;
+  for(let i=0;i<t.length;){if(t.startsWith('**',i)){bo^=1;i+=2}else if(t.startsWith('__',i)){un^=1;i+=2}else{P+=t[i];S.push(bo|un<<1);i++}}
+  const cl=(r,st)=>{if(!r)return'';let e=bbEsc(r);if(st&2)e='<u>'+e+'</u>';if(st&1)e='<b>'+e+'</b>';return e};
+  const W=x=>{let h='',run='',st=-1;for(let k=0;k<x.length;k++){const q=S[pos++];if(q!==st){h+=cl(run,st);run='';st=q}run+=x[k]}return h+cl(run,st)};
+  const F2=x=>W(x),B2=x=>'<span class="blank">'+W(x)+'</span>';
+  return P.split('⏎').map((l,i)=>{if(i)pos++;return bbMmLine(l,o.r||[],F2,B2)}).join('\n');
+}
+function bbMmNode(n,d,o,pv){
+  const lf=!n.c.length,o2=Object.assign({},o,{leaf:o.leaf&&lf}),k=d===0?0:lf?3:d===1?1:2;
+  const m=n.m||{},cx=(m.f!=null&&k>0?' mf'+m.f:'')+(m.k?' mk1':'');
+  return `<div class="mmb"><div class="mmn mm${k}${n.e?' mme':''}${cx}"${m.w?` data-w="${m.w}"`:''}${pv?` data-i="${n.i}"`:''}>${bbMmTxt(n.t,o2)}</div>${lf?'':`<div class="mmc ml${m.l||2}">${n.c.map(c=>bbMmNode(c,d+1,o,pv)).join('')}</div>`}</div>`;
+}
+function bbMmRun(){
+  const inp=document.getElementById('bbMmIn'),pv=document.getElementById('bbMmPv'),st=document.getElementById('bbMmSt');if(!inp)return;
+  const g=i=>{const e=document.getElementById(i);return !!(e&&e.checked)},o={leaf:g('bbMo3'),r:[0,1,2,3,4,5,6,7].map(i=>g('bbR'+i))};
+  const tr=bbMmTree(inp.value);
+  if(!tr.length){pv.innerHTML='';st.style.color='var(--text3)';st.textContent='붙여넣거나 파일을 불러오면 미리보기가 나와요.';bbTmp=null;return}
+  const mk=p=>`<div class="mm">${tr.map(n=>bbMmNode(n,0,o,p)).join('')}</div>`;
+  pv.innerHTML=mk(true);
+  const t=bbParse(mk(false));bbTmp=t?{title:'',src:'',html:t.html,n:t.n}:null;
+  st.style.color=t?'var(--accent)':'var(--red)';
+  st.textContent=t?`빈칸 ${t.n}개 ✓ · 노드를 누르면 그 줄 전체가 빈칸으로 / 다시 누르면 해제`:'빈칸이 없어요. 위 규칙, [[글자]], 노드 클릭 중 하나로 지정해 주세요.';
+  const ti=document.getElementById('bbTi');if(ti&&!ti.value)ti.value=tr[0].t;
+}
+function bbMmClick(e){
+  const nd=e.target.closest('[data-i]');if(!nd)return;
+  const inp=document.getElementById('bbMmIn'),L=inp.value.replace(/\r/g,'').split('\n'),i=+nd.dataset.i,m=L[i].match(/^([ \t]*(?:[-*•▪○●■□]\s+)?(?:◯\s+)?)(.*)$/);
+  let b=m[2].trim();const tk=(b.match(/^⟦[^⟧]*⟧\s*/)||[''])[0];b=b.slice(tk.length).trim();
+  b=/^\[\[[\s\S]+\]\]$/.test(b)&&b.indexOf('[[',2)<0?b.slice(2,-2):'[['+b.replace(/\[\[|\]\]/g,'')+']]';
+  L[i]=m[1]+tk+b;inp.value=L.join('\n');bbMmRun();
+}
+// ── XMind / OPML 불러오기 ──
+function bbXmTitle(t){   // 굵게·밑줄은 표시용 표식(**, __)으로만 가져오고 빈칸 판단에는 영향 없음
+  const a=t.attributedTitle;if(!a)return t.title||'';
+  return a.map(s=>{
+    const x=s.text||'',u=/underline/.test(s['fo:text-decoration']||''),b=/^(bold|[6-9]\d\d)$/.test(String(s['fo:font-weight']||''));
+    if(!x.trim()||(!u&&!b))return x;
+    const m=x.match(/^(\s*)([\s\S]*?)(\s*)$/);
+    return m[1]+(b?'**':'')+(u?'__':'')+m[2]+(u?'__':'')+(b?'**':'')+m[3];
+  }).join('');
+}
+function bbXmFam(h){
+  const x=String(h).replace('#',''),r=parseInt(x.substr(0,2),16)/255,g=parseInt(x.substr(2,2),16)/255,b=parseInt(x.substr(4,2),16)/255;
+  const mx=Math.max(r,g,b),mn=Math.min(r,g,b),c=mx-mn;if(!(c>=0.03))return 0;
+  let hu=mx===r?((g-b)/c)%6:mx===g?(b-r)/c+2:(r-g)/c+4;hu=(hu*60+360)%360;
+  const C=[[1,280],[2,220],[3,140],[4,55]];let best=1,bd=999;
+  C.forEach(([f,a])=>{const d=Math.min(Math.abs(hu-a),360-Math.abs(hu-a));if(d<bd){bd=d;best=f}});return best;
+}
+// 가져오는 서식: 색 계열(f)·연결선 굽기(l, 이 노드의 자식 가지)·노드 너비(w)·글꼴(k). 좌표·선 굵기는 가져오지 않음
+function bbXmMeta(t){
+  const p=(t.style&&t.style.properties)||{},o=[];
+  if(p['svg:fill']&&parseFloat(p['border-line-width']||0)>0)o.push('f'+bbXmFam(p['svg:fill']));
+  if(p['line-class'])o.push('l'+(/rounded|curve/i.test(p['line-class'])?2:1));
+  if(t.customWidth)o.push('w'+Math.round(t.customWidth));
+  if(/cocoa|ownglyph/i.test(p['fo:font-family']||''))o.push('k1');
+  return o.length?'⟦'+o.join(' ')+'⟧':'';
+}
+function bbXmLines(t,d,out){
+  const sh=(t.style&&t.style.properties&&t.style.properties['shape-class'])||'';
+  out.push('  '.repeat(d)+'• '+(/ellipse/i.test(sh)?'◯ ':'')+bbXmMeta(t)+bbXmTitle(t).replace(/\r/g,'').replace(/\n/g,'⏎'));
+  ((t.children||{}).attached||[]).forEach(c=>bbXmLines(c,d+1,out));
+}
+async function bbMmFile(inp){
+  const f=inp.files&&inp.files[0];if(!f)return;const lines=[];
+  try{
+    if(/\.xmind$/i.test(f.name)){
+      if(!window.JSZip)throw new Error('압축 해제 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.');
+      const z=await JSZip.loadAsync(await f.arrayBuffer()),c=z.file('content.json');
+      if(!c)throw new Error('이 XMind 파일 형식(content.json 없음)은 지원하지 않아요. 최신 XMind에서 저장한 파일을 써 주세요.');
+      JSON.parse(await c.async('string')).forEach(sh=>{if(sh.rootTopic)bbXmLines(sh.rootTopic,0,lines)});
+    }else if(/\.opml$/i.test(f.name)){
+      const x=new DOMParser().parseFromString(await f.text(),'text/xml');
+      const w=(el,d)=>[...el.children].filter(e=>e.tagName==='outline').forEach(e=>{lines.push('  '.repeat(d)+'• '+(e.getAttribute('text')||'').replace(/\r?\n/g,'⏎'));w(e,d+1)});
+      w(x.querySelector('body'),0);
+    }else throw new Error('.xmind 또는 .opml 파일만 불러올 수 있어요.');
+    if(!lines.length)throw new Error('내용이 비어 있어요.');
+  }catch(e){alert(e.message||'파일을 읽지 못했어요.');inp.value='';return}
+  {const e=document.getElementById('bbMo3');if(e)e.checked=false}   // 끝 가지 통빈칸은 직접 눌러서 켬
+  document.getElementById('bbMmIn').value=lines.join('\n');inp.value='';bbMmRun();
 }
 function bbApSet(v){bbF.append=v;['bbTi','bbFx'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display=v?'none':''})}
 function bbCvPaste(e){const h=(e.clipboardData&&e.clipboardData.getData('text/html'))||'';bbCv.pend=/<table/i.test(h)?h:'';bbCv.pasted=true}
@@ -2963,7 +3160,7 @@ document.addEventListener('selectionchange',()=>{
 });
 async function bbAdd(){
   const ti=document.getElementById('bbTi').value.trim()||'제목 없음',f={title:ti,subj:bbF.subj,loc:bbF.loc,day:bbDayStore(bbF.days)};let tg=null,hh=0;
-  if(bbF.edit){tg=bbDocs.find(d=>d.id===bbF.edit);if(!bbEdBlanks(tg))return;Object.assign(tg,f);hh=0}
+  if(bbF.edit){tg=bbDocs.find(d=>d.id===bbF.edit);if(!((bbTmp&&bbTmp.html&&document.getElementById('bbMmIn'))?bbMmReplace(tg):bbEdBlanks(tg)))return;Object.assign(tg,f);hh=0}
   else{
     if(!bbTmp){alert('먼저 내용을 붙여넣어주세요');return}
     try{if(bbPerson){await bbPush(bbPerson);await bbPull(bbPerson)}else await bbPush()}catch(e){}   // 등록 직전 서버 목록 확인
@@ -3187,6 +3384,72 @@ if('serviceWorker' in navigator){
       .catch(e=>console.warn('[SW] registration failed:', e));
   });
 }
+
+// ── 마인드맵 배치 보정: 같은 부모 아래 형제는 너비 통일, 높이 차이가 작은 가지는 직선, 글꼴은 마인드맵을 열 때만 불러옴 ──
+function bbMmFonts(){
+  if(bbMmFonts.d)return;bbMmFonts.d=1;
+  [['EliceNeolli','fonts/neolli.woff2'],['OwnglyphCocoa','fonts/cocoa.woff2']].forEach(([n,u])=>{try{new FontFace(n,'url('+u+')').load().then(f=>{document.fonts.add(f);bbMmFix(document)}).catch(()=>{})}catch(e){}});
+}
+const bbMm=(()=>{const g=k=>{try{return localStorage.getItem(k)}catch(e){return null}};return{mode:g('bbMmMode')||(innerWidth<700?'list':'map'),z:+g('bbMmZ')||1,lf:+g('bbMmLF')||15,len:g('bbLen')==='1',pick:false,path:null}})();
+function bbMmSave(){try{localStorage.setItem('bbMmMode',bbMm.mode);localStorage.setItem('bbMmZ',bbMm.z);localStorage.setItem('bbMmLF',bbMm.lf);localStorage.setItem('bbLen',bbMm.len?'1':'0')}catch(e){}}
+function bbMmUi(){
+  document.body.classList.toggle('bblen',bbMm.len);
+  const doc=document.getElementById('bbDoc');if(!doc)return;
+  const ms=[...doc.querySelectorAll('.mm')];
+  ms.forEach(m=>{m.classList.toggle('lst',bbMm.mode==='list');m.style.zoom=bbMm.mode==='map'&&bbMm.z!==1?bbMm.z:'';m.style.setProperty('--lf',bbMm.lf+'px')});
+  if(document.getElementById('bbOpt'))return;
+  const L=bbMm.mode==='list',bt=(a,t,on)=>`<button class="bb-btn${on?' pri':''}" data-a="${a}">${t}</button>`;
+  const h=[bt('len','빈칸 길이: '+(bbMm.len?'고정':'원래'),bbMm.len)];
+  if(ms.length)h.push(bt('mode',L?'마인드맵으로 보기':'목록으로 보기'),...(L?[bt('lf-','글자 −'),bt('lf+','글자 +')]:[bt('z-','－'),`<span class="bb-cs">${Math.round(bbMm.z*100)}%</span>`,bt('z+','＋'),bbMm.path?bt('all','전체 보기'):bt('pick',bbMm.pick?'가지를 눌러 주세요…':'이 가지만 보기',bbMm.pick)]));
+  const b=document.createElement('div');b.id='bbOpt';b.className='bb-top';b.style.cssText='gap:6px;margin:6px 0;flex-wrap:wrap;align-items:center';b.innerHTML=h.join('');
+  b.onclick=e=>{const a=e.target.closest('[data-a]');if(!a)return;const k=a.dataset.a;
+    if(k==='len')bbMm.len=!bbMm.len;else if(k==='mode'){bbMm.mode=bbMm.mode==='list'?'map':'list';bbMm.pick=false}
+    else if(k==='z+')bbMm.z=Math.min(2,Math.round((bbMm.z+.1)*10)/10);else if(k==='z-')bbMm.z=Math.max(.4,Math.round((bbMm.z-.1)*10)/10);
+    else if(k==='lf+')bbMm.lf=Math.min(30,bbMm.lf+1);else if(k==='lf-')bbMm.lf=Math.max(10,bbMm.lf-1);
+    else if(k==='pick')bbMm.pick=!bbMm.pick;else if(k==='all'){bbMm.path=null;bbMm.pick=false}
+    bbMmSave();b.remove();bbMmRun2()};
+  doc.insertAdjacentElement('beforebegin',b);
+}
+function bbMmFocus(){
+  const m=document.querySelector('#bbDoc .mm');if(!m)return;
+  m.querySelectorAll('.mmb').forEach(b=>b.classList.remove('mmx','anc','tgt'));m.classList.remove('foc');
+  if(!bbMm.path||bbMm.mode!=='map')return;
+  let b=m.children[bbMm.path[0]];const ch=[b];
+  for(const i of bbMm.path.slice(1)){const c=b&&b.querySelector(':scope>.mmc');b=c&&c.children[i];ch.push(b)}
+  if(ch.some(x=>!x)){bbMm.path=null;return}
+  const t=ch[ch.length-1];
+  m.querySelectorAll('.mmb').forEach(x=>{if(!ch.includes(x)&&!t.contains(x))x.classList.add('mmx')});
+  ch.slice(0,-1).forEach(x=>x.classList.add('anc'));t.classList.add('tgt');m.classList.add('foc');
+}
+document.addEventListener('click',e=>{
+  if(!bbMm.pick)return;const n=e.target.closest('#bbDoc .mmn'),m=n&&n.closest('.mm');if(!n)return;
+  e.preventDefault();e.stopPropagation();
+  let b=n.parentElement;const p=[];
+  while(b){const par=b.parentElement;p.unshift([...par.children].indexOf(b));if(par===m)break;b=par.parentElement}
+  bbMm.path=p;bbMm.pick=false;const o=document.getElementById('bbOpt');if(o)o.remove();bbMmRun2();
+},true);
+function bbMmFix(root){
+  const cs=[...root.querySelectorAll('.mmc')],Z=c=>parseFloat(c.closest('.mm').style.zoom)||1;
+  cs.forEach(c=>{   // 같은 부모 아래 상자 노드는 가장 긴 글자(또는 XMind 너비) 기준으로 너비 통일
+    const ns=[...c.children].map(b=>b.firstElementChild).filter(n=>n&&!(n.classList.contains('mm3')&&!/ mf/.test(n.className)));
+    if(ns.length<2)return;const z=Z(c);ns.forEach(n=>{n.style.width='';n.style.maxWidth=''});
+    const w=Math.ceil(Math.max(0,...ns.map(n=>Math.max(+n.dataset.w||0,n.getBoundingClientRect().width/z))));
+    if(w)ns.forEach(n=>{n.style.maxWidth='none';n.style.width=w+'px'});
+  });
+  cs.forEach(c=>{   // 부모와 높이 차이가 작은 가지는 직선
+    const pn=c.parentElement.firstElementChild;if(!pn||!pn.classList.contains('mmn'))return;
+    const z=Z(c),pr=pn.getBoundingClientRect();if(!pr.height)return;const pc=pr.top+pr.height/2;
+    [...c.children].forEach(b=>{
+      const n=b.firstElementChild,r=n&&n.getBoundingClientRect();if(!r||!r.height)return;
+      const d=(pc-(r.top+r.height/2))/z;
+      if(Math.abs(d)<=Math.min(20,r.height/z/2-3)){b.classList.add('mst');b.style.setProperty('--dy',d+'px')}else{b.classList.remove('mst');b.style.removeProperty('--dy')}
+    });
+  });
+}
+function bbMmRun2(){if(document.getElementById('bbDoc')||document.querySelector('.mm')){bbMmUi();bbMmFocus();if(document.querySelector('.mm')){bbMmFonts();bbMmFix(document)}}}
+(function(){let q=0;const run=()=>{q=0;bbMmRun2()};
+  const go=()=>{if(!q)q=requestAnimationFrame(run)};
+  new MutationObserver(go).observe(document.body,{childList:true,subtree:true});addEventListener('resize',go);})();
 </script>
 </body>
 </html>
