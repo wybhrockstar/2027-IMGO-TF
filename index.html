@@ -226,7 +226,8 @@ body.light .nc-stitle{color:var(--text3)}
 /* ── 뽀개기 문제 카드 전용 눈 편한 팔레트: 카드(.bb-doc) 안에서만 변수를 덮어써서 다른 화면의 색은 그대로 ── */
 .bb-doc{--bg3:#201e1c;--text:#d9d9d9;--text2:#bdbdbd;--text3:#979797;--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);--border3:#6e6e6e;--accent:#a8c76a;--accent2:rgba(168,199,106,.16);--accent3:rgba(168,199,106,.08);--red:#e07a6f;--purple:#9d8fc4;--blue:#7aa3c9;--teal:#6fb7a0;--amber:#d9a85a;--pink:#d98c9c;--star:#e0b84a;--mmbd:#808080;--mm0bg:#121212;--mm0tx:#e6e6e6;color:var(--text)}
 body.light .bb-doc{--bg3:#fbfbf8;--text:#2b2b2b;--text2:#555;--text3:#888;--border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);--border3:#b9b9b0;--accent:#6f9a2e;--accent2:rgba(111,154,46,.16);--accent3:rgba(111,154,46,.10);--red:#c4533f;--purple:#6b4fc4;--blue:#1a6fc4;--teal:#1a8a6a;--amber:#c87800;--pink:#c4204a;--star:#c99a1e;--mmbd:#a9a9a0;--mm0bg:#34362f;--mm0tx:#f1f1ea}
-.bb-doc b,.bb-doc strong{font-weight:500}   /* 굵은 글씨 굵기 */
+.bb-doc b,.bb-doc strong{font-weight:500}
+.bb-doc .mm b,.bb-doc .mm strong{font-weight:400;-webkit-text-stroke:.25px currentColor}   /* 마인드맵 글꼴은 굵은 서체가 없어 얇은 외곽선으로 중간 굵기 (가려진 빈칸에선 글자색이 투명이라 같이 안 보임) */   /* 굵은 글씨 굵기 */
 /* ── 중요 표시(★): 빈칸 안쪽 글자 앞. 가려진 동안은 투명(자리만 차지), 열리면 노란 별 ── */
 .bb-b{-webkit-touch-callout:none}
 .bb-b.star::before{content:'★';color:transparent;font-size:.8em;margin-right:3px}
@@ -2766,7 +2767,7 @@ function bbRenderDoc(el){const hb=document.getElementById('bbMmHBar');if(hb)hb.c
   const fsBar=`<span style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;flex-wrap:wrap"><button class="bb-btn" style="width:36px;padding:5px 0" onclick="bbFsStep(-1)">−</button><b id="bbFsPct" style="min-width:44px;text-align:center">${Math.round(bbFs*100)}%</b><button class="bb-btn" style="width:36px;padding:5px 0" onclick="bbFsStep(1)">+</button><button class="bb-btn" style="padding:5px 11px" onclick="bbFsSet(1)">기본</button><input id="bbFsR" type="range" min="60" max="180" step="5" value="${Math.round(bbFs*100)}" oninput="bbFsSet(this.value/100)" style="padding:0;border:none;background:none;flex:1;min-width:100px"></span>`;
   const hasMm=!!box.querySelector('.mm');
   el.innerHTML=`<div class="bb-tt"><button class="bb-btn" onclick="bbLeave()">← 목록</button><b>${bbEsc(d.title)}</b><button class="bb-btn" onclick="bbOpenAdd('${d.id}')">수정</button><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div>
-  <div class="bb-r1"><div>${mc('study','학습')}${mc('test','테스트')}${mc('rate','정답률')}</div><div><button class="bb-btn" onclick="bbAll(1)">전체 열기</button><button class="bb-btn" onclick="bbAll(0)">전체 가리기</button><button id="bbOptB" class="bb-btn ${S.opt?'pri':''}" onclick="bbOptTog()">${S.opt?'옵션 ∧':'옵션 ∨'}</button></div></div>
+  <div class="bb-r1"><div>${mc('study','학습')}${mc('test','테스트')}${mc('rate','정답률')}</div><div><button class="bb-btn" onclick="bbAll(1)">전체 열기</button><button class="bb-btn" onclick="bbAll(0)">전체 가리기</button><button class="bb-btn bb-theme" title="라이트/다크 전환" aria-label="라이트/다크 전환" onclick="toggleTheme()">${document.body.classList.contains('light')?'🌞':'🌙'}</button><button id="bbOptB" class="bb-btn ${S.opt?'pri':''}" onclick="bbOptTog()">${S.opt?'옵션 ∧':'옵션 ∨'}</button></div></div>
   <div class="bb-opt" id="bbOptP" style="display:${S.opt?'flex':'none'}">
     <div class="bb-orow"><span class="bb-ol">범위</span>${fc('all','전체')}${fc('weak','약점')}${fc('new','안 푼 것')}</div>
     <div class="bb-orow"><span class="bb-ol">표시</span><span class="bb-orow" id="bbOptDisp"></span></div>
@@ -3503,6 +3504,7 @@ window.addEventListener('online',()=>bbPush());
 function toggleTheme(){
   const isLight = document.body.classList.toggle('light');
   document.getElementById('themeToggleBtn').textContent = isLight ? '🌞' : '🌙';
+  document.querySelectorAll('.bb-theme').forEach(b=>{b.textContent = isLight ? '🌞' : '🌙'});   // 뽀개기 풀이 화면의 전환 버튼
   localStorage.setItem('imgo_theme', isLight ? 'light' : 'dark');
   if(typeof examPerson !== 'undefined' && examPerson){
     buildExamControls();
