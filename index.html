@@ -224,8 +224,8 @@ body.light .nc-stitle{color:var(--text3)}
 @media(hover:hover){.bb-doc.study .bb-b:hover{color:var(--text);background:var(--accent3);outline:1px solid var(--accent)}}
 .bb-b.ok{outline:2px solid var(--accent)}
 /* ── 뽀개기 문제 카드 전용 눈 편한 팔레트: 카드(.bb-doc) 안에서만 변수를 덮어써서 다른 화면의 색은 그대로 ── */
-.bb-doc{--bg3:#201e1c;--text:#d9d9d9;--text2:#bdbdbd;--text3:#979797;--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);--border3:#6e6e6e;--accent:#a8c76a;--accent2:rgba(168,199,106,.16);--accent3:rgba(168,199,106,.08);--red:#e07a6f;--purple:#9d8fc4;--blue:#7aa3c9;--teal:#6fb7a0;--amber:#d9a85a;--pink:#d98c9c;--star:#e0b84a;--mmbd:#808080;--mm0bg:#121212;--mm0tx:#e6e6e6;color:var(--text)}
-body.light .bb-doc{--bg3:#fbfbf8;--text:#2b2b2b;--text2:#555;--text3:#888;--border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);--border3:#b9b9b0;--accent:#6f9a2e;--accent2:rgba(111,154,46,.16);--accent3:rgba(111,154,46,.10);--red:#c4533f;--purple:#6b4fc4;--blue:#1a6fc4;--teal:#1a8a6a;--amber:#c87800;--pink:#c4204a;--star:#c99a1e;--mmbd:#a9a9a0;--mm0bg:#34362f;--mm0tx:#f1f1ea}
+.bb-doc{--bg3:#201e1c;--text:#d9d9d9;--text2:#bdbdbd;--text3:#979797;--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);--border3:#6e6e6e;--accent:#a8c76a;--accent2:rgba(168,199,106,.30);--accent3:rgba(168,199,106,.17);--tint:36%;--tintng:26%;--red:#e07a6f;--purple:#9d8fc4;--blue:#7aa3c9;--teal:#6fb7a0;--amber:#d9a85a;--pink:#d98c9c;--star:#e0b84a;--mmbd:#808080;--mm0bg:#121212;--mm0tx:#e6e6e6;color:var(--text)}
+body.light .bb-doc{--bg3:#fbfbf8;--text:#2b2b2b;--text2:#555;--text3:#888;--border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);--border3:#b9b9b0;--accent:#6f9a2e;--accent2:rgba(111,154,46,.16);--accent3:rgba(111,154,46,.10);--tint:22%;--tintng:14%;--red:#c4533f;--purple:#6b4fc4;--blue:#1a6fc4;--teal:#1a8a6a;--amber:#c87800;--pink:#c4204a;--star:#c99a1e;--mmbd:#a9a9a0;--mm0bg:#34362f;--mm0tx:#f1f1ea}
 .bb-doc b,.bb-doc strong{font-weight:500}
 .bb-doc .mm b,.bb-doc .mm strong{font-weight:400;-webkit-text-stroke:.25px currentColor}   /* 마인드맵 글꼴은 굵은 서체가 없어 얇은 외곽선으로 중간 굵기 (가려진 빈칸에선 글자색이 투명이라 같이 안 보임) */   /* 굵은 글씨 굵기 */
 /* ── 중요 표시(★): 빈칸 안쪽 글자 앞. 가려진 동안은 투명(자리만 차지), 열리면 노란 별 ── */
@@ -263,7 +263,7 @@ body.bbhs .bb-fbar{bottom:calc(32px + env(safe-area-inset-bottom,0px))}
 body.bbhs{padding-bottom:16px}
 .bb-doc.mmdoc.pan{cursor:grabbing;user-select:none}
 body.bbnoline .bb-b.open:not(.ok):not(.ng),body.bbnoline .bb-doc.study .bb-b:hover{outline:none!important}
-.bb-b.ng{outline:2px solid var(--red);background:color-mix(in srgb,var(--red) 14%,transparent)}
+.bb-b.ng{outline:2px solid var(--red);background:color-mix(in srgb,var(--red) var(--tintng,14%),transparent)}
 .bb-pop{position:absolute;z-index:300;background:var(--bg2);border:1px solid var(--border3);border-radius:10px;padding:4px;display:flex;gap:4px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .bb-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
 .bb-ov.full{padding:0;background:var(--bg);align-items:stretch;justify-content:stretch}
@@ -2754,7 +2754,7 @@ function bbRenderDoc(el){const hb=document.getElementById('bbMmHBar');if(hb)hb.c
   if(!S.tgt)S.tgt=sets[S.filter];
   box.querySelectorAll('.bb-b').forEach(e=>{const k=e.dataset.k;if(!S.tgt.has(k))e.className='bb-plain';else if(S.judged[k])e.className='bb-b open '+(S.judged[k]==='O'?'ok':'ng')});
   {const sm=bbStar[d.id]||{};box.querySelectorAll('.bb-b').forEach(e=>{if(sm[e.dataset.k])e.classList.add('star')})}
-  if(rv)box.querySelectorAll('.bb-b').forEach(e=>{const x=cu(e.dataset.k),p=x.a?Math.round(x.c*100/x.a):null,c=bbCol(p);e.classList.add('open');e.style.background='color-mix(in srgb,'+c+' 22%,transparent)';e.style.outline='1px solid '+c;e.insertAdjacentHTML('afterend','<small style="color:'+c+';margin-left:4px;font-weight:700">'+(p===null?'-':p+'%')+'</small>')});
+  if(rv)box.querySelectorAll('.bb-b').forEach(e=>{const x=cu(e.dataset.k),p=x.a?Math.round(x.c*100/x.a):null,c=bbCol(p);e.classList.add('open');e.style.background='color-mix(in srgb,'+c+' var(--tint,22%),transparent)';e.style.outline='1px solid '+c;e.insertAdjacentHTML('afterend','<small style="color:'+c+';margin-left:4px;font-weight:700">'+(p===null?'-':p+'%')+'</small>')});
   const js=Object.values(S.judged),jo=js.filter(x=>x==='O').length,st=bbAgg(d.id,bbSet.term);
   const mc=(v,t)=>`<button class="ttab ${S.mode===v?'on':''}" onclick="bbS.mode='${v}';bbRender()">${t}</button>`;
   const fc=(f,t)=>`<button class="ttab ${S.filter===f?'on':''}" onclick="bbS.filter='${f}';bbS.tgt=null;bbRender()">${t} ${sets[f].size}</button>`;
