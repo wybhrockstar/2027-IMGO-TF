@@ -296,6 +296,18 @@ body.bbnoline .bb-b.open:not(.ok):not(.ng),body.bbnoline .bb-doc.study .bb-b:hov
 .mm .mmn{font-family:'OwnglyphCocoa','EliceNeolli',sans-serif}
 .mm .mmn.mk1{font-family:'OwnglyphCocoa','EliceNeolli',sans-serif}
 .mm .mmn.mk2{font-family:'EliceNeolli','OwnglyphCocoa',sans-serif}
+.mm.lst{padding-left:14px}
+.mm.lst .mmn.mm1{background:color-mix(in srgb,var(--purple) 20%,var(--bg3))}
+.mm.lst .mmn.mm2{background:color-mix(in srgb,var(--blue) 16%,var(--bg3))}
+.mm.lst .mmn.mme{background:var(--bg3)}
+.mm.lst .mmn.mf0{background:var(--bg3)}
+.mm.lst .mmn.mf1{background:color-mix(in srgb,var(--purple) 20%,var(--bg3))}
+.mm.lst .mmn.mf2{background:color-mix(in srgb,var(--blue) 18%,var(--bg3))}
+.mm.lst .mmn.mf3{background:color-mix(in srgb,var(--teal) 18%,var(--bg3))}
+.mm.lst .mmn.mf4{background:color-mix(in srgb,var(--amber) 20%,var(--bg3))}
+#bbDoc .mmn[data-cf]{cursor:pointer}
+.mm .mmb.mcol>.mmc{display:none}
+#bbDoc .mmn[data-hc]::after{content:' ▸ ' attr(data-hc);font-size:.78em;font-weight:400;color:var(--text3);font-family:'Noto Sans KR',sans-serif;white-space:nowrap}
 .mm.lst .mmn[data-num]::before{content:attr(data-num);display:inline-block;box-sizing:border-box;width:var(--nw,24px);margin:0 var(--nb,13px) 0 calc(-1*(var(--nw,24px) + var(--nb,13px)));padding-right:4px;text-align:right;font-size:.82em;font-weight:400;font-style:normal;color:var(--text3);white-space:nowrap;font-family:'Noto Sans KR',sans-serif;pointer-events:none}
 .bb-dw{position:relative;box-sizing:border-box;padding-right:16px;max-width:100%}
 .bb-dh{position:absolute;right:0;top:0;bottom:0;width:16px;cursor:ew-resize;touch-action:none;display:flex;align-items:center;justify-content:center}
@@ -3530,7 +3542,7 @@ function bbMmNum(m,on){   // 목록 모드: 상자에만 층위별 번호(I. 1. 
           o.nb=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.borderLeftWidth)||0);w=Math.max(w,x)});
         const cw=Math.ceil(w)+2,col=cw+4;
         bs.forEach(o=>{
-          if(bx(o)){o.n.dataset.num=o.t;o.n.style.setProperty('--nw',col+'px');o.n.style.setProperty('--nb',(o.nb||13)+'px');o.n.style.marginLeft=col+'px';o.n.style.setProperty('max-width','calc(100% - '+col+'px)','important')}
+          if(bx(o)){o.n.dataset.num=o.t;o.n.style.setProperty('--nw',col+'px');o.n.style.setProperty('--nb',(o.nb||13)+'px');o.n.style.marginLeft='-18px';o.n.style.setProperty('max-width','calc(100% + 18px)','important')}
           else o.n.style.marginLeft='4px';
           o.n.dataset.nm='1';
         });
@@ -3540,6 +3552,30 @@ function bbMmNum(m,on){   // 목록 모드: 상자에만 층위별 번호(I. 1. 
   }
   walk(m.children,0);
 }
+let bbColl=new Set(),bbCollS=null;
+function bbMmColl(){   // 노드를 누르면 그 아래 가지가 접힘/펼침(여러 개 동시에 접을 수 있음)
+  if(bbCollS!==bbS){bbColl=new Set();bbCollS=bbS}
+  [...document.querySelectorAll('#bbDoc .mm')].forEach((m,mi)=>{
+    const walk=(list,pre)=>[...list].forEach((b,i)=>{
+      const p=pre+(pre?'.':'')+i,c=b.querySelector(':scope>.mmc'),n=b.firstElementChild,on=!!c&&bbColl.has(mi+':'+p);
+      b.classList.toggle('mcol',on);
+      if(n&&n.classList.contains('mmn')){if(c)n.dataset.cf='1';else delete n.dataset.cf;if(on)n.dataset.hc=c.querySelectorAll('.mmn').length;else delete n.dataset.hc}
+      if(c)walk(c.children,p);
+    });
+    walk(m.children,'');
+  });
+}
+document.addEventListener('click',e=>{
+  if(bbMm.pick||!e.target.closest)return;
+  const n=e.target.closest('#bbDoc .mmn');if(!n||e.target.closest('.bb-b'))return;
+  const b0=n.parentElement;if(!b0.querySelector(':scope>.mmc'))return;
+  const sl=window.getSelection&&window.getSelection();if(sl&&!sl.isCollapsed&&String(sl).trim())return;
+  const m=n.closest('.mm'),mi=[...document.querySelectorAll('#bbDoc .mm')].indexOf(m);
+  let b=b0;const p=[];
+  while(b){const par=b.parentElement;p.unshift([...par.children].indexOf(b));if(par===m)break;b=par.parentElement}
+  const k=mi+':'+p.join('.');if(bbColl.has(k))bbColl.delete(k);else bbColl.add(k);
+  bbMmColl();bbMmFix(document);const d=document.getElementById('bbDoc');bbHS(d&&d.classList.contains('mmdoc')?d:null);
+});
 function bbMmUi(){
   document.body.classList.toggle('bblen',bbMm.len);
   document.body.classList.toggle('bbnoline',!bbMm.line);
@@ -3547,6 +3583,7 @@ function bbMmUi(){
   const ms=[...doc.querySelectorAll('.mm')];
   ms.forEach(m=>{m.classList.toggle('lst',bbMm.mode==='list');m.style.zoom=bbMm.mode==='map'&&bbMm.z!==1?bbMm.z:'';m.style.setProperty('--lf',bbMm.lf+'px')});
   ms.forEach(m=>bbMmNum(m,bbMm.mode==='list'));
+  bbMmColl();
   bbMmBar(doc,ms);bbHS(ms.length?doc:null);
   const d1=document.getElementById('bbOptDisp'),d2=document.getElementById('bbOptView');
   if(!d1||d1.dataset.b)return;
