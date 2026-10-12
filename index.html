@@ -308,7 +308,31 @@ body.bbnoline .bb-b.open:not(.ok):not(.ng),body.bbnoline .bb-doc.study .bb-b:hov
 .mmn.mf2{background:color-mix(in srgb,var(--blue) 18%,transparent);border-color:var(--blue)}
 .mmn.mf3{background:color-mix(in srgb,var(--teal) 18%,transparent);border-color:var(--teal)}
 .mmn.mf4{background:color-mix(in srgb,var(--amber) 20%,transparent);border-color:var(--amber)}
-.mm{--mr:5px}   /* 각진 상자 모서리 반경 */
+.mm{--mr:5px}
+.mmn.mf5{background:color-mix(in srgb,var(--text) 16%,var(--bg3));border-color:var(--text3)}   /* 회색 상자 (대단원 첫 노드용) */
+.mm.lst .mmn.mf5{background:color-mix(in srgb,var(--text) 16%,var(--bg3))}
+#bbPv2.me .mmn{cursor:pointer}
+#bbPv2 .mmn.me-sel{outline:2px solid var(--accent);outline-offset:3px;cursor:text}
+#bbMeTb,#bbMemoTb{position:sticky;top:0;z-index:5;margin:0 0 8px;padding:8px 10px;line-height:1.4;font-size:12px;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+#bbMeOv{position:fixed;z-index:600;pointer-events:none}
+.bbme-b{position:absolute;width:24px;height:24px;border-radius:50%;border:none;background:var(--accent,#4a9eff);color:#111;font-size:17px;line-height:24px;padding:0;pointer-events:auto;cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,.45)}
+.bbme-dr{background:#555;color:#eee;cursor:grab;touch-action:none;font-size:14px}
+#bbMeDrop{position:fixed;z-index:601;pointer-events:none;border-radius:3px;box-sizing:border-box}
+.bb-pen:not(.bb-b){white-space:pre-wrap}
+#bbPv2 .bbmm{cursor:text;outline:1px dashed var(--border3)}
+#bbPv2 .bbmm:focus{outline:2px solid var(--accent)}
+#bbPv2 .bbmm:empty::before{content:'메모 입력';color:var(--text3)}
+#bbPv2 .bbmm[data-bl="1"]{box-shadow:inset 0 -2px 0 var(--text3)}
+#bbPv2.memo .blank{cursor:text}
+/* 가운데 정렬된 노드(상자)의 메모는 가운데 정렬 · 왼쪽 정렬 노드(목록 모드·상자 없는 끝 노드)는 왼쪽 */
+.mm:not(.lst) .mmn:not(.mm3)>.bb-pen{margin-left:auto;margin-right:auto}
+/* 메모 앞 공백은 상자(배경·테두리) 밖의 여백으로 */
+.bb-pen[data-lead]{margin-left:calc(var(--lead,0)*.3em)}
+.bb-pen[data-lead]:not(.bb-b){margin-left:calc(2px + var(--lead,0)*.3em)}
+.mmn>.bb-pen[data-lead]{margin-left:calc(var(--lead,0)*.3em)}
+.mm:not(.lst) .mmn:not(.mm3)>.bb-pen[data-lead]{margin-left:auto}
+.mmn>.bb-pen{display:block;margin:3px 0 0;padding:1px 6px;font-size:.82em;text-align:inherit;white-space:pre-wrap;width:max-content;max-width:16em;border-top:1px dashed var(--border3);border-radius:4px}
+#bbPenList [contenteditable]:focus{outline:1px solid var(--accent);background:var(--bg3)}   /* 각진 상자 모서리 반경 */
 .mmn.ms1,.mmn.ms2{border-radius:var(--mr)}   /* ms2 = 예전에 등록한 문서의 각진 상자 */
 .mm .mmn{font-family:'OwnglyphCocoa','EliceNeolli',sans-serif}
 .mm .mmn.mk1{font-family:'OwnglyphCocoa','EliceNeolli',sans-serif}
@@ -2617,9 +2641,14 @@ function bbSetOff(srv,t0,t1){srv=+srv;if(!(srv>1e12))return;let o=Math.round(srv
 const bbPenOk=(id,k)=>k.slice(0,2)!=='p_'||!!(bbPens[id]&&bbPens[id][k.slice(2)]);
 function bbOffToPos(root,off,pref){let o=off,l=null;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){l=n;if(pref?o<n.length:o<=n.length)return{n,o};o-=n.length}return l?{n:l,o:l.length}:null}
 function bbPenOff(full,p){let o=Math.min(Math.max(p.off||0,0),full.length);const c=p.ctx||'';if(c&&full.slice(Math.max(0,o-c.length),o)!==c){let best=-1,i=full.indexOf(c);while(i>=0){const e=i+c.length;if(best<0||Math.abs(e-o)<Math.abs(best-o))best=e;i=full.indexOf(c,i+1)}if(best>=0)o=best}return o}
-function bbPenEl(p){const e=document.createElement('span');e.className=(p.bl?'bb-b ':'')+'bb-pen c'+(p.col?1:0);if(p.bl)e.dataset.k='p_'+p.id;e.textContent=p.text;return e}
+function bbPenTxt(e,t){t=t||'';const m=/^[ \u00a0]+/.exec(t),n=m?m[0].length:0;   // 앞 공백은 글자에서 빼고 상자 밖 여백(--lead)으로 (저장되는 메모 글은 그대로)
+  if(n){e.dataset.lead=n;e.style.setProperty('--lead',n)}else{delete e.dataset.lead;e.style.removeProperty('--lead')}e.textContent=n?t.slice(n):t}
+function bbPenEl(p){const e=document.createElement('span');e.className=(p.bl?'bb-b ':'')+'bb-pen c'+(p.col?1:0);if(p.bl)e.dataset.k='p_'+p.id;bbPenTxt(e,p.text);return e}
 function bbPenIns(b,o,s,e){const q=bbOffToPos(b,o,s);if(!q){b.appendChild(e);return}const bk=q.n.parentElement&&q.n.parentElement.closest('.bb-b,.bb-pen');if(bk){bk.after(e);return}q.n.splitText(q.o);q.n.after(e)}
-function bbBoxP(d){const b=bbBox(d),m=bbPens[d.id];if(!m||/class="mm"/.test(d.html||''))return b;const ps=Object.values(m);if(!ps.length)return b;
+function bbBoxP(d){const b=bbBox(d),m=bbPens[d.id];if(!m)return b;const ps=Object.values(m);if(!ps.length)return b;
+  if(/class="mm"/.test(d.html||'')){   // 마인드맵: 메모는 해당 노드 아래 메모 줄로
+    let t=0,full='';const N=[];b.querySelectorAll('.mmn').forEach(n=>{const x=n.textContent;full+=x;t+=x.length;N.push({n,end:t})});if(!N.length)return b;
+    ps.map(p=>({p,o:bbPenOff(full,p)})).sort((x,y)=>x.o-y.o||(x.p.ts||0)-(y.p.ts||0)).forEach(a=>(N.find(x=>x.end>=a.o)||N[N.length-1]).n.appendChild(bbPenEl(a.p)));return b}
   const full=b.textContent,L=ps.map(p=>({p,o:bbPenOff(full,p)})).sort((x,y)=>x.o-y.o||(x.p.ts||0)-(y.p.ts||0));
   for(let i=L.length-1;i>=0;i--)bbPenIns(b,L[i].o,L[i].p.s,bbPenEl(L[i].p));return b}
 function bbPenPut(id,p,del){const ts=bbNow();p.ts=ts;bbEnq('pens',`pens|${id}|${p.id}`,{docId:id,pid:p.id,ts,deleted:del?1:0,p:del?{}:{off:p.off,s:p.s,ctx:p.ctx,text:p.text,col:p.col,bl:p.bl}})}
@@ -2630,7 +2659,14 @@ function bbPenSec(id){const lb=(t,x)=>`<label style="display:flex;align-items:ce
   <div id="bbPenDoc" class="bb-doc study bbpv" onclick="bbPenClick(event)" style="max-height:30vh;overflow:auto;padding:8px;margin:0 0 6px"></div>
   <textarea id="bbPenTx" style="height:56px" placeholder="메모 내용"></textarea>
   <div class="bb-top" style="gap:6px 12px;margin:6px 0">${lb('기본색','<input type="radio" name="bbPenCol" value="0" checked style="width:auto">')}${lb('강조색','<input type="radio" name="bbPenCol" value="1" style="width:auto">')}${lb('빈칸으로','<input type="checkbox" id="bbPenBl" style="width:auto">')}<span class="bb-sp"></span><button class="bb-btn pri" onclick="bbPenAdd()">＋ 추가</button></div><div id="bbPenList"></div>`}
-function bbPenInit(id){const pane=document.getElementById('bbPenDoc');if(!pane)return;bbPenSt={id,off:null,s:0};const d=bbDocs.find(x=>x.id===id);if(!d)return;const b=bbBox(d);b.querySelectorAll('.bb-b').forEach(e=>e.classList.add('open'));pane.innerHTML='';pane.appendChild(b);bbPenList()}
+function bbPenEdInit(){const L=document.getElementById('bbPenList');if(!L||L.dataset.ed)return;L.dataset.ed=1;
+  const S=e=>e.target.closest?e.target.closest('[data-pid]'):null;
+  L.addEventListener('keydown',e=>{if(S(e)&&e.key==='Enter'&&!e.isComposing){e.preventDefault();document.execCommand('insertText',false,'\n')}});
+  L.addEventListener('paste',e=>{if(!S(e))return;e.preventDefault();document.execCommand('insertText',false,(e.clipboardData&&e.clipboardData.getData('text/plain'))||'')});
+  L.addEventListener('drop',e=>{if(S(e))e.preventDefault()});
+  L.addEventListener('focusout',e=>{const s=S(e),id=bbPenSt&&bbPenSt.id,p=s&&id&&bbPens[id]&&bbPens[id][s.dataset.pid];if(!p)return;   // 목록은 다시 그리지 않아요(삭제 버튼 클릭이 씹히지 않게)
+    const t=s.textContent.replace(/\u00a0/g,' ').trim();if(!t){s.textContent=p.text;return}if(t!==p.text){p.text=t;bbPenPut(id,p);bbSave()}})}
+function bbPenInit(id){const pane=document.getElementById('bbPenDoc');if(!pane)return;bbPenEdInit();bbPenSt={id,off:null,s:0};const d=bbDocs.find(x=>x.id===id);if(!d)return;const b=bbBox(d);b.querySelectorAll('.bb-b').forEach(e=>e.classList.add('open'));pane.innerHTML='';pane.appendChild(b);bbPenList()}
 function bbPenClick(ev){const pane=document.getElementById('bbPenDoc');if(!pane||!bbPenSt)return;pane.querySelectorAll('.bb-pen-mk').forEach(e=>e.remove());
   let n=null,o=0;if(document.caretRangeFromPoint){const r=document.caretRangeFromPoint(ev.clientX,ev.clientY);if(r){n=r.startContainer;o=r.startOffset}}else if(document.caretPositionFromPoint){const r=document.caretPositionFromPoint(ev.clientX,ev.clientY);if(r){n=r.offsetNode;o=r.offset}}
   if(!n||!pane.contains(n)||n===pane)return;
@@ -2645,7 +2681,7 @@ function bbPenAdd(){const st=bbPenSt;if(!st||st.off===null){alert('먼저 펜을
   (bbPens[st.id]=bbPens[st.id]||{})[p.id]=p;bbPenPut(st.id,p);bbSave();document.getElementById('bbPenTx').value='';bbPenList()}
 function bbPenDel(pid){const id=bbPenSt&&bbPenSt.id;if(!id||!bbPens[id]||!bbPens[id][pid])return;if(!confirm('이 펜을 삭제할까요?'))return;delete bbPens[id][pid];if(!Object.keys(bbPens[id]).length)delete bbPens[id];bbPenPut(id,{id:pid},1);bbSave();bbPenList()}
 function bbPenList(){const e=document.getElementById('bbPenList');if(!e||!bbPenSt)return;const ps=Object.values(bbPens[bbPenSt.id]||{}).sort((a,b)=>(a.ts||0)-(b.ts||0));
-  e.innerHTML=ps.length?ps.map(p=>`<div class="bb-row" style="gap:8px;margin:4px 0"><span class="bb-pen c${p.col?1:0}${p.bl?' bb-b open':''}" style="flex:1;min-width:0;white-space:pre-wrap">${bbEsc(p.text)}</span><span class="bb-cs">${p.bl?'빈칸 · ':''}…${bbEsc(p.ctx.slice(-6))}</span><button class="bb-btn" onclick="bbPenDel('${p.id}')">삭제</button></div>`).join(''):'<div class="bb-cs">아직 펜이 없어요.</div>'}
+  e.innerHTML=ps.length?ps.map(p=>`<div class="bb-row" style="gap:8px;margin:4px 0"><span class="bb-pen c${p.col?1:0}${p.bl?' bb-b open':''}" data-pid="${p.id}" contenteditable="true" spellcheck="false" title="눌러서 바로 고치세요" style="flex:1;min-width:0;white-space:pre-wrap">${bbEsc(p.text)}</span><span class="bb-cs">${p.bl?'빈칸 · ':''}…${bbEsc(p.ctx.slice(-6))}</span><button class="bb-btn" onclick="bbPenDel('${p.id}')">삭제</button></div>`).join(''):'<div class="bb-cs">아직 펜이 없어요.</div>'}
 
 let bbPens={},bbSes=[],bbStar={},bbEC=null,bbRuns={},bbDocs=[],bbPerson='',bbRec={},bbSet={min:60,max:80,term:1},bbDone={},bbView=null,bbS=null,bbTmp=null;
 let bbTab='weekly',bbSub='all',bbSort='abc',bbAS='all',bbDay=null,bbF={subj:'',loc:'',days:[],edit:null};
@@ -2694,7 +2730,7 @@ function bbClean(src,out){
     if(t==='TD'||t==='TH'){el=document.createElement('td');
       ['colspan','rowspan'].forEach(a=>{const v=parseInt(n.getAttribute(a));if(v>1&&v<20)el.setAttribute(a,v)});
       if(/background/.test(n.getAttribute('style')||'')&&!n.querySelector('.blank'))el.className='bb-th';
-    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='I'&&n.classList.contains('d'))el.className='d';if(t==='DIV'){const c=[...n.classList].filter(x=>x==='contentbox'||/^(mm[0-9a-z]?|mf[0-4]|ml[12]|mk[12]|ms[12])$/.test(x)).join(' ');if(c)el.className=c;if(/^\d{2,3}$/.test(n.dataset.w||''))el.dataset.w=n.dataset.w}}
+    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='I'&&n.classList.contains('d'))el.className='d';if(t==='DIV'){const c=[...n.classList].filter(x=>x==='contentbox'||/^(mm[0-9a-z]?|mf[0-5]|ml[12]|mk[12]|ms[12])$/.test(x)).join(' ');if(c)el.className=c;if(/^\d{2,3}$/.test(n.dataset.w||''))el.dataset.w=n.dataset.w}}
     if(el){bbClean(n,el);out.appendChild(el)}else bbClean(n,out);
   });
 }
@@ -2860,7 +2896,7 @@ function bbDel(id){if(!confirm('이 문서를 삭제할까요? 공유 문서라 
 
 // ── 등록 / 수정 / 설정 ──
 function bbGuess(t){const s=SUBJECT_META.find(s=>{const p=s.name.split('·');if(s.name.includes('통합'))p.push('바른','슬기','즐거');if(s.name.includes('총론'))p.push('창의적');return p.some(w=>t.includes(w))});return s?s.name:''}
-function bbClose(){const o=document.getElementById('bbOv');if(o)o.remove();bbTmp=null}
+function bbClose(){if(bbMemo.on)bbMemoOff();if(bbMe.on)bbMeOff();bbMe.used=false;const o=document.getElementById('bbOv');if(o)o.remove();bbTmp=null}
 function bbModal(h){bbClose();const o=document.createElement('div');o.className='bb-ov';o.id='bbOv';o.innerHTML=`<div class="bb-md">${h}</div>`;document.body.appendChild(o)}
 function bbFRender(){
   document.getElementById('bbFx').innerHTML=`<div class="bb-cs" style="margin:8px 0 4px">과목</div><div class="bb-top">${SUBJECT_META.map(s=>`<button class="bb-sj ${bbF.subj===s.name?'on':''}" style="--c:${s.color}" onclick="bbF.subj=bbF.subj==='${s.name}'?'':'${s.name}';bbFRender()">${s.name}</button>`).join('')}</div>
@@ -2893,12 +2929,12 @@ function bbOpenAdd(id){
   <div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div style="font-size:13px;font-weight:700;color:var(--text);margin:0 0 4px">빈칸 수정</div>
   <div class="bb-cs" style="margin:0 0 8px">빈칸을 누르면 해제, 드래그하면 선택한 부분이 하나의 빈칸이 돼요 (건드리지 않은 빈칸의 기록은 유지돼요)</div>
   ${/class="mm"/.test(e.html||'')?bbMmEditRules():''}
-  <div class="bb-top" style="margin:0 0 6px">${/class="mm"/.test(e.html||'')?bbMmEditTop():''}<button id="bbTyB" class="bb-btn" onclick="bbTypoTog()">✎ 오타 고치기</button></div>
-  <div id="bbEdSec"><div id="bbTyMsg" class="bb-cs" style="display:none;margin:0 0 6px"></div>
+  <div class="bb-top" style="margin:0 0 6px">${/class="mm"/.test(e.html||'')?bbMmEditTop():''}${/class="mm"/.test(e.html||'')?'<button id="bbMeB" class="bb-btn" onclick="bbMeTog()">✎ 편집하기</button>':'<button id="bbTyB" class="bb-btn" onclick="bbTypoTog()">✎ 편집하기</button>'}<button id="bbMmoB" class="bb-btn" onclick="bbMemoTog()">✎ 메모하기</button></div>
+  <div id="bbEdSec"><div id="bbTyMsg" class="bb-cs" style="display:none;margin:0 0 6px"></div>${/class="mm"/.test(e.html||'')?'<div id="bbMeTb" class="bb-doc" style="display:none"></div>':''}<div id="bbMemoTb" class="bb-doc" style="display:none"></div>
   <div id="bbPv" class="bb-cs" style="margin:0 0 6px"></div><div id="bbPv2" class="bb-doc study bbpv" onclick="bbBmClick(event)" onpointerup="bbPUp(event,0)" style="max-height:38vh;overflow:auto;padding:8px;margin:0 0 6px"></div>
   <div id="bbMgBar" class="bb-top" style="display:none;margin:6px 0 0"><button class="bb-btn pri" onpointerdown="event.preventDefault()" onclick="bbMergeSel()">✂ 선택한 부분을 하나의 빈칸으로</button></div></div>
   ${/class="mm"/.test(e.html||'')?bbMmEditPv():''}`:'')
-  +(e&&!/class="mm"/.test(e.html||'')?bbPenSec(id):'')
+  
   +`<div class="bb-top" style="margin:14px 0 0"><span class="bb-sp"></span><button class="bb-btn" onclick="bbClose()">${e?'닫기':'취소'}</button><button class="bb-btn pri" onclick="bbAdd()">${e?'저장':'저장'}</button></div>`);
   bbFRender();document.getElementById('bbOv').classList.add('full');   // 폰·PC 모두 전체화면 편집기
   if(e){const pv=document.getElementById('bbPv2'),t=document.createElement('div');t.innerHTML=e.html||'';let i=0;
@@ -2906,37 +2942,297 @@ function bbOpenAdd(id){
     pv.innerHTML=t.innerHTML;bbBm={title:'',src:''};bbBmSync();bbTypoInit(pv);bbPenInit(id)}
 }
 
+// ── 수정 화면: 마인드맵 직접 편집 (노드 추가·삭제·이동·서식·글자 수정) ──
+// 빈칸 span(data-ok)이 노드와 함께 움직이므로, 저장할 때 bbEdBlanks가 기록·별표·풀이 판정을 새 번호로 옮겨 줘요 (새로 만든 노드만 처음부터)
+const bbMe={on:false,used:false,sel:null,bs:'',bh:'',bo:0,h0:'',xm:false,dr:null,h:null};
+const BB_MF=[['mf5','회색','color-mix(in srgb,var(--text) 16%,var(--bg3))','var(--text3)'],['mf1','보라','color-mix(in srgb,var(--purple) 25%,var(--bg3))','var(--purple)'],['mf2','남색','color-mix(in srgb,var(--blue) 25%,var(--bg3))','var(--blue)'],['mf3','초록','color-mix(in srgb,var(--teal) 25%,var(--bg3))','var(--teal)'],['mf4','노랑','color-mix(in srgb,var(--amber) 25%,var(--bg3))','var(--amber)'],['mf0','흰색','var(--bg3)','var(--text2)']];
+function bbMePv(){return document.getElementById('bbPv2')}
+function bbMeIsRoot(n){const m=n&&n.parentElement&&n.parentElement.parentElement;return !(m&&m.classList.contains('mmc'))}
+function bbMeNew(t,from,child){
+  const b=document.createElement('div');b.className='mmb';const n=document.createElement('div');n.className='mmn mm3';
+  if(from){(from.className.match(/\b(mk[12]|ms[12])\b/g)||[]).forEach(c=>n.classList.add(c));
+    if(!child){const f=from.className.match(/\bmf\d\b/);if(f)n.classList.add(f[0]);if(from.classList.contains('mme'))n.classList.add('mme')}}
+  n.textContent=t;b.appendChild(n);return b}
+// 구조가 바뀐 뒤 노드 종류(mm0~mm3: 맨 위/대단원/중간/끝)와 빈 가지 칸을 정리
+function bbMeFix(pv){
+  pv.querySelectorAll('.mmc').forEach(c=>{if(!c.querySelector(':scope>.mmb'))c.remove()});
+  (function w(el,d){[...el.children].forEach(b=>{if(!b.classList.contains('mmb'))return;
+    const n=b.firstElementChild,c=b.querySelector(':scope>.mmc');
+    if(n&&n.classList.contains('mmn')){const bx=/\bmf\d\b/.test(n.className)||n.classList.contains('mme'),k=d===0?0:!c?3:d===1?1:(bbMe.xm&&!bx?3:2);n.className=n.className.replace(/\bmm\d\b/,'mm'+k)}
+    if(c)w(c,d+1)})})(pv.querySelector('.mm')||pv,0);
+}
+function bbMeRecN(root){const id=bbF&&bbF.edit,r=(id&&bbRec[id])||{};return [...root.querySelectorAll('.blank')].filter(s=>s.dataset.ok&&r[s.dataset.ok]).length}
+function bbMeBase(n){bbMe.bh=n.innerHTML;bbMe.bs=bbSkel(n);bbMe.bo=bbCaret(n)}
+function bbMeCommit(){const n=bbMe.sel;if(n&&document.body.contains(n)&&!n.textContent.trim())n.innerHTML=bbMe.h0}
+function bbMeSel(n){
+  const pv=bbMePv();if(!pv)return;if(bbMe.sel&&bbMe.sel!==n)bbMeCommit();
+  pv.querySelectorAll('.me-sel').forEach(x=>{x.classList.remove('me-sel');x.removeAttribute('contenteditable')});
+  bbMe.sel=n||null;
+  if(n){n.classList.add('me-sel');n.contentEditable='true';n.spellcheck=false;bbMe.h0=n.innerHTML;bbMeBase(n)}
+  bbMeUi()}
+function bbMeFocus(n){n.focus();const r=document.createRange();r.selectNodeContents(n);const s=getSelection();s.removeAllRanges();s.addRange(r)}
+function bbMeChk(){const n=bbMe.sel;if(!n)return;if(bbSkel(n)!==bbMe.bs&&!bbFixFx(n,bbMe.bs)){n.innerHTML=bbMe.bh;bbCaretSet(n,bbMe.bo);bbTypoMsg('상자·빈칸 구조가 바뀌는 입력은 되돌렸어요. 빈칸은 아래 [빈칸 켜기/끄기]나 드래그로 바꿔요.')}else{bbTypoMsg('');bbMeBase(n)}}
+function bbMeAdd(where){
+  const n=bbMe.sel,pv=bbMePv();if(!n||!pv)return;const b=n.parentElement;let nb;
+  if(where==='child'){nb=bbMeNew('새 노드',n,true);let c=b.querySelector(':scope>.mmc');if(!c){c=document.createElement('div');c.className='mmc ml2';b.appendChild(c)}c.appendChild(nb)}
+  else{if(bbMeIsRoot(n))return;nb=bbMeNew('새 노드',n,false);if(where==='before')b.before(nb);else b.after(nb)}
+  bbMeFix(pv);const nn=nb.firstElementChild;bbMeSel(nn);bbMeFocus(nn);setTimeout(bbMeUi,80)}
+function bbMeDel(){
+  const n=bbMe.sel,pv=bbMePv();if(!n||!pv)return;if(bbMeIsRoot(n)){alert('맨 위 노드는 지울 수 없어요');return}
+  const b=n.parentElement,sub=b.querySelectorAll('.mmn').length-1,rc=bbMeRecN(b);
+  if((sub||rc)&&!confirm((sub?`하위 노드 ${sub}개도 함께 지워져요. `:'')+(rc?`기록이 있는 빈칸 ${rc}개의 기록도 삭제돼요. `:'')+'지울까요?'))return;
+  const par=b.parentElement.parentElement.firstElementChild;bbMe.sel=null;b.remove();bbMeFix(pv);bbMeSel(par)}
+function bbMeFmt(kind,val){
+  const n=bbMe.sel,pv=bbMePv();if(!n)return;
+  if(kind==='mf'){n.className=n.className.replace(/\s*\bmf\d\b/g,'');if(val)n.classList.add(val)}
+  else if(kind==='mk'){n.className=n.className.replace(/\s*\bmk[12]\b/g,'');if(val)n.classList.add(val)}
+  else if(kind==='cv'){n.className=n.className.replace(/\s*\b(mme|ms[12])\b/g,'');if(val)n.classList.add(val)}
+  bbMeFix(pv);bbMeUi();setTimeout(bbMeUi,80)}
+function bbMeBlank(){
+  const n=bbMe.sel;if(!n)return;const bs=n.querySelectorAll('.blank');
+  if(bs.length){const rc=bbMeRecN(n);if(rc&&!confirm(`빈칸을 끄면 기록이 있는 빈칸 ${rc}개의 기록이 삭제돼요. 끌까요?`))return;
+    bs.forEach(s=>{while(s.firstChild)s.before(s.firstChild);s.remove()});n.normalize()}
+  else{const s=document.createElement('span');s.className='blank';while(n.firstChild)s.appendChild(n.firstChild);n.appendChild(s)}
+  bbMeBase(n);bbMeUi()}
+function bbMeTbHtml(n){
+  const hint='<div class="bb-cs" style="line-height:1.6">노드를 누르면 글자를 바로 고칠 수 있어요. 노드 둘레의 <b>+</b>로 추가(위·아래는 같은 단계, 오른쪽은 하위), <b>⠿</b>를 끌어 옮겨요.</div>';
+  if(!n)return hint;
+  const c=n.className,root=/\bmm0\b/.test(c),mf=(c.match(/\bmf\d\b/)||[''])[0],B=(on,fn,t)=>`<button class="bb-btn${on?' pri':''}" style="padding:4px 10px" onmousedown="event.preventDefault()" onclick="${fn}">${t}</button>`;
+  const sw=BB_MF.map(x=>B(mf===x[0],`bbMeFmt('mf','${x[0]}')`,`<i style="display:inline-block;width:11px;height:11px;border-radius:4px;background:${x[2]};border:2px solid ${x[3]};margin-right:4px;vertical-align:-1px"></i>${x[1]}`)).join('');
+  const L=t=>`<span class="bb-cs" style="margin-left:6px">${t}</span>`,tx=bbEsc(n.textContent.replace(/\s+/g,' ').trim().slice(0,16));
+  return `<div class="bb-cs" style="margin:0 0 6px">선택: <b style="color:var(--text)">${tx}</b></div><div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">`
+   +(root?'':L('상자색')+sw+B(!mf,"bbMeFmt('mf','')",'기본'))
+   +L('곡률')+B(!/\b(mme|ms[12])\b/.test(c),"bbMeFmt('cv','')",'보통')+B(/\bmme\b/.test(c),"bbMeFmt('cv','mme')",'높음')
+   +L('글꼴')+B(!/\bmk2\b/.test(c),"bbMeFmt('mk','mk1')",'온글잎 코코아체')+B(/\bmk2\b/.test(c),"bbMeFmt('mk','mk2')",'앨리스DX널리체')
+   +L('')+B(n.querySelector('.blank'),'bbMeBlank()',n.querySelector('.blank')?'빈칸 끄기':'빈칸 켜기')+B(0,'bbMeDel()','삭제')+`</div>`;
+}
+function bbMeUi(){
+  const ov=document.getElementById('bbMeOv'),tb=document.getElementById('bbMeTb'),n=bbMe.sel,pv=bbMePv();
+  if(tb&&tb.dataset.k!==(n?n.className+'|'+n.textContent.slice(0,16)+(n.querySelector('.blank')?1:0):'')){tb.innerHTML=bbMeTbHtml(n);tb.dataset.k=n?n.className+'|'+n.textContent.slice(0,16)+(n.querySelector('.blank')?1:0):''}
+  if(!ov)return;
+  if(!n||!pv||!document.body.contains(n)){ov.style.display='none';return}
+  const r=n.getBoundingClientRect(),p=pv.getBoundingClientRect();
+  if(!(r.width&&r.bottom>p.top&&r.top<p.bottom&&r.right>p.left&&r.left<p.right)){ov.style.display='none';return}
+  ov.style.display='block';ov.style.left=r.left+'px';ov.style.top=r.top+'px';ov.style.width=r.width+'px';ov.style.height=r.height+'px';
+  const rt=bbMeIsRoot(n);ov.querySelectorAll('[data-w=top],[data-w=bottom],[data-w=drag]').forEach(e=>e.style.display=rt?'none':'');
+}
+function bbMeDropShow(t,z){
+  let d=document.getElementById('bbMeDrop');if(!t){if(d)d.remove();return}
+  if(!d){d=document.createElement('div');d.id='bbMeDrop';document.body.appendChild(d)}
+  const r=t.getBoundingClientRect(),s=d.style;s.left=r.left+'px';s.width=r.width+'px';
+  if(z==='child'){s.top=r.top+'px';s.height=r.height+'px';s.border='2px dashed var(--accent,#4a9eff)';s.background='rgba(74,158,255,.12)'}
+  else{s.border='none';s.height='4px';s.top=(z==='before'?r.top-5:r.bottom+1)+'px';s.background='var(--accent,#4a9eff)'}
+}
+function bbMeDragStart(e){
+  const n=bbMe.sel;if(!n||bbMeIsRoot(n))return;e.preventDefault();e.stopPropagation();
+  const h=e.currentTarget;try{h.setPointerCapture(e.pointerId)}catch(x){}
+  bbMe.dr={n,t:null,z:null};h.onpointermove=bbMeDragMove;h.onpointerup=h.onpointercancel=bbMeDragEnd}
+function bbMeDragMove(e){
+  const d=bbMe.dr,pv=bbMePv();if(!d||!pv)return;
+  const el=document.elementFromPoint(e.clientX,e.clientY),t=el&&el.closest?el.closest('.mmn'):null;d.t=null;d.z=null;
+  if(t&&pv.contains(t)&&!d.n.parentElement.contains(t)){
+    const r=t.getBoundingClientRect(),y=(e.clientY-r.top)/r.height;
+    d.z=bbMeIsRoot(t)?'child':y<.3?'before':y>.7?'after':'child';d.t=t}
+  bbMeDropShow(d.t,d.z);
+  const sc=document.querySelector('#bbOv .bb-md'),p=pv.getBoundingClientRect();
+  if(sc){if(e.clientY<70)sc.scrollTop-=16;else if(e.clientY>innerHeight-70)sc.scrollTop+=16}
+  if(e.clientX>p.right-40)pv.scrollLeft+=16;else if(e.clientX<p.left+40)pv.scrollLeft-=16;
+  bbMeUi()}
+function bbMeDragEnd(e){
+  const d=bbMe.dr,pv=bbMePv(),h=e.currentTarget;bbMe.dr=null;bbMeDropShow(null);
+  if(h){h.onpointermove=h.onpointerup=h.onpointercancel=null;try{h.releasePointerCapture(e.pointerId)}catch(x){}}
+  if(!d||!d.t||!pv||e.type==='pointercancel')return;
+  const mb=d.n.parentElement,tb=d.t.parentElement;
+  if(d.z==='child'){let c=tb.querySelector(':scope>.mmc');if(!c){c=document.createElement('div');c.className='mmc ml2';tb.appendChild(c)}c.appendChild(mb)}
+  else if(d.z==='before')tb.before(mb);else tb.after(mb);
+  bbMeFix(pv);bbMeSel(mb.firstElementChild);setTimeout(bbMeUi,80)}
+function bbMeTog(){
+  if(bbMe.on)return bbMeOff();
+  const pv=bbMePv();if(!pv||!pv.querySelector('.mm'))return;
+  if(bbF&&bbF.reup){alert('XMind 다시 올리기 미리보기가 켜져 있어요. 먼저 그 내용을 비우거나 저장하세요.');return}
+  if(bbMemo.on)bbMemoOff();if(bbTypo)bbTypoTog();
+  bbMe.on=bbMe.used=true;bbMe.xm=!!pv.querySelector('.mmn[class*=" mf"]');pv.classList.add('me');
+  const H=bbMe.h={
+    pd:e=>{const n=e.target.closest('.mmn');if(n&&pv.contains(n)){if(bbMe.sel!==n)bbMeSel(n)}else bbMeSel(null)},
+    ck:e=>{e.stopImmediatePropagation()},   // 평소의 '빈칸 누르면 해제' 동작은 편집 중엔 끔
+    bi:e=>{const n=bbMe.sel;if(n&&n.contains(e.target)&&!e.isComposing)bbMeBase(n)},
+    cs:()=>{const n=bbMe.sel;if(n)bbMeBase(n)},
+    inp:e=>{if(!e.isComposing){bbMeChk();requestAnimationFrame(()=>{try{bbMmFix(pv)}catch(x){}bbMeUi()})}},
+    ce:()=>setTimeout(()=>{bbMeChk();try{bbMmFix(pv)}catch(x){}bbMeUi()},0),
+    kd:e=>{const n=bbMe.sel;if(!n||!n.contains(e.target))return;if(e.key==='Enter'&&!e.isComposing){e.preventDefault();bbMeBase(n);bbNlIns(n);bbMeChk();setTimeout(()=>{try{bbMmFix(pv)}catch(x){}bbMeUi()},0)}else if(e.key==='Escape')bbMeSel(null)},
+    ps:e=>{const n=bbMe.sel;if(!n||!n.contains(e.target))return;e.preventDefault();document.execCommand('insertText',false,(e.clipboardData&&e.clipboardData.getData('text/plain'))||'')},
+    dp:e=>e.preventDefault(),
+    sc:()=>bbMeUi()};
+  pv.addEventListener('pointerdown',H.pd,true);pv.addEventListener('click',H.ck,true);pv.addEventListener('beforeinput',H.bi);pv.addEventListener('compositionstart',H.cs);
+  pv.addEventListener('input',H.inp);pv.addEventListener('compositionend',H.ce);pv.addEventListener('keydown',H.kd);pv.addEventListener('paste',H.ps);pv.addEventListener('drop',H.dp);
+  document.addEventListener('scroll',H.sc,true);addEventListener('resize',H.sc);pv.addEventListener('scroll',H.sc);
+  const ov=document.createElement('div');ov.id='bbMeOv';
+  const bt=(w,st,t,tt,x)=>`<button class="bbme-b${x||''}" data-w="${w}" style="${st}" title="${tt}" onmousedown="event.preventDefault()" ${w==='drag'?'onpointerdown="bbMeDragStart(event)"':`onclick="bbMeAdd('${w}')"`}>${t}</button>`;
+  ov.innerHTML=bt('top','left:50%;top:-30px;margin-left:-12px','+','위에 같은 단계 노드 추가')+bt('bottom','left:50%;top:100%;margin:6px 0 0 -12px','+','아래에 같은 단계 노드 추가')+bt('child','left:100%;top:50%;margin:-12px 0 0 8px','+','하위 노드 추가')+bt('drag','left:-32px;top:50%;margin-top:-12px','⠿','끌어서 옮기기',' bbme-dr');
+  document.body.appendChild(ov);
+  const tb=document.getElementById('bbMeTb');if(tb){tb.style.display='';tb.dataset.k='x'}
+  const b=document.getElementById('bbMeB');if(b){b.classList.add('pri');b.textContent='✓ 편집 마치기'}
+  const ty=document.getElementById('bbTyB');if(ty)ty.style.display='none';
+  bbTypoMsg('');bbMeSel(null)}
+function bbMeOff(){
+  const pv=bbMePv();
+  if(bbMe.on){bbMeCommit();bbMe.sel=null;bbMeDropShow(null)}
+  if(pv&&bbMe.h){const H=bbMe.h;pv.removeEventListener('pointerdown',H.pd,true);pv.removeEventListener('click',H.ck,true);pv.removeEventListener('beforeinput',H.bi);pv.removeEventListener('compositionstart',H.cs);
+    pv.removeEventListener('input',H.inp);pv.removeEventListener('compositionend',H.ce);pv.removeEventListener('keydown',H.kd);pv.removeEventListener('paste',H.ps);pv.removeEventListener('drop',H.dp);pv.removeEventListener('scroll',H.sc);
+    document.removeEventListener('scroll',H.sc,true);removeEventListener('resize',H.sc)}
+  bbMe.h=null;bbMe.on=false;
+  if(pv){pv.classList.remove('me');pv.querySelectorAll('.me-sel').forEach(x=>x.classList.remove('me-sel'));pv.querySelectorAll('[contenteditable]').forEach(x=>{x.removeAttribute('contenteditable');x.removeAttribute('spellcheck')})}
+  const ov=document.getElementById('bbMeOv');if(ov)ov.remove();
+  const tb=document.getElementById('bbMeTb');if(tb){tb.style.display='none';tb.innerHTML=''}
+  const b=document.getElementById('bbMeB');if(b){b.classList.remove('pri');b.textContent='✎ 편집하기'}
+  const ty=document.getElementById('bbTyB');if(ty)ty.style.display='';
+  bbTypoMsg('')}
+
+// ── 수정 화면: 메모하기 (나에게만 보이는 펜을 본문에 바로 입력 · 줄바꿈 가능 · 마인드맵은 노드 아래 메모 줄) ──
+// 메모 위치는 기존 펜과 같은 방식(글자 위치 off + 앞 글자 ctx)으로 저장해서 예전 펜도 그대로 보여요. 마인드맵은 '노드 글자 끝' 위치에 달려요.
+const bbMemo={on:false,sel:null,h:null};
+function bbMemoPlain(el){const c=el.cloneNode(true);c.querySelectorAll('[data-pen]').forEach(x=>x.remove());return c}
+function bbMemoMmNodes(pv){let t=0,full='';const L=[];pv.querySelectorAll('.mmn').forEach(n=>{const x=bbMemoPlain(n).textContent;full+=x;t+=x.length;L.push({n,end:t})});return{full,L}}
+function bbMemoEl(p){const e=document.createElement('span');e.className='bb-pen c'+(p.col?1:0)+' bbmm';e.dataset.pen=p.id||'';if(p.bl)e.dataset.bl='1';e.contentEditable='true';e.spellcheck=false;bbPenTxt(e,p.text||'');return e}
+function bbMemoIns(b,o,s,e){const q=bbOffToPos(b,o,s);if(!q){b.appendChild(e);return}const bk=q.n.parentElement&&q.n.parentElement.closest('.blank,[data-pen]');if(bk){bk.after(e);return}q.n.splitText(q.o);q.n.after(e)}
+function bbMemoLoad(pv,id){
+  const ps=Object.values(bbPens[id]||{});if(!ps.length)return;
+  if(pv.querySelector('.mm')){const m=bbMemoMmNodes(pv);if(!m.L.length)return;
+    ps.map(p=>({p,o:bbPenOff(m.full,p)})).sort((x,y)=>x.o-y.o||(x.p.ts||0)-(y.p.ts||0)).forEach(a=>(m.L.find(x=>x.end>=a.o)||m.L[m.L.length-1]).n.appendChild(bbMemoEl(a.p)));return}
+  const full=bbMemoPlain(pv).textContent,A=ps.map(p=>({p,o:bbPenOff(full,p)})).sort((x,y)=>x.o-y.o||(x.p.ts||0)-(y.p.ts||0));
+  for(let i=A.length-1;i>=0;i--)bbMemoIns(pv,A[i].o,A[i].p.s,bbMemoEl(A[i].p))}
+function bbMemoLeadSet(s,k){if(k>0){s.dataset.lead=k;s.style.setProperty('--lead',k)}else{delete s.dataset.lead;s.style.removeProperty('--lead')}}
+function bbMemoLead(s){   // 입력한 앞 공백은 메모 상자 밖 여백으로 옮김
+  const t=s.firstChild;if(!t||t.nodeType!==3)return;const m=/^[ \u00a0]+/.exec(t.data);if(!m)return;
+  const n=m[0].length,g=getSelection(),off=(g.rangeCount&&g.anchorNode===t)?g.anchorOffset:-1;
+  t.data=t.data.slice(n);bbMemoLeadSet(s,(+s.dataset.lead||0)+n);const nt=t.data.length?t:null;if(!nt)t.remove();
+  if(off>=0){const r=document.createRange();if(nt)r.setStart(nt,Math.max(0,off-n));else r.setStart(s,0);r.collapse(true);g.removeAllRanges();g.addRange(r)}}
+function bbMemoFocusEnd(s){s.focus();const r=document.createRange();r.selectNodeContents(s);r.collapse(false);const g=getSelection();g.removeAllRanges();g.addRange(r)}
+function bbMemoNew(pv,ev){
+  let n=null,o=0;
+  if(document.caretRangeFromPoint){const r=document.caretRangeFromPoint(ev.clientX,ev.clientY);if(r){n=r.startContainer;o=r.startOffset}}
+  else if(document.caretPositionFromPoint){const r=document.caretPositionFromPoint(ev.clientX,ev.clientY);if(r){n=r.offsetNode;o=r.offset}}
+  if(!n||!pv.contains(n)||n===pv)return;
+  const el=n.nodeType===3?n.parentElement:n;if(!el||el.closest('[data-pen]'))return;
+  const sp=bbMemoEl({id:'',text:'',col:0,bl:0});sp.dataset.isnew='1';
+  if(pv.querySelector('.mm')){   // 마인드맵: 누른 노드 아래 메모 줄 (이미 있으면 그 메모를 고침)
+    const nd=el.closest('.mmn');if(!nd)return;const ex=nd.querySelector(':scope>[data-pen]');if(ex){bbMemoFocusEnd(ex);return}
+    const m=bbMemoMmNodes(pv),k=m.L.find(x=>x.n===nd);if(!k)return;sp.dataset.off=k.end;sp.dataset.s=0;nd.appendChild(sp)}
+  else{
+    const bk=el.closest('.blank'),rg=document.createRange();rg.selectNodeContents(pv);if(bk)rg.setEndAfter(bk);else rg.setEnd(n,o);
+    const f=rg.cloneContents();f.querySelectorAll('[data-pen]').forEach(x=>x.remove());
+    sp.dataset.off=f.textContent.length;sp.dataset.s=(!bk&&n.nodeType===3&&o===0)?1:0;
+    if(bk)bk.after(sp);else{const r3=document.createRange();r3.setStart(n,o);r3.collapse(true);r3.insertNode(sp)}}
+  bbMemoFocusEnd(sp)}
+function bbMemoCommit(s){
+  const id=bbF&&bbF.edit,pv=bbMePv();if(!s||!id||!pv||!pv.contains(s))return;
+  const t0=s.textContent.replace(/\u00a0/g,' ').replace(/\s+$/,''),t=t0.trim()?' '.repeat(+s.dataset.lead||0)+t0:'',pid=s.dataset.pen,p=pid&&bbPens[id]&&bbPens[id][pid];
+  if(!t.trim()){if(p)bbPenTxt(s,p.text);else s.remove();return}   // 기존 메모를 다 지워도 삭제되진 않아요(삭제 버튼 사용)
+  if(p){if(p.text!==t){p.text=t;bbPenPut(id,p);bbSave()}return}
+  const off=+s.dataset.off||0,full=pv.querySelector('.mm')?bbMemoMmNodes(pv).full:bbMemoPlain(pv).textContent;
+  const np={id:'p'+bbNow().toString(36)+Math.random().toString(36).slice(2,5),off,s:+s.dataset.s||0,ctx:full.slice(Math.max(0,off-8),off),text:t,col:+(s.className.indexOf(' c1')>=0),bl:+(s.dataset.bl||0)};
+  (bbPens[id]=bbPens[id]||{})[np.id]=np;bbPenPut(id,np);bbSave();
+  s.dataset.pen=np.id;delete s.dataset.off;delete s.dataset.s;delete s.dataset.isnew}
+function bbMemoTbHtml(s){
+  const B=(on,fn,t)=>`<button class="bb-btn${on?' pri':''}" style="padding:4px 10px" onmousedown="event.preventDefault()" onclick="${fn}">${t}</button>`;
+  if(!s)return `<div class="bb-cs" style="line-height:1.6"><b style="color:var(--text)">${bbEsc(bbPerson||'나')}</b>에게만 보이는 메모예요. 본문에서 메모를 넣을 자리를 누르고 바로 입력하세요(엔터 = 줄바꿈). 입력한 메모는 칸을 벗어나면 바로 저장돼요.${document.getElementById('bbPv2')&&document.getElementById('bbPv2').querySelector('.mm')?' 마인드맵은 누른 노드 아래에 메모 줄이 생겨요.':''}</div>`;
+  const c1=/ c1\b/.test(s.className),bl=!!s.dataset.bl;
+  return `<div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center"><span class="bb-cs">메모 색</span>${B(!c1,"bbMemoFmt('col',0)",'기본색')}${B(c1,"bbMemoFmt('col',1)",'강조색')}<span class="bb-cs" style="margin-left:6px"></span>${B(bl,"bbMemoFmt('bl')",bl?'빈칸 끄기':'빈칸으로')}${B(0,'bbMemoDel()','삭제')}</div>`}
+function bbMemoUi(){const tb=document.getElementById('bbMemoTb');if(tb&&bbMemo.on)tb.innerHTML=bbMemoTbHtml(bbMemo.sel)}
+function bbMemoFmt(k,v){
+  const s=bbMemo.sel,id=bbF&&bbF.edit;if(!s)return;
+  if(k==='col'){s.classList.remove('c0','c1');s.classList.add('c'+v)}else{if(s.dataset.bl)delete s.dataset.bl;else s.dataset.bl='1'}
+  const p=s.dataset.pen&&bbPens[id]&&bbPens[id][s.dataset.pen];
+  if(p){p.col=+/ c1\b/.test(s.className);p.bl=s.dataset.bl?1:0;bbPenPut(id,p);bbSave()}
+  bbMemoUi()}
+function bbMemoDel(){
+  const s=bbMemo.sel,id=bbF&&bbF.edit;if(!s)return;const pid=s.dataset.pen,p=pid&&bbPens[id]&&bbPens[id][pid];
+  if(p){if(!confirm('이 메모를 삭제할까요?'))return;delete bbPens[id][pid];if(!Object.keys(bbPens[id]).length)delete bbPens[id];bbPenPut(id,{id:pid},1);bbSave()}
+  bbMemo.sel=null;s.remove();bbMemoUi()}
+function bbMemoTog(){
+  if(bbMemo.on)return bbMemoOff();
+  const pv=bbMePv(),id=bbF&&bbF.edit;if(!pv||!id)return;
+  if(bbF.reup){alert('XMind 다시 올리기 미리보기가 켜져 있어요. 먼저 그 내용을 비우거나 저장하세요.');return}
+  if(bbTypo)bbTypoTog();if(bbMe.on)bbMeOff();
+  bbMemo.on=true;bbMemo.sel=null;pv.classList.add('memo');bbMemoLoad(pv,id);
+  const H=bbMemo.h={
+    ck:e=>{e.stopImmediatePropagation();if(!e.target.closest('[data-pen]'))bbMemoNew(pv,e)},   // 평소의 '빈칸 누르면 해제'는 끔
+    kd:e=>{const s=e.target.closest&&e.target.closest('[data-pen]');if(!s)return;if(e.key==='Enter'&&!e.isComposing){e.preventDefault();document.execCommand('insertText',false,'\n')}else if(e.key==='Escape'){e.preventDefault();s.blur()}else if(e.key==='Backspace'&&!e.isComposing&&(+s.dataset.lead||0)>0){const g=getSelection();if(g.isCollapsed&&g.anchorNode&&s.contains(g.anchorNode)&&bbCaret(s)===0){e.preventDefault();bbMemoLeadSet(s,(+s.dataset.lead)-1)}}},
+    ip:e=>{const s=e.target.closest&&e.target.closest('[data-pen]');if(s&&!e.isComposing)bbMemoLead(s)},
+    ce:e=>{const s=e.target.closest&&e.target.closest('[data-pen]');if(s)setTimeout(()=>bbMemoLead(s),0)},
+    bi:e=>{const s=e.target.closest&&e.target.closest('[data-pen]');if(s&&(e.inputType==='insertParagraph'||e.inputType==='insertLineBreak')){e.preventDefault();document.execCommand('insertText',false,'\n')}},
+    ps:e=>{if(!(e.target.closest&&e.target.closest('[data-pen]')))return;e.preventDefault();document.execCommand('insertText',false,(e.clipboardData&&e.clipboardData.getData('text/plain'))||'')},
+    dp:e=>{if(e.target.closest&&e.target.closest('[data-pen]'))e.preventDefault()},
+    fi:e=>{const s=e.target.closest&&e.target.closest('[data-pen]');if(s){bbMemo.sel=s;bbMemoUi()}},
+    fo:e=>{const s=e.target.closest&&e.target.closest('[data-pen]');if(!s)return;bbMemoCommit(s);const nx=e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('[data-pen]');if(!nx&&bbMemo.sel===s){bbMemo.sel=null}bbMemoUi()}};
+  pv.addEventListener('click',H.ck,true);pv.addEventListener('keydown',H.kd);pv.addEventListener('beforeinput',H.bi);pv.addEventListener('paste',H.ps);pv.addEventListener('drop',H.dp);pv.addEventListener('focusin',H.fi);pv.addEventListener('focusout',H.fo);pv.addEventListener('input',H.ip);pv.addEventListener('compositionend',H.ce);
+  const tb=document.getElementById('bbMemoTb');if(tb)tb.style.display='';
+  const b=document.getElementById('bbMmoB');if(b){b.classList.add('pri');b.textContent='✓ 메모하기 마치기'}
+  bbTypoMsg('');bbMemoUi()}
+function bbMemoOff(){
+  const pv=bbMePv();
+  if(bbMemo.on&&pv){const a=document.activeElement;if(a&&a.dataset&&a.dataset.pen!==undefined)a.blur();pv.querySelectorAll('[data-pen]').forEach(s=>bbMemoCommit(s))}
+  if(pv&&bbMemo.h){const H=bbMemo.h;pv.removeEventListener('click',H.ck,true);pv.removeEventListener('keydown',H.kd);pv.removeEventListener('beforeinput',H.bi);pv.removeEventListener('paste',H.ps);pv.removeEventListener('drop',H.dp);pv.removeEventListener('focusin',H.fi);pv.removeEventListener('focusout',H.fo);pv.removeEventListener('input',H.ip);pv.removeEventListener('compositionend',H.ce)}
+  if(pv){pv.querySelectorAll('[data-pen]').forEach(x=>x.remove());pv.normalize();pv.classList.remove('memo')}
+  bbMemo.h=null;bbMemo.on=false;bbMemo.sel=null;
+  const tb=document.getElementById('bbMemoTb');if(tb){tb.style.display='none';tb.innerHTML=''}
+  const b=document.getElementById('bbMmoB');if(b){b.classList.remove('pri');b.textContent='✎ 메모하기'}}
+
 // ── 수정 화면: 오타 고치기 (글자만 고치고, 상자·줄·빈칸 구조가 바뀌는 입력은 자동으로 되돌림) ──
 let bbSk0='',bbLast='',bbLastOff=0;
-function bbSkel(el){const c=el.cloneNode(true);c.removeAttribute('contenteditable');c.removeAttribute('spellcheck');(function w(n){[...n.childNodes].forEach(k=>{if(k.nodeType===3)k.remove();else if(k.nodeType===1)w(k)})})(c);return c.innerHTML}
+const BB_SKIPC=['mst','me-sel','lst','foc','anc','tgt','mcol'];
+function bbSkel(el){const c=el.cloneNode(true);   // style·보조 클래스·표시용 data는 배치 보정(bbMmFix 등)이 계속 바꾸므로 구조 비교에서 제외
+  [c,...c.querySelectorAll('*')].forEach(x=>{['contenteditable','spellcheck','style','data-num','data-nm'].forEach(a=>x.removeAttribute(a));if(x.classList.length){BB_SKIPC.forEach(k=>x.classList.remove(k));if(!x.classList.length)x.removeAttribute('class')}});
+  (function w(n){[...n.childNodes].forEach(k=>{if(k.nodeType===3)k.remove();else if(k.nodeType===1){if(k.tagName==='BR')k.remove();else w(k)}})})(c);return c.innerHTML}   // 줄바꿈(<br>)은 구조 변경으로 보지 않음
+// 브라우저가 입력 중 끼워 넣은 font·class 없는 span만 풀어서 구조가 원래와 같아지면 되돌리지 않고 살림
+function bbFixFx(el,ref){const o=bbCaret(el);let ch=0;
+  el.querySelectorAll('font,span').forEach(x=>{if(x.tagName==='FONT'||(!x.classList.length&&!Object.keys(x.dataset).length)){while(x.firstChild)x.before(x.firstChild);x.remove();ch=1}});
+  if(!ch)return false;el.normalize();bbCaretSet(el,o);return bbSkel(el)===ref}
 function bbCaret(pv){const s=getSelection();if(!s.rangeCount||!pv.contains(s.anchorNode))return 0;const r=document.createRange();r.selectNodeContents(pv);r.setEnd(s.anchorNode,s.anchorOffset);return r.toString().length}
 function bbCaretSet(pv,o){const w=document.createTreeWalker(pv,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(o<=n.length){const r=document.createRange();r.setStart(n,o);r.collapse(true);const s=getSelection();s.removeAllRanges();s.addRange(r);return}o-=n.length}}
 function bbTypoMsg(m){const e=document.getElementById('bbTyMsg');if(!e)return;e.style.display=m?'':'none';e.textContent=m||''}
 function bbTypoChk(pv){
-  if(bbSkel(pv)!==bbSk0){pv.innerHTML=bbLast;bbCaretSet(pv,bbLastOff);bbTypoMsg('구조(줄·상자·빈칸)가 바뀌는 입력은 되돌렸어요. 글자만 고칠 수 있어요.')}
+  if(bbSkel(pv)!==bbSk0&&!bbFixFx(pv,bbSk0)){pv.innerHTML=bbLast;bbCaretSet(pv,bbLastOff);bbTypoMsg('구조(줄·상자·빈칸)가 바뀌는 입력은 되돌렸어요. 글자만 고칠 수 있어요.')}
   else{bbLast=pv.innerHTML;bbLastOff=bbCaret(pv)}
 }
+function bbNlIns(nd){   // 노드 안 줄바꿈: '\n' 글자를 직접 끼워 넣음 (execCommand는 beforeinput을 다시 불러 막히거나 구조를 바꿈)
+  const s=getSelection();if(!s.rangeCount)return;const r=s.getRangeAt(0);r.deleteContents();
+  const t1=document.createTextNode('\n');r.insertNode(t1);const q=document.createRange();q.setStartAfter(t1);q.setEnd(nd,nd.childNodes.length);
+  if(!q.toString().replace(/\u200b/g,''))t1.after(document.createTextNode('\n'));   // 맨 끝 줄바꿈은 눈에 안 보이므로 하나 더
+  r.setStartAfter(t1);r.collapse(true);s.removeAllRanges();s.addRange(r)}
+// 오타 고치기 중 엔터 = 글자 안의 줄바꿈 (줄글·표는 <br>, 마인드맵 노드는 줄바꿈 문자). 상자·빈칸 구조는 그대로 지켜요
+function bbTypoBr(pv){
+  const s=getSelection();if(!s.rangeCount||!pv.contains(s.anchorNode))return;
+  const r=s.getRangeAt(0);r.deleteContents();const c=r.startContainer,el=c.nodeType===3?c.parentElement:c;
+  if(el&&el.closest&&el.closest('.mmn'))bbNlIns(el.closest('.mmn'));
+  else{const br=document.createElement('br');r.insertNode(br);if(!br.nextSibling&&br.parentNode)br.after(document.createElement('br'));r.setStartAfter(br);r.collapse(true);s.removeAllRanges();s.addRange(r)}
+  bbTypoChk(pv)}
 function bbTypoInit(pv){
   pv.addEventListener('input',e=>{if(bbTypo&&!e.isComposing)bbTypoChk(pv)});
   pv.addEventListener('compositionend',()=>{if(bbTypo)setTimeout(()=>bbTypoChk(pv),0)});
-  pv.addEventListener('keydown',e=>{if(bbTypo&&e.key==='Enter')e.preventDefault()});
+  pv.addEventListener('keydown',e=>{if(bbTypo&&e.key==='Enter'&&!e.isComposing){e.preventDefault();bbTypoBr(pv)}});
+  pv.addEventListener('beforeinput',e=>{if(bbTypo&&(e.inputType==='insertParagraph'||e.inputType==='insertLineBreak')){e.preventDefault();bbTypoBr(pv)}});
   pv.addEventListener('paste',e=>{if(!bbTypo)return;e.preventDefault();const t=((e.clipboardData&&e.clipboardData.getData('text/plain'))||'').replace(/\s*\n\s*/g,' ');document.execCommand('insertText',false,t)});
   pv.addEventListener('drop',e=>{if(bbTypo)e.preventDefault()});
 }
 function bbTypoTog(){
   const pv=document.getElementById('bbPv2'),b=document.getElementById('bbTyB');if(!pv)return;
   bbTypo=!bbTypo;
-  if(bbTypo){bbSk0=bbSkel(pv);bbLast=pv.innerHTML;bbLastOff=0;pv.contentEditable='true';pv.spellcheck=false;getSelection().removeAllRanges();bbTypoMsg('글자를 눌러 바로 고치세요. 줄바꿈·삭제로 구조가 바뀌는 입력은 자동으로 되돌려요. 끝나면 다시 눌러 마친 뒤 저장하세요.')}
+  if(bbTypo&&bbMemo.on)bbMemoOff();if(bbTypo&&bbMe.on)bbMeOff();
+  if(bbTypo){bbSk0=bbSkel(pv);bbLast=pv.innerHTML;bbLastOff=0;pv.contentEditable='true';pv.spellcheck=false;getSelection().removeAllRanges();bbTypoMsg('글자를 눌러 바로 고치세요. 엔터로 줄바꿈도 넣을 수 있어요(구조가 바뀌는 입력은 자동으로 되돌려요). 끝나면 다시 눌러 마친 뒤 저장하세요.')}
   else{pv.removeAttribute('contenteditable');bbTypoMsg('');bbBmSync()}
-  if(b){b.classList.toggle('pri',bbTypo);b.textContent=bbTypo?'✓ 오타 고치기 마치기':'✎ 오타 고치기'}
+  if(b){b.classList.toggle('pri',bbTypo);b.textContent=bbTypo?'✓ 편집 마치기':'✎ 편집하기'}
 }
 // 빈칸 수정 저장: 건드리지 않은 빈칸은 새 번호로 옮겨 기록(정답률·풀이 판정)을 유지, 바뀐 빈칸의 기록만 삭제
 function bbEdBlanks(tg){
+  if(bbMemo.on)bbMemoOff();   // 메모하기 중이면 먼저 저장·정리
+  if(bbMe.on)bbMeOff();   // 마인드맵 편집 중이면 먼저 마무리(선택·편집 표시 제거)
   const pv=document.getElementById('bbPv2');if(!pv)return true;
   const cl=pv.cloneNode(true),map={},nk=[];let i=0;
+  cl.classList.remove('me','memo');cl.querySelectorAll('[data-pen]').forEach(x=>x.remove());cl.querySelectorAll('.mmb,.mmn').forEach(x=>{x.removeAttribute('style');x.classList.remove('mst','me-sel');x.removeAttribute('contenteditable');x.removeAttribute('spellcheck')});
   cl.querySelectorAll('.blank').forEach(x=>{const k=(i++)+'_'+bbHash(x.textContent);nk.push(k);if(x.dataset.ok)map[x.dataset.ok]=k;x.removeAttribute('data-ok')});
   const ok=[...bbBox(tg).querySelectorAll('.bb-b')].map(x=>x.dataset.k);
-  if(bbTypo||cl.querySelector('[contenteditable]')){const w=document.createTreeWalker(cl,NodeFilter.SHOW_TEXT);let q;while(q=w.nextNode())if(q.nodeValue.indexOf('\u00a0')>=0)q.nodeValue=q.nodeValue.replace(/\u00a0/g,' ')}
+  if(bbTypo||bbMe.used||cl.querySelector('[contenteditable]')){const w=document.createTreeWalker(cl,NodeFilter.SHOW_TEXT);let q;while(q=w.nextNode())if(q.nodeValue.indexOf('\u00a0')>=0)q.nodeValue=q.nodeValue.replace(/\u00a0/g,' ')}
   if(ok.join('|')===nk.join('|')){const o=document.createElement('div');o.innerHTML=tg.html||'';if(o.innerHTML!==cl.innerHTML){tg.html=cl.innerHTML;bbEnqDoc(tg,1)}return true}
   if(!nk.length){alert('빈칸이 하나 이상 있어야 해요');return false}
   const lost=ok.filter(k=>!map[k]).length;
@@ -3056,7 +3352,7 @@ function bbMmRun(){
   const mk=p=>`<div class="mm">${tr.map(n=>bbMmNode(n,0,o,p)).join('')}</div>`;
   pv.innerHTML=mk(true);
   const t=bbParse(mk(false));bbTmp=t?{title:'',src:'',html:t.html,n:t.n}:null;
-  if(bbF&&bbF.edit){bbF.reup=!!t;const z=document.getElementById('bbEdSec'),tb=document.getElementById('bbTyB');if(z)z.style.display=t?'none':'';if(tb)tb.style.display=t?'none':''}
+  if(bbF&&bbF.edit){bbF.reup=!!t;if(t&&bbMe.on)bbMeOff();const z=document.getElementById('bbEdSec'),tb=document.getElementById('bbTyB');if(z)z.style.display=t?'none':'';if(tb)tb.style.display=t?'none':''}
   const kc=(function f(a){return a.reduce((x,n)=>x+(n.m&&n.m.k===1?1:0)+f(n.c),0)})(tr),dx=(function f(a){return a.reduce((x,n)=>x+(n.m&&n.m.k===2?1:0)+f(n.c),0)})(tr);
   st.style.color=t?'var(--accent)':'var(--red)';
   st.textContent=t?`빈칸 ${t.n}개 ✓${dx?` · DX체 ${dx}개`:''}${kc?` · 온글잎 ${kc}개`:''}${dx||kc?' · 그 외는 온글잎':''} · 노드를 누르면 그 줄 전체가 빈칸으로 / 다시 누르면 해제`:'빈칸이 없어요. 위 규칙, [[글자]], 노드 클릭 중 하나로 지정해 주세요.';
@@ -3344,7 +3640,7 @@ function bbMergeRun(cv){
   if(m){const e=document.getElementById(cv?'bbCvSt':'bbPv');if(e){e.style.color='var(--red)';e.textContent=m}}
 }
 function bbMergeSel(){const p=document.getElementById('bbP1');bbMergeRun(!!p&&p.style.display!=='none')}
-function bbPUp(e,cv){if(bbTypo||e.pointerType==='touch')return;setTimeout(()=>bbMergeRun(!!cv),0)}
+function bbPUp(e,cv){if(bbTypo||bbMemo.on||e.pointerType==='touch')return;setTimeout(()=>bbMergeRun(!!cv),0)}
 document.addEventListener('selectionchange',()=>{
   const s=getSelection(),pv=['bbCvPv','bbPv2'].map(i=>document.getElementById(i)).find(e=>e&&e.offsetParent);
   const on=!bbTypo&&!!(pv&&s&&s.rangeCount&&!s.isCollapsed&&pv.contains(s.getRangeAt(0).commonAncestorContainer));
