@@ -264,6 +264,12 @@ body.bbhs{padding-bottom:16px}
 .bb-doc.mmdoc.pan{cursor:grabbing;user-select:none}
 body.bbnoline .bb-b.open:not(.ok):not(.ng),body.bbnoline .bb-doc.study .bb-b:hover{outline:none!important}
 .bb-b.ng{outline:2px solid var(--red);background:color-mix(in srgb,var(--red) var(--tintng,14%),transparent)}
+.bb-b.pass{outline:2px dashed var(--text3);background:color-mix(in srgb,var(--text3) 16%,transparent)}
+.bb-pen:not(.bb-b){padding:0 4px;margin:0 2px;border-radius:4px;color:var(--text2);background:color-mix(in srgb,var(--text) 9%,transparent)}
+.bb-pen.c1:not(.bb-b){color:var(--amber);background:color-mix(in srgb,var(--amber) 15%,transparent)}
+.bb-b.bb-pen{box-shadow:inset 0 -2px 0 var(--text3)}
+.bb-b.bb-pen.c1{box-shadow:inset 0 -2px 0 var(--amber)}
+.bb-pen-mk{display:inline-block;width:0;height:1.1em;border-left:2px solid var(--accent);margin:0 1px;vertical-align:text-bottom}
 .bb-pop{position:absolute;z-index:300;background:var(--bg2);border:1px solid var(--border3);border-radius:10px;padding:4px;display:flex;gap:4px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .bb-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
 .bb-ov.full{padding:0;background:var(--bg);align-items:stretch;justify-content:stretch}
@@ -2603,7 +2609,45 @@ async function submitRecord(){
 // ==================== 뽀개기 ====================
 const BB={D:'imgo_bb_docs',R:'imgo_bb_rec_',P:'imgo_bb_person',S:'imgo_bb_set_',N:'imgo_bb_done_'};
 const BB_DAYS=['월','화','수','목','금','토','일'];
-let bbSes=[],bbStar={},bbEC=null,bbRuns={},bbDocs=[],bbPerson='',bbRec={},bbSet={min:60,max:80,term:1},bbDone={},bbView=null,bbS=null,bbTmp=null;
+// ── 서버 시각 보정 (기기 시계가 틀려도 최신 판정이 올바르게) ──
+const BB_OFF_K='imgo_bb_off';let bbOff=0;try{bbOff=+localStorage.getItem(BB_OFF_K)||0}catch(e){}
+const bbNow=()=>Date.now()+bbOff;
+function bbSetOff(srv,t0,t1){srv=+srv;if(!(srv>1e12))return;let o=Math.round(srv-(t0+t1)/2);if(Math.abs(o)<1500)o=0;if(o!==bbOff){bbOff=o;try{localStorage.setItem(BB_OFF_K,o)}catch(e){}}}
+// ── 나에게만 보이는 펜 (문서 본문과 분리 저장, 사람별 동기화) ──
+const bbPenOk=(id,k)=>k.slice(0,2)!=='p_'||!!(bbPens[id]&&bbPens[id][k.slice(2)]);
+function bbOffToPos(root,off,pref){let o=off,l=null;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){l=n;if(pref?o<n.length:o<=n.length)return{n,o};o-=n.length}return l?{n:l,o:l.length}:null}
+function bbPenOff(full,p){let o=Math.min(Math.max(p.off||0,0),full.length);const c=p.ctx||'';if(c&&full.slice(Math.max(0,o-c.length),o)!==c){let best=-1,i=full.indexOf(c);while(i>=0){const e=i+c.length;if(best<0||Math.abs(e-o)<Math.abs(best-o))best=e;i=full.indexOf(c,i+1)}if(best>=0)o=best}return o}
+function bbPenEl(p){const e=document.createElement('span');e.className=(p.bl?'bb-b ':'')+'bb-pen c'+(p.col?1:0);if(p.bl)e.dataset.k='p_'+p.id;e.textContent=p.text;return e}
+function bbPenIns(b,o,s,e){const q=bbOffToPos(b,o,s);if(!q){b.appendChild(e);return}const bk=q.n.parentElement&&q.n.parentElement.closest('.bb-b,.bb-pen');if(bk){bk.after(e);return}q.n.splitText(q.o);q.n.after(e)}
+function bbBoxP(d){const b=bbBox(d),m=bbPens[d.id];if(!m||/class="mm"/.test(d.html||''))return b;const ps=Object.values(m);if(!ps.length)return b;
+  const full=b.textContent,L=ps.map(p=>({p,o:bbPenOff(full,p)})).sort((x,y)=>x.o-y.o||(x.p.ts||0)-(y.p.ts||0));
+  for(let i=L.length-1;i>=0;i--)bbPenIns(b,L[i].o,L[i].p.s,bbPenEl(L[i].p));return b}
+function bbPenPut(id,p,del){const ts=bbNow();p.ts=ts;bbEnq('pens',`pens|${id}|${p.id}`,{docId:id,pid:p.id,ts,deleted:del?1:0,p:del?{}:{off:p.off,s:p.s,ctx:p.ctx,text:p.text,col:p.col,bl:p.bl}})}
+let bbPenSt=null;
+function bbPenSec(id){const lb=(t,x)=>`<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)">${x}${t}</label>`;
+  return `<div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div style="font-size:13px;font-weight:700;color:var(--text);margin:0 0 4px">나에게만 보이는 펜</div>
+  <div class="bb-cs" style="margin:0 0 8px">${bbEsc(bbPerson||'나')}에게만 보이는 메모예요 (다른 사람 화면에는 안 나와요). 끼울 위치를 누르고 글을 쓴 뒤 [추가]를 누르면 바로 저장돼요. 빈칸을 누르면 그 뒤에 들어가요.</div>
+  <div id="bbPenDoc" class="bb-doc study bbpv" onclick="bbPenClick(event)" style="max-height:30vh;overflow:auto;padding:8px;margin:0 0 6px"></div>
+  <textarea id="bbPenTx" style="height:56px" placeholder="메모 내용"></textarea>
+  <div class="bb-top" style="gap:6px 12px;margin:6px 0">${lb('기본색','<input type="radio" name="bbPenCol" value="0" checked style="width:auto">')}${lb('강조색','<input type="radio" name="bbPenCol" value="1" style="width:auto">')}${lb('빈칸으로','<input type="checkbox" id="bbPenBl" style="width:auto">')}<span class="bb-sp"></span><button class="bb-btn pri" onclick="bbPenAdd()">＋ 추가</button></div><div id="bbPenList"></div>`}
+function bbPenInit(id){const pane=document.getElementById('bbPenDoc');if(!pane)return;bbPenSt={id,off:null,s:0};const d=bbDocs.find(x=>x.id===id);if(!d)return;const b=bbBox(d);b.querySelectorAll('.bb-b').forEach(e=>e.classList.add('open'));pane.innerHTML='';pane.appendChild(b);bbPenList()}
+function bbPenClick(ev){const pane=document.getElementById('bbPenDoc');if(!pane||!bbPenSt)return;pane.querySelectorAll('.bb-pen-mk').forEach(e=>e.remove());
+  let n=null,o=0;if(document.caretRangeFromPoint){const r=document.caretRangeFromPoint(ev.clientX,ev.clientY);if(r){n=r.startContainer;o=r.startOffset}}else if(document.caretPositionFromPoint){const r=document.caretPositionFromPoint(ev.clientX,ev.clientY);if(r){n=r.offsetNode;o=r.offset}}
+  if(!n||!pane.contains(n)||n===pane)return;
+  const el=n.nodeType===3?n.parentElement:n,bk=el&&el.closest('.bb-b'),rg=document.createRange();rg.selectNodeContents(pane);
+  if(bk)rg.setEndAfter(bk);else rg.setEnd(n,o);
+  bbPenSt.off=rg.toString().length;bbPenSt.s=(!bk&&n.nodeType===3&&o===0)?1:0;
+  const mk=document.createElement('span');mk.className='bb-pen-mk';const r3=document.createRange();if(bk)r3.setStartAfter(bk);else r3.setStart(n,o);r3.collapse(true);r3.insertNode(mk)}
+function bbPenAdd(){const st=bbPenSt;if(!st||st.off===null){alert('먼저 펜을 끼울 위치를 눌러주세요');return}
+  const tx=document.getElementById('bbPenTx').value.trim();if(!tx){alert('메모 내용을 입력해주세요');return}
+  const c=document.querySelector('input[name=bbPenCol]:checked'),col=c&&c.value==='1'?1:0,bl=document.getElementById('bbPenBl').checked?1:0,full=document.getElementById('bbPenDoc').textContent;
+  const p={id:'p'+bbNow().toString(36)+Math.random().toString(36).slice(2,5),off:st.off,s:st.s,ctx:full.slice(Math.max(0,st.off-8),st.off),text:tx,col,bl};
+  (bbPens[st.id]=bbPens[st.id]||{})[p.id]=p;bbPenPut(st.id,p);bbSave();document.getElementById('bbPenTx').value='';bbPenList()}
+function bbPenDel(pid){const id=bbPenSt&&bbPenSt.id;if(!id||!bbPens[id]||!bbPens[id][pid])return;if(!confirm('이 펜을 삭제할까요?'))return;delete bbPens[id][pid];if(!Object.keys(bbPens[id]).length)delete bbPens[id];bbPenPut(id,{id:pid},1);bbSave();bbPenList()}
+function bbPenList(){const e=document.getElementById('bbPenList');if(!e||!bbPenSt)return;const ps=Object.values(bbPens[bbPenSt.id]||{}).sort((a,b)=>(a.ts||0)-(b.ts||0));
+  e.innerHTML=ps.length?ps.map(p=>`<div class="bb-row" style="gap:8px;margin:4px 0"><span class="bb-pen c${p.col?1:0}${p.bl?' bb-b open':''}" style="flex:1;min-width:0;white-space:pre-wrap">${bbEsc(p.text)}</span><span class="bb-cs">${p.bl?'빈칸 · ':''}…${bbEsc(p.ctx.slice(-6))}</span><button class="bb-btn" onclick="bbPenDel('${p.id}')">삭제</button></div>`).join(''):'<div class="bb-cs">아직 펜이 없어요.</div>'}
+
+let bbPens={},bbSes=[],bbStar={},bbEC=null,bbRuns={},bbDocs=[],bbPerson='',bbRec={},bbSet={min:60,max:80,term:1},bbDone={},bbView=null,bbS=null,bbTmp=null;
 let bbTab='weekly',bbSub='all',bbSort='abc',bbAS='all',bbDay=null,bbF={subj:'',loc:'',days:[],edit:null};
 const bbEsc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const bbHash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h.toString(36)};
@@ -2627,16 +2671,16 @@ function bbEff(){  // 통계 = 기존(통합) 기록 + 확정된 풀이(세션)�
 }
 const bbLab=(t,c)=>`<span class="bb-lb" style="--c:${c}">${bbEsc(t)}</span>`;
 function bbLoadP(){
-  if(!bbPerson){bbRec={};bbSet={min:60,max:80,term:1};bbDone={};bbRuns={};bbSes=[];bbStar={};bbEC=null;return}
+  if(!bbPerson){bbRec={};bbSet={min:60,max:80,term:1};bbDone={};bbRuns={};bbSes=[];bbStar={};bbPens={};bbEC=null;return}
   const g=k=>{try{return JSON.parse(localStorage.getItem(k+bbPerson)||'null')}catch(e){return null}};
-  bbRec=g(BB.R)||{};bbSet=Object.assign({min:60,max:80,term:1},g(BB.S));bbDone=g(BB.N)||{};bbRuns=g('imgo_bb_runs_')||{};bbSes=g('imgo_bb_ses_')||[];bbStar=g('imgo_bb_star_')||{};bbEC=null;
+  bbRec=g(BB.R)||{};bbSet=Object.assign({min:60,max:80,term:1},g(BB.S));bbDone=g(BB.N)||{};bbRuns=g('imgo_bb_runs_')||{};bbSes=g('imgo_bb_ses_')||[];bbStar=g('imgo_bb_star_')||{};bbPens=g('imgo_bb_pens_')||{};bbEC=null;
   Object.values(bbRec).forEach(d=>Object.values(d).forEach(x=>{if(!x.T){x.T={1:{a:x.a||0,c:x.c||0,l:x.l||''}};delete x.a;delete x.c;delete x.l}}));
 }
 (function(){try{if(localStorage.getItem('imgo_bb_v2'))return;
   Object.keys(localStorage).filter(k=>k.indexOf('imgo_bb_')===0&&k!=='imgo_bb_fs'&&k!=='imgo_bb_person').forEach(k=>localStorage.removeItem(k));
   localStorage.setItem('imgo_bb_v2','1')}catch(e){}})();
 (function(){try{bbDocs=JSON.parse(localStorage.getItem(BB.D)||'[]')}catch(e){bbDocs=[]}bbPerson='';bbLoadP()})();   // 뽀개기 최초 진입 시 재언/태현 미선택이 기본값
-function bbSave(){try{const w=(k,v)=>localStorage.setItem(k,JSON.stringify(v));w(BB.D,bbDocs);if(!bbPerson){bbEC=null;return}w(BB.R+bbPerson,bbRec);w(BB.S+bbPerson,bbSet);w(BB.N+bbPerson,bbDone);w('imgo_bb_runs_'+bbPerson,bbRuns);w('imgo_bb_ses_'+bbPerson,bbSes);w('imgo_bb_star_'+bbPerson,bbStar);bbEC=null;localStorage.setItem(BB.P,bbPerson)}catch(e){alert('저장 실패 (용량 초과?)')}}
+function bbSave(){try{const w=(k,v)=>localStorage.setItem(k,JSON.stringify(v));w(BB.D,bbDocs);if(!bbPerson){bbEC=null;return}w(BB.R+bbPerson,bbRec);w(BB.S+bbPerson,bbSet);w(BB.N+bbPerson,bbDone);w('imgo_bb_runs_'+bbPerson,bbRuns);w('imgo_bb_ses_'+bbPerson,bbSes);w('imgo_bb_star_'+bbPerson,bbStar);w('imgo_bb_pens_'+bbPerson,bbPens);bbEC=null;localStorage.setItem(BB.P,bbPerson)}catch(e){alert('저장 실패 (용량 초과?)')}}
 
 // ── 파서 ──
 const BB_OK=new Set(['P','DIV','B','STRONG','I','EM','U','BR','TABLE','TBODY','THEAD','TR','H2','H3','H4','UL','OL','LI','SUB','SUP']);
@@ -2665,7 +2709,7 @@ function bbParse(raw){
 function bbBox(doc){const b=document.createElement('div');b.innerHTML=doc.html;let i=0;b.querySelectorAll('.blank').forEach(e=>{e.className='bb-b';e.dataset.k=(i++)+'_'+bbHash(e.textContent)});return b}
 function bbAgg(id,t,keys){
   const r=bbEff()[id]||{};let a=0,c=0,w=0,l=0;
-  for(const k in r){if(keys&&!keys.has(k))continue;const T=r[k].T||{};
+  for(const k in r){if(keys&&!keys.has(k))continue;if(!bbPenOk(id,k))continue;const T=r[k].T||{};
     if(t==='all'){for(const n in T){a+=T[n].a;c+=T[n].c}}else if(T[t]){a+=T[t].a;c+=T[t].c}
     const u=T[bbSet.term];if(u&&u.a)l++;if(bbWk(u))w++}
   return{a,c,w,l,rate:a?Math.round(c*100/a):null};
@@ -2720,8 +2764,8 @@ function bbList(){
 function bbAna(){
   const sc=bbAS,mk=x=>{const T=x.T||{};if(sc==='all'){let a=0,c=0;for(const n in T){a+=T[n].a;c+=T[n].c}return{a,c}}return T[sc]||{a:0,c:0}};
   const rt=(c,a)=>a?Math.round(c*100/a):null,V=bbDocs.filter(bbVis);let A=0,C=0,R=0,low=0;const sj={},dr=[],bl=[];
-  V.forEach(d=>{const r=bbEff()[d.id]||{},tx={};bbBox(d).querySelectorAll('.bb-b').forEach(e=>tx[e.dataset.k]=e.textContent);let a=0,c=0;
-    for(const k in r){const m=mk(r[k]);a+=m.a;c+=m.c;if(m.a>m.c)bl.push({d,k,t:tx[k]||'?',a:m.a,c:m.c})}
+  V.forEach(d=>{const r=bbEff()[d.id]||{},tx={};bbBoxP(d).querySelectorAll('.bb-b').forEach(e=>tx[e.dataset.k]=e.textContent);let a=0,c=0;
+    for(const k in r){if(!bbPenOk(d.id,k))continue;const m=mk(r[k]);a+=m.a;c+=m.c;if(m.a>m.c)bl.push({d,k,t:tx[k]||'?',a:m.a,c:m.c})}
     A+=a;C+=c;const n=d.subj||'기타',o=(sj[n]=sj[n]||{a:0,c:0,n:0});o.a+=a;o.c+=c;const m2=bbRunsOf(d.id),rn=sc==='all'?Object.values(m2).reduce((x,y)=>x+y,0):(m2[sc]||0);R+=rn;o.n+=rn;
     if(a){dr.push({d,a,c,r:rt(c,a)});if(rt(c,a)<bbSet.min)low++}});
   dr.sort((x,y)=>x.r-y.r);bl.sort((x,y)=>x.c/x.a-y.c/y.a||(y.a-y.c)-(x.a-x.c));
@@ -2737,22 +2781,22 @@ function bbAna(){
 
 // ── 문서 ──
 function bbOpen(id,k){
-  bbView=id;bbS={mode:'study',filter:'all',judged:{},undo:[],tgt:null,opt:false};bbRender();scrollTo(0,0);
+  bbView=id;bbS={mode:'study',filter:'all',judged:{},undo:[],tgt:null,opt:false,passed:{}};bbRender();scrollTo(0,0);
   if(k)setTimeout(()=>{const e=document.querySelector('#bbDoc [data-k="'+k+'"]');if(e){e.classList.add('open','bb-flash');e.scrollIntoView({block:'center'})}},60);
 }
 function bbFinish(){
   const d=bbDocs.find(x=>x.id===bbView);if(!d)return;
-  const now=Date.now(),ses={id:'s'+now.toString(36)+Math.random().toString(36).slice(2,5),doc:d.id,term:bbSet.term,ts:now,j:Object.assign({},bbS?bbS.judged:{})};
+  const now=bbNow(),ses={id:'s'+now.toString(36)+Math.random().toString(36).slice(2,5),doc:d.id,term:bbSet.term,ts:now,j:Object.assign({},bbS?bbS.judged:{})};
   bbSes.push(ses);bbEnq('ses','ses|'+ses.id,{sid:ses.id,docId:d.id,term:ses.term,at:now,ts:now,j:ses.j});
   const dys=bbDays(d.day);if(dys.length&&d.loc){const td0=(new Date().getDay()+6)%7,dd=dys.includes(bbDay)?bbDay:dys.includes(td0)?td0:dys[0],k=bbWK(dd);(bbDone[k]=bbDone[k]||{})[d.id]=1;bbEnq('done',`done|${k}|${d.id}`,{date:k,docId:d.id,done:1})}
   bbSave();bbView=null;bbRender();scrollTo(0,0);
 }
 function bbRenderDoc(el){const hb=document.getElementById('bbMmHBar');if(hb)hb.classList.remove('on');
   const d=bbDocs.find(x=>x.id===bbView);if(!d){bbView=null;return bbRender()}
-  const box=bbBox(d),r=bbEff()[d.id]||{},S=bbS,rv=bbS.mode==='rate',ks=[...box.querySelectorAll('.bb-b')].map(e=>e.dataset.k),cu=k=>bbT(r[k],bbSet.term);
+  const box=bbBoxP(d),r=bbEff()[d.id]||{},S=bbS,rv=bbS.mode==='rate',ks=[...box.querySelectorAll('.bb-b')].map(e=>e.dataset.k),cu=k=>bbT(r[k],bbSet.term);
   const sets={all:new Set(ks),weak:new Set(ks.filter(k=>bbWk(cu(k)))),new:new Set(ks.filter(k=>!cu(k).a))};
   if(!S.tgt)S.tgt=sets[S.filter];
-  box.querySelectorAll('.bb-b').forEach(e=>{const k=e.dataset.k;if(!S.tgt.has(k))e.className='bb-plain';else if(S.judged[k])e.className='bb-b open '+(S.judged[k]==='O'?'ok':'ng')});
+  box.querySelectorAll('.bb-b').forEach(e=>{const k=e.dataset.k;if(!S.tgt.has(k))e.className='bb-plain';else if(S.judged[k])e.className='bb-b open '+(S.judged[k]==='O'?'ok':'ng');else if(S.passed&&S.passed[k])e.className='bb-b open pass'});
   {const sm=bbStar[d.id]||{};box.querySelectorAll('.bb-b').forEach(e=>{if(sm[e.dataset.k])e.classList.add('star')})}
   if(rv)box.querySelectorAll('.bb-b').forEach(e=>{const x=cu(e.dataset.k),p=x.a?Math.round(x.c*100/x.a):null,c=bbCol(p);e.classList.add('open');e.style.background='color-mix(in srgb,'+c+' var(--tint,22%),transparent)';e.style.outline='1px solid '+c;e.insertAdjacentHTML('afterend','<small style="color:'+c+';margin-left:4px;font-weight:700">'+(p===null?'-':p+'%')+'</small>')});
   const js=Object.values(S.judged),jo=js.filter(x=>x==='O').length,st=bbAgg(d.id,bbSet.term);
@@ -2798,20 +2842,21 @@ function bbClick(ev){
   const o=b.classList.toggle('open'),k=b.dataset.k;
   if(bbS.mode==='test'&&o&&!bbS.judged[k]){
     const p=document.createElement('div');p.className='bb-pop';p.id='bbPop';
-    p.innerHTML=`<button class="bb-btn" style="color:var(--accent)" onclick="bbJ('${k}',1)">⭕ 맞음</button><button class="bb-btn" style="color:var(--red)" onclick="bbJ('${k}',0)">❌ 틀림</button>`;
-    const q=b.getBoundingClientRect();p.style.top=(q.bottom+scrollY+4)+'px';p.style.left=Math.max(8,Math.min(q.left+scrollX,innerWidth-200))+'px';document.body.appendChild(p);
+    p.innerHTML=`<button class="bb-btn" style="color:var(--accent)" onclick="bbJ('${k}',1)">⭕ 맞음</button><button class="bb-btn" style="color:var(--red)" onclick="bbJ('${k}',0)">❌ 틀림</button><button class="bb-btn" style="color:var(--text3)" onclick="bbPass('${k}')">⏭ PASS</button>`;
+    const q=b.getBoundingClientRect();p.style.top=(q.bottom+scrollY+4)+'px';p.style.left=Math.max(8,Math.min(q.left+scrollX,innerWidth-270))+'px';document.body.appendChild(p);
   }
 }
 function bbOptTog(){if(!bbS)return;bbS.opt=!bbS.opt;const p=document.getElementById('bbOptP'),b=document.getElementById('bbOptB');if(p)p.style.display=bbS.opt?'flex':'none';if(b){b.textContent=bbS.opt?'옵션 ∧':'옵션 ∨';b.classList.toggle('pri',bbS.opt)}}
-function bbJReset(){if(!bbS||!Object.keys(bbS.judged).length)return;if(!confirm('이번 판정을 모두 초기화할까요?'))return;bbS.judged={};bbS.undo=[];bbRender()}
+function bbJReset(){if(!bbS||!Object.keys(bbS.judged).length)return;if(!confirm('이번 판정을 모두 초기화할까요?'))return;bbS.judged={};bbS.passed={};bbS.undo=[];bbRender()}
 function bbRedraw(){const y=scrollY;bbRender();scrollTo(0,y)}
+function bbPass(k){bbPopX();bbS.passed=bbS.passed||{};bbS.passed[k]=1;const e=document.querySelector('#bbDoc [data-k="'+k+'"]');if(e)e.classList.add('open','pass')}   // 답만 확인, 판정·통계에는 반영 안 함
 function bbJ(k,ok){
-  bbPopX();bbS.undo.push({k});bbS.judged[k]=ok?'O':'X';bbRedraw();
+  bbPopX();if(bbS.passed)delete bbS.passed[k];bbS.undo.push({k});bbS.judged[k]=ok?'O':'X';bbRedraw();
 }
 function bbUndo(){
   const u=bbS.undo.pop();if(!u)return;delete bbS.judged[u.k];bbRedraw();
 }
-function bbDel(id){if(!confirm('이 문서를 삭제할까요? 공유 문서라 다른 사람 목록에서도 사라지고, 내 기록도 삭제돼요.'))return;bbDocs=bbDocs.filter(d=>d.id!==id);delete bbRec[id];delete bbRuns[id];delete bbStar[id];bbSes=bbSes.filter(s=>s.doc!==id);bbEnq('docs','docs|'+id,{id,del:1});bbSave();bbView=null;bbRender()}
+function bbDel(id){if(!confirm('이 문서를 삭제할까요? 공유 문서라 다른 사람 목록에서도 사라지고, 내 기록도 삭제돼요.'))return;bbDocs=bbDocs.filter(d=>d.id!==id);delete bbRec[id];delete bbRuns[id];delete bbStar[id];delete bbPens[id];bbSes=bbSes.filter(s=>s.doc!==id);bbEnq('docs','docs|'+id,{id,del:1});bbSave();bbView=null;bbRender()}
 
 // ── 등록 / 수정 / 설정 ──
 function bbGuess(t){const s=SUBJECT_META.find(s=>{const p=s.name.split('·');if(s.name.includes('통합'))p.push('바른','슬기','즐거');if(s.name.includes('총론'))p.push('창의적');return p.some(w=>t.includes(w))});return s?s.name:''}
@@ -2853,11 +2898,12 @@ function bbOpenAdd(id){
   <div id="bbPv" class="bb-cs" style="margin:0 0 6px"></div><div id="bbPv2" class="bb-doc study bbpv" onclick="bbBmClick(event)" onpointerup="bbPUp(event,0)" style="max-height:38vh;overflow:auto;padding:8px;margin:0 0 6px"></div>
   <div id="bbMgBar" class="bb-top" style="display:none;margin:6px 0 0"><button class="bb-btn pri" onpointerdown="event.preventDefault()" onclick="bbMergeSel()">✂ 선택한 부분을 하나의 빈칸으로</button></div></div>
   ${/class="mm"/.test(e.html||'')?bbMmEditPv():''}`:'')
+  +(e&&!/class="mm"/.test(e.html||'')?bbPenSec(id):'')
   +`<div class="bb-top" style="margin:14px 0 0"><span class="bb-sp"></span><button class="bb-btn" onclick="bbClose()">${e?'닫기':'취소'}</button><button class="bb-btn pri" onclick="bbAdd()">${e?'저장':'저장'}</button></div>`);
   bbFRender();document.getElementById('bbOv').classList.add('full');   // 폰·PC 모두 전체화면 편집기
   if(e){const pv=document.getElementById('bbPv2'),t=document.createElement('div');t.innerHTML=e.html||'';let i=0;
     t.querySelectorAll('.blank').forEach(x=>{x.dataset.ok=(i++)+'_'+bbHash(x.textContent)});   // 원래 빈칸 표시 (기록 이전용)
-    pv.innerHTML=t.innerHTML;bbBm={title:'',src:''};bbBmSync();bbTypoInit(pv)}
+    pv.innerHTML=t.innerHTML;bbBm={title:'',src:''};bbBmSync();bbTypoInit(pv);bbPenInit(id)}
 }
 
 // ── 수정 화면: 오타 고치기 (글자만 고치고, 상자·줄·빈칸 구조가 바뀌는 입력은 자동으로 되돌림) ──
@@ -2895,7 +2941,7 @@ function bbEdBlanks(tg){
   if(!nk.length){alert('빈칸이 하나 이상 있어야 해요');return false}
   const lost=ok.filter(k=>!map[k]).length;
   if((lost||ok.length!==nk.length)&&!confirm(`빈칸을 ${ok.length}개 → ${nk.length}개로 바꿀까요? 기록이 삭제되는 빈칸은 ${lost}개이고, 나머지 빈칸의 기록은 유지돼요.`))return false;
-  const id=tg.id,now=Date.now(),r=bbRec[id]||{},nr={};
+  const id=tg.id,now=bbNow(),r=bbRec[id]||{},nr={};
   for(const k in r)for(const t in (r[k].T||{}))if(map[k]!==k)bbEnq('records',`records|${id}|${k}|${t}`,{docId:id,blankKey:k,term:+t,a:0,c:0,l:'',ts:now});
   for(const k in r)if(map[k]){const m=map[k];nr[m]={T:r[k].T};for(const t in r[k].T){const x=r[k].T[t];if(m!==k)bbEnq('records',`records|${id}|${m}|${t}`,{docId:id,blankKey:m,term:+t,a:x.a,c:x.c,l:x.l,ts:now})}}
   bbRec[id]=nr;bbStarRemap(id,map,now);
@@ -2935,7 +2981,7 @@ function bbMmReplace(tg){
   for(let i=0,j=0;i<n&&j<m;){if(ob[i].textContent===nb[j].textContent&&dp[i][j]===dp[i+1][j+1]+1){map[ob[i].dataset.k]=nb[j].dataset.k;i++;j++}else if(dp[i+1][j]>=dp[i][j+1])i++;else j++}
   if(!m){alert('빈칸이 하나 이상 있어야 해요');return false}
   if(!confirm(`빈칸을 ${n}개 → ${m}개로 바꿀까요? 글자가 그대로인 ${Object.keys(map).length}개의 기록은 유지되고, 나머지 기록은 삭제돼요.`))return false;
-  const id=tg.id,now=Date.now(),r=bbRec[id]||{},nr={};
+  const id=tg.id,now=bbNow(),r=bbRec[id]||{},nr={};
   for(const k in r)for(const t in (r[k].T||{}))if(map[k]!==k)bbEnq('records',`records|${id}|${k}|${t}`,{docId:id,blankKey:k,term:+t,a:0,c:0,l:'',ts:now});
   for(const k in r)if(map[k]){const q=map[k];nr[q]={T:r[k].T};for(const t in r[k].T){const x=r[k].T[t];if(q!==k)bbEnq('records',`records|${id}|${q}|${t}`,{docId:id,blankKey:q,term:+t,a:x.a,c:x.c,l:x.l,ts:now})}}
   bbRec[id]=nr;bbStarRemap(id,map,now);
@@ -3350,7 +3396,7 @@ function bbOpenSet(){
 function bbSetSave(){
   const mn=+document.getElementById('bbMn').value,mx=+document.getElementById('bbMx').value,tm=Math.max(1,Math.floor(+document.getElementById('bbTm').value||1));
   if(!(mn>=0&&mx<=100&&mn<mx)){alert('최소 < 최대 (0~100) 로 입력해주세요');return}
-  bbSet={min:mn,max:mx,term:tm,ts:Date.now()};bbS=null;bbEnq('settings','settings|'+bbPerson,{min:mn,max:mx,term:tm,ts:bbSet.ts});bbSave();bbClose();bbRender();
+  bbSet={min:mn,max:mx,term:tm,ts:bbNow()};bbS=null;bbEnq('settings','settings|'+bbPerson,{min:mn,max:mx,term:tm,ts:bbSet.ts});bbSave();bbClose();bbRender();
 }
 // ── 기록 수정 (풀이 1회 단위로 조회·삭제) ──
 function bbOpenRec(){bbOpenAdd(bbView)}
@@ -3375,7 +3421,7 @@ function bbRecAll(){const cs=[...document.querySelectorAll('.bbRc')],on=cs.some(
 function bbRecDel(){
   const id=bbView,cs=[...document.querySelectorAll('.bbRc:checked')];if(!cs.length)return;
   if(!confirm(`선택한 풀이 기록 ${cs.length}개를 삭제할까요? 그 풀이에서 판정한 내용이 모두 지워져요.`))return;
-  const now=Date.now();
+  const now=bbNow();
   cs.forEach(c=>{
     if(c.dataset.s){const i=bbSes.findIndex(s=>s.id===c.dataset.s);if(i<0)return;const s=bbSes[i];bbSes.splice(i,1);
       bbEnq('ses','ses|'+s.id,{sid:s.id,docId:s.doc,term:s.term,at:s.ts,ts:now,del:1})}
@@ -3398,14 +3444,14 @@ const bbStSet=(w,s)=>{try{localStorage.setItem(BB_SK+w,JSON.stringify(s))}catch(
 function bbSyncLabel(){const n=Object.keys(bbQRead(bbPerson)).length;return bbSyErr?`⚠ 동기화 실패${n?' · 대기 '+n:''}`:n?`↻ 대기 ${n}`:bbSyOk?'☁ 동기화됨'+(bbSyT?' '+bbSyT:''):''}
 function bbSyUI(){const e=document.getElementById('bbSy');if(e)e.textContent=bbSyncLabel()}
 function bbSched(){clearTimeout(bbSchT);bbSchT=setTimeout(()=>bbPush(),50);bbSyUI()}
-function bbEnq(kind,key,item){const au=bbPerson||'재언';const q=bbQRead(au);if(item.ts===undefined)item.ts=Date.now();if(kind==='docs'&&q[key]&&q[key].item.h)item.h=1;q[key]={kind,item};bbQWrite(au,q);bbSched()}
-function bbEnqDoc(d,h){const ts=Date.now();d.ts=ts;bbEnq('docs','docs|'+d.id,{id:d.id,ts,h:h?1:0})}
+function bbEnq(kind,key,item){const au=bbPerson||'재언';const q=bbQRead(au);if(item.ts===undefined)item.ts=bbNow();if(kind==='docs'&&q[key]&&q[key].item.h)item.h=1;q[key]={kind,item};bbQWrite(au,q);bbSched()}
+function bbEnqDoc(d,h){const ts=bbNow();d.ts=ts;bbEnq('docs','docs|'+d.id,{id:d.id,ts,h:h?1:0})}
 async function bbPush(who){
   who=who||bbPerson||'재언';if(bbBusy[who])return;bbBusy[who]=1;
   try{
     for(let g=0;g<50;g++){
       const q=bbQRead(who),ks=Object.keys(q);if(!ks.length)break;
-      const b={target:'bbSync',author:who,docs:[],records:[],runs:[],done:[],ses:[],stars:[]},sent=[];let nd=0,nr=0,ns=0;
+      const b={target:'bbSync',author:who,docs:[],records:[],runs:[],done:[],ses:[],stars:[],pens:[]},sent=[];let nd=0,nr=0,ns=0;
       for(const k of ks){
         const o=q[k],it=o.item;
         if(o.kind==='docs'){
@@ -3417,10 +3463,10 @@ async function bbPush(who){
         sent.push(k);
       }
       if(!sent.length)break;
-      const r=await(await fetch(MOCK_EXAM_API_URL,{method:'POST',body:JSON.stringify(b)})).json();
+      const t0=Date.now(),r=await(await fetch(MOCK_EXAM_API_URL,{method:'POST',body:JSON.stringify(b)})).json();bbSetOff(r.now,t0,Date.now());
       if(!r.ok)throw new Error(r.error||'sync');
       // 서버가 구버전이면 모르는 항목을 무시하고도 ok를 돌려줌 → 항목별 saved 확인
-      if(!r.saved||['docs','records','runs','done','ses','stars'].some(k=>b[k].length&&typeof r.saved[k]!=='number')||(b.settings&&typeof r.saved.settings!=='number'))throw new Error('server outdated');
+      if(!r.saved||['docs','records','runs','done','ses','stars','pens'].some(k=>b[k].length&&typeof r.saved[k]!=='number')||(b.settings&&typeof r.saved.settings!=='number'))throw new Error('server outdated');
       const q2=bbQRead(who);sent.forEach(k=>{if(q2[k]&&q2[k].item.ts===q[k].item.ts)delete q2[k]});bbQWrite(who,q2);
     }
     bbSyErr=false;bbSyOk=true;
@@ -3429,15 +3475,15 @@ async function bbPush(who){
 }
 async function bbPull(who,full){
   const st=bbStGet(who);
-  const r=await(await fetch(`${MOCK_EXAM_API_URL}?target=bb&author=${encodeURIComponent(who)}&since=${full?0:(st.since||0)}`)).json();
+  const t0=Date.now(),r=await(await fetch(`${MOCK_EXAM_API_URL}?target=bb&author=${encodeURIComponent(who)}&since=${full?0:(st.since||0)}`)).json();bbSetOff(r.now||(r.serverTime?r.serverTime+5000:0),t0,Date.now());
   if(!r.ok)throw new Error(r.error||'pull');
   if(who!==bbPerson)return;
   const q=bbQRead(who),pd=k=>!!q[k];let ch=false;   // 전송 대기 중인 항목은 로컬 우선
-  if(full&&!Object.keys(q).length){bbDocs=[];bbRec={};bbRuns={};bbDone={};bbSes=[];bbStar={};bbSet={min:60,max:80,term:1};bbS=null;ch=true}   // 전체 받기: 서버 내용으로 통째로 교체
+  if(full&&!Object.keys(q).length){bbDocs=[];bbRec={};bbRuns={};bbDone={};bbSes=[];bbStar={};bbPens={};bbSet={min:60,max:80,term:1};bbS=null;ch=true}   // 전체 받기: 서버 내용으로 통째로 교체
   (r.docs||[]).forEach(sd=>{
     if(pd('docs|'+sd.id))return;
     const i=bbDocs.findIndex(d=>d.id===sd.id),l=bbDocs[i];
-    if(sd.deleted){if(l){bbDocs.splice(i,1);delete bbRec[sd.id];delete bbRuns[sd.id];delete bbStar[sd.id];if(bbView===sd.id)bbView=null;ch=true}return}
+    if(sd.deleted){if(l){bbDocs.splice(i,1);delete bbRec[sd.id];delete bbRuns[sd.id];delete bbStar[sd.id];delete bbPens[sd.id];if(bbView===sd.id)bbView=null;ch=true}return}
     if(l&&sd.ts<=(l.ts||0))return;
     const nd={id:sd.id,title:sd.title,subj:sd.subj,loc:sd.loc,day:sd.day,src:sd.src,n:sd.n,html:sd.html,ts:sd.ts};
     if(l)bbDocs[i]=nd;
@@ -3475,6 +3521,13 @@ async function bbPull(who,full){
     if(l!==undefined&&x.ts<=l){if(!Object.keys(m).length)delete bbStar[x.docId];return}
     if(x.star){if(m[x.blankKey]!==x.ts){m[x.blankKey]=x.ts;ch=true}}else if(l!==undefined){delete m[x.blankKey];ch=true}
     if(!Object.keys(m).length)delete bbStar[x.docId];
+  });
+  (r.pens||[]).forEach(x=>{
+    if(pd(`pens|${x.docId}|${x.pid}`))return;
+    const m=(bbPens[x.docId]=bbPens[x.docId]||{}),l=m[x.pid];
+    if(l&&x.ts<=(l.ts||0))return;
+    if(x.deleted){if(l){delete m[x.pid];ch=true}}else{m[x.pid]=Object.assign({id:x.pid,ts:x.ts},x.p);ch=true}
+    if(!Object.keys(m).length)delete bbPens[x.docId];
   });
   const s=r.settings;
   if(s&&!pd('settings|'+who)&&(bbSet.ts===undefined||s.ts>bbSet.ts)){bbSet={min:s.min,max:s.max,term:s.term,ts:s.ts};if(!bbView)bbS=null;ch=true}
