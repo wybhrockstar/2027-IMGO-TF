@@ -1,4 +1,4 @@
-const CACHE = 'imgo-v2';
+const CACHE = 'imgo-v3';
 
 // 앱 껍데기 — 설치 시 미리 캐시 (하나가 실패해도 설치는 계속됨)
 const PRECACHE = [

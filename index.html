@@ -286,6 +286,48 @@ body.bbnoline .bb-b.open:not(.ok):not(.ng),body.bbnoline .bb-doc.study .bb-b:hov
 .bb-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:12px}
 .bb-row b{width:64px;flex-shrink:0}
 .bb-card .apply-btn-sm{margin-left:8px}
+/* ── 설정 모달 공통 ── */
+.set-sec{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;margin:22px 0 8px}
+.set-sec.first{margin-top:0}
+body.light .set-sec{color:var(--text3)}
+.set-hint{font-size:11px;line-height:1.55;color:var(--text3);margin:0 0 8px}
+.set-card{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:8px}
+.set-card>div{flex:1;min-width:0}
+.set-card b{display:block;font-size:12px;font-weight:600;margin-bottom:2px}
+.set-card span{display:block;font-size:12px;color:var(--text2)}
+.set-btn{padding:5px 13px;font-size:12px;font-weight:600;border-radius:20px;border:1px solid var(--accent);color:var(--accent);background:none;transition:.15s;cursor:pointer;white-space:nowrap}
+.set-btn:hover{background:var(--accent2)}
+.set-log div{font-size:12px;line-height:1.7;color:var(--text2)}
+.set-log span{color:var(--text3);margin-right:8px}
+.set-info{font-size:12px;line-height:1.8;color:var(--text2)}
+.set-info b{color:var(--text)}
+.set-lbl{font-size:11px;color:var(--text3);margin:0 0 3px}
+.set-in{width:100%;margin-bottom:10px}
+/* ── 홈: 오늘 뽀개기 ── */
+.bh-wrap{margin-bottom:26px}
+.bh-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:0 12px}
+.bh-r{display:grid;grid-template-columns:50px minmax(0,1fr);gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.bh-r:last-child{border-bottom:none}
+.bh-r .pp-lab{width:50px;font-size:9px}
+.bh-g{display:grid;grid-template-columns:1fr;gap:6px 10px;min-width:0}
+.bh-g.two{grid-template-columns:1fr 1fr}
+.bh-i{display:flex;align-items:center;gap:6px;min-width:0;cursor:pointer}
+.bh-i .bh-t{flex:1;min-width:0;font-size:12px;line-height:1.3}
+.bh-i.ok .bh-t{color:var(--accent)}
+.bh-i.ps .bh-t{color:var(--amber)}
+.bh-i .apply-btn-sm{flex:none;padding:3px 9px;font-size:11px;white-space:nowrap;margin:0}
+.bh-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.bh-hd .sec-title{margin:0}
+.bh-hd em{font-style:normal;color:var(--accent);margin-left:6px}
+.bh-row{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:6px}
+.bh-row.two{grid-template-columns:1fr 1fr}
+.bh-row.two>.bh-c:last-child:nth-child(odd){grid-column:1/-1}
+.bh-c{display:flex;flex-direction:column;gap:8px;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;cursor:pointer;transition:.15s;min-width:0}
+.bh-c:hover{border-color:var(--accent)}
+.bh-c.ok{border-color:var(--accent);background:var(--accent3)}
+.bh-c.ps{border-color:var(--amber);opacity:.85}
+.bh-t{font-size:13px;font-weight:500;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all}
+.bh-b .apply-btn-sm{width:100%;margin:0;padding:5px 6px}
 .bb-fab{position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:250;padding:12px 22px;border-radius:26px;border:none;background:var(--accent);color:#111;font-weight:700;font-size:14px;box-shadow:0 6px 18px rgba(0,0,0,.4)}
 .bb-ck{display:inline-flex;width:18px;height:18px;border-radius:50%;background:var(--accent);color:#111;font-size:11px;font-weight:700;align-items:center;justify-content:center;margin-right:6px}
 @keyframes bbf{0%,70%{box-shadow:0 0 0 5px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}
@@ -399,6 +441,7 @@ body.bblen .bb-b:not(.open){display:inline-block;width:4.5em;overflow:hidden;whi
   <div class="logo">✍🏻 2027 IMGO TF</div>
   <div class="hdr-right">
     <div class="dday" id="ddayBadge">D-?</div>
+    <button class="theme-btn" id="settingsBtn" onclick="openSettings()" title="설정">⚙️</button>
     <button class="theme-btn" id="themeToggleBtn" onclick="toggleTheme()" title="라이트/다크 전환">🌙</button>
   </div>
 </div>
@@ -419,7 +462,7 @@ body.bblen .bb-b:not(.open){display:inline-block;width:4.5em;overflow:hidden;whi
 
     <div class="term-tabs" id="termTabs"></div>
   <div class="stats" id="statsRow"></div>
-  <div class="pp-wrap" id="ppWrap" style="display:none"><div class="sec-title">Weekly 뽀개기</div><div id="ppBody"></div></div>
+  <div class="bh-wrap" id="bbHome" style="display:none"></div>
   <div class="cal-wrap"><div class="sec-title">2주 캘린더</div><div id="calGrid"></div></div>
   <div class="sec-title">전체 일정</div>
   <div id="scheduleList"></div>
@@ -501,7 +544,6 @@ body.bblen .bb-b:not(.open){display:inline-block;width:4.5em;overflow:hidden;whi
           <div class="subj-tabs" id="orderTabs"></div>
           <div class="subj-tabs" id="recModeTabs"></div>
           <button class="apply-btn-sm" onclick="openRecordModal()">기록</button>
-          <button class="apply-btn-sm" onclick="openGoalModal()">목표</button>
         </div>
       </div>
       <div style="overflow-x:auto" id="exam-record-table-wrap"></div>
@@ -584,6 +626,29 @@ body.bblen .bb-b:not(.open){display:inline-block;width:4.5em;overflow:hidden;whi
   </div>
 </div>
 
+<!-- ======= SETTINGS MODAL ======= -->
+<div id="setModalBg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:190;align-items:center;justify-content:center" onclick="if(event.target===this)closeSettings()">
+  <div style="background:var(--bg2,#fff);max-width:420px;width:92%;max-height:84vh;overflow:auto;border-radius:14px;padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="nc-stitle" style="margin:0">⚙️ 설정</div>
+      <button onclick="closeSettings()" style="border:none;background:none;font-size:18px;color:var(--text3)">×</button>
+    </div>
+    <div id="setBody"></div>
+  </div>
+</div>
+
+<!-- ======= FIRST RUN: 사용자 선택 ======= -->
+<div id="meModalBg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;align-items:center;justify-content:center">
+  <div style="background:var(--bg2,#fff);max-width:340px;width:90%;border-radius:14px;padding:22px;text-align:center">
+    <div class="nc-stitle" style="margin:0 0 10px">누구로 사용할까요?</div>
+    <div class="bb-cs" style="line-height:1.6;margin-bottom:14px">선택한 사람 기준으로 뽀개기·모의고사·오답이 열려요.<br>나중에 ⚙️ 설정에서 바꿀 수 있어요.</div>
+    <div style="display:flex;gap:10px">
+      <button class="apply-btn" style="flex:1" onclick="setMe('재언')">재언</button>
+      <button class="apply-btn" style="flex:1" onclick="setMe('태현')">태현</button>
+    </div>
+  </div>
+</div>
+
 <!-- ======= GOAL MODAL ======= -->
 <div id="goalModalBg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
   <div style="background:var(--bg2,#fff);max-width:420px;width:92%;max-height:82vh;overflow:auto;border-radius:14px;padding:20px">
@@ -591,10 +656,23 @@ body.bblen .bb-b:not(.open){display:inline-block;width:4.5em;overflow:hidden;whi
       <div class="nc-stitle" style="margin:0" id="goalModalTitle">목표 설정</div>
       <button onclick="closeGoalModal()" style="border:none;background:none;font-size:18px;color:var(--text3)">×</button>
     </div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">목표 점수보다 낮은 값은 기록 표에 빨갛게, 분석 탭 툴팁에는 빨간 글씨로 표시됩니다. 목표와 같으면 달성이고, 기록이 없는 값은 표시하지 않습니다. 칸을 비우면 목표 없음입니다.</div>
+    <div class="set-hint" style="margin-bottom:10px">목표 점수보다 낮은 값은 기록 표에 빨갛게, 분석 탭 툴팁에는 빨간 글씨로 표시돼요. 목표와 같으면 달성이고, 기록이 없는 값은 표시하지 않아요. 칸을 비우면 목표 없음이에요.</div>
     <div id="goal-fields"></div>
     <div id="goal-status" style="font-size:12px;margin-top:6px;color:var(--text3)"></div>
-    <button class="apply-btn" style="width:100%;margin-top:8px" onclick="submitGoals()">저장</button>
+    <button class="apply-btn-sm" style="width:100%;margin-top:8px;padding:9px 13px;font-size:13px" onclick="submitGoals()">저장</button>
+  </div>
+</div>
+
+<!-- ======= 뽀개기 목표 MODAL ======= -->
+<div id="bbGoalModalBg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--bg2,#fff);max-width:420px;width:92%;max-height:82vh;overflow:auto;border-radius:14px;padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="nc-stitle" style="margin:0" id="bbGoalTitle">뽀개기 목표 설정</div>
+      <button onclick="closeBbGoal()" style="border:none;background:none;font-size:18px;color:var(--text3)">×</button>
+    </div>
+    <div id="bbGoalBody"></div>
+    <div id="setBbSt" style="font-size:12px;margin-top:6px;color:var(--accent)"></div>
+    <button class="apply-btn-sm" style="width:100%;margin-top:8px;padding:9px 13px;font-size:13px" onclick="setSaveBb()">저장</button>
   </div>
 </div>
 
@@ -654,6 +732,16 @@ body.bblen .bb-b:not(.open){display:inline-block;width:4.5em;overflow:hidden;whi
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
+// ==================== 나(ME) ====================
+// "나"는 별도 키로 영구 저장하고 ⚙️ 설정에서만 바꾼다. 이미 쓰던 기기는 예전에 저장된 뽀개기 사람 값을 초기값으로 이어받는다.
+const ME_K='imgo_me';
+let me='';
+let examInit=false;   // 모의고사 탭을 처음 열 때 "나" 화면으로 여는 용도
+(function(){try{
+  let v=localStorage.getItem(ME_K);
+  if(v!=='재언'&&v!=='태현'){const old=localStorage.getItem('imgo_bb_person');v=(old==='재언'||old==='태현')?old:'';if(v)localStorage.setItem(ME_K,v)}
+  me=v;
+}catch(e){me=''}})();
 // ==================== DEFAULT DATA ====================
 const DEFAULT = {
   dday: '2026-11-07',
@@ -1041,28 +1129,7 @@ const PP_DATA=[
   {gen:'창체 3~7P',   model:[['실과','7개+']],             edu:[['체육 3~4 신체활동',514],['체육 가치·태도',218]]},
   {gen:'창체 8~11P',  model:[['국어','8개']],              edu:[['체육 5~6 신체활동',466],['체육 뒷교',355]]}
 ];
-let ppSel=null;          // null = 오늘 요일을 따라감
-let ppSelDay='';         // ppSel을 고른 날짜 (날짜가 바뀌면 오늘로 복귀)
-function ppTodayIdx(){ const d=new Date().getDay(); return d===0?6:d-1; }
-function buildWeekly(){
-  const wrap=document.getElementById('ppWrap');
-  if(!wrap) return;
-  if(currentTerm!==3){ wrap.style.display='none'; return; }
-  wrap.style.display='';
-  const dayKey=new Date().toDateString();
-  if(ppSelDay!==dayKey){ ppSel=null; ppSelDay=dayKey; }
-  const today=ppTodayIdx();
-  const sel=ppSel===null?today:ppSel;
-  const tabs=PP_DAYS.map((l,i)=>`<button class="pp-day${i===today?' today':''}${i===sel?' sel':''}" onclick="ppPick(${i})">${l}</button>`).join('');
-  const x=PP_DATA[sel];
-  const total=x.edu.reduce((a,e)=>a+e[1],0);
-  const model=x.model.map(m=>`${m[0]} <span class="pp-g">(${m[1]})</span>`).join(' + ');
-  const edu=x.edu.map(e=>`${e[0]} <span class="pp-g">(${e[1]}자)</span>`).join(' + ')+` <span class="pp-gb">[총 ${total}자]</span>`;
-  const row=(lab,val)=>`<div class="pp-row"><div class="pp-lab">${lab}</div><div class="pp-val">${val}</div></div>`;
-  document.getElementById('ppBody').innerHTML=
-    `<div class="pp-tabs">${tabs}</div><div class="pp-card">${row('역량','ALL')}${row('총론·창체',x.gen)}${row('모형',model)}${row('교육과정',edu)}</div>`;
-}
-function ppPick(i){ ppSel=i; ppSelDay=new Date().toDateString(); buildWeekly(); }
+// (홈 읽을거리 카드는 오늘 뽀개기 카드로 대체됨 — PP_DATA는 되살릴 때를 위해 보존)
 // 날짜가 바뀌면 2주 캘린더와 뽀개기 요일이 같이 오늘로 갱신되도록 주기적으로 확인
 let ppLastDay=new Date().toDateString();
 function checkDayChange(){
@@ -1075,7 +1142,7 @@ document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkDay
 function showTerm(n){
   currentTerm=n;
   document.querySelectorAll('.ttab').forEach((t,i)=>t.classList.toggle('on',i+1===n));
-  buildStats(n);buildWeekly();buildCalendar(n);buildSchedule(n);
+  buildStats(n);bbHome();buildCalendar(n);buildSchedule(n);
 
 }
 function buildTermTabs(){
@@ -1234,9 +1301,10 @@ function goPage(name,btn){
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
   btn.classList.add('on');
   if(name==='lectures')buildSubjectTabs();
-  if(name==='exams')renderExams();
+  if(name==='exams'){renderExams();if(!examInit&&me){examInit=true;openExamMe();}}
   if(name==='studywrong'){renderStudyWrongPage();if(swMode==='exam')swxEnsure();}
   if(name==='bbogae'){bbRender();bbSync()}
+  uiSave();
 }
 
 // ==================== MOCK EXAM RECORD (재언/태현) ====================
@@ -2105,7 +2173,7 @@ const valueLabelBarPlugin = {
 };
 
 // ==================== STUDY WRONG ANSWERS PAGE ====================
-let swAuthor = '재언';
+let swAuthor = me||'재언';   // 기본은 "나"
 let swTerms = new Set(['all']);
 
 function buildSwAuthorToggle(){
@@ -2385,9 +2453,10 @@ function renderWrongList(){
 
 // ---- 목표 (Apps Script 'goals' 시트에 append, (author, goalKey)별 최신 값이 현재 목표) ----
 const GOAL_FAIL_TIP_COLOR = '#ff8a8a'; // 어두운 툴팁 배경용 밝은 빨강
-function personGoals(){
+function personGoals(who){
+  who = who || examPerson;
   const out = { total:null, A:null, B:null, subj:{} };
-  const rows = dedupeLatest((examData.goals||[]).filter(g=>g.author===examPerson), g=>g.goalKey);
+  const rows = dedupeLatest((examData.goals||[]).filter(g=>g.author===who), g=>g.goalKey);
   rows.forEach(g=>{
     if(g.value==='' || g.value===null || g.value===undefined) return;
     const v = Number(g.value);
@@ -2403,9 +2472,9 @@ function belowGoal(value, goal){
   return value < goal - 1e-9;
 }
 function openGoalModal(){
-  if(!examPerson) return;
-  const g = personGoals();
-  document.getElementById('goalModalTitle').textContent = examPerson+' 목표 설정';
+  if(!me) return;   // 목표는 "나"의 것만 수정 (⚙️ 설정에서 연다)
+  const g = personGoals(me);
+  document.getElementById('goalModalTitle').textContent = me+' 목표 설정';
   // 과목명/형(테마색) + 만점(기본 글자색) + 목표 입력란 + '점'(회색)
   const row = (label,color,maxPt,id,val)=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
       <label style="width:78px;flex-shrink:0;font-size:13px;color:${color}">${label}</label>
@@ -2430,7 +2499,7 @@ function openGoalModal(){
 function closeGoalModal(){ document.getElementById('goalModalBg').style.display='none'; }
 async function submitGoals(){
   const st = document.getElementById('goal-status');
-  const cur = personGoals();
+  const cur = personGoals(me);
   const items = [];
   try{
     const consider = (key, id, prev, max, label)=>{
@@ -2451,11 +2520,12 @@ async function submitGoals(){
   if(!items.length){ closeGoalModal(); return; }
   st.style.color=''; st.textContent='저장 중...';
   try{
-    const res = await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({ target:'goals', author:examPerson, items })});
+    const res = await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({ target:'goals', author:me, items })});
     let j = null; try{ j = await res.json(); }catch(_){}
     if(j && j.ok===false) throw new Error(j.error||'알 수 없는 오류');
     await fetchExamData();
-    renderExamRecordTable(); renderExamTrend(); renderExamSubjectChart();
+    if(examPerson){ renderExamRecordTable(); renderExamTrend(); renderExamSubjectChart(); }
+    if(document.getElementById('setModalBg').style.display!=='none') renderSettings();
     st.style.color='var(--accent)'; st.textContent='저장 완료!';
     setTimeout(()=>{ closeGoalModal(); st.style.color=''; }, 600);
   }catch(e){
@@ -2715,7 +2785,7 @@ function bbLoadP(){
 (function(){try{if(localStorage.getItem('imgo_bb_v2'))return;
   Object.keys(localStorage).filter(k=>k.indexOf('imgo_bb_')===0&&k!=='imgo_bb_fs'&&k!=='imgo_bb_person').forEach(k=>localStorage.removeItem(k));
   localStorage.setItem('imgo_bb_v2','1')}catch(e){}})();
-(function(){try{bbDocs=JSON.parse(localStorage.getItem(BB.D)||'[]')}catch(e){bbDocs=[]}bbPerson='';bbLoadP()})();   // 뽀개기 최초 진입 시 재언/태현 미선택이 기본값
+(function(){try{bbDocs=JSON.parse(localStorage.getItem(BB.D)||'[]')}catch(e){bbDocs=[]}bbPerson=me;bbLoadP()})();   // 항상 "나"로 시작 (다른 사람 화면은 임시로만 봄)
 function bbSave(){try{const w=(k,v)=>localStorage.setItem(k,JSON.stringify(v));w(BB.D,bbDocs);if(!bbPerson){bbEC=null;return}w(BB.R+bbPerson,bbRec);w(BB.S+bbPerson,bbSet);w(BB.N+bbPerson,bbDone);w('imgo_bb_runs_'+bbPerson,bbRuns);w('imgo_bb_ses_'+bbPerson,bbSes);w('imgo_bb_star_'+bbPerson,bbStar);w('imgo_bb_pens_'+bbPerson,bbPens);bbEC=null;localStorage.setItem(BB.P,bbPerson)}catch(e){alert('저장 실패 (용량 초과?)')}}
 
 // ── 파서 ──
@@ -2753,10 +2823,11 @@ function bbAgg(id,t,keys){
 
 // ── 메인 ──
 function bbRender(){
+  bbHome();
   const el=document.getElementById('bbRoot');if(!el)return;bbPopX();document.body.classList.toggle('bbsolve',!!bbView);if(!bbView)bbHS(null);
   if(bbView)return bbRenderDoc(el);
   const off=!bbPerson,dis=off?' disabled style="opacity:.35;pointer-events:none"':'';
-  el.innerHTML=`<div class="bb-top">${['재언','태현'].map(p=>`<button class="ttab ${p===bbPerson?'on':''}" onclick="bbWho('${p}')">${p}</button>`).join('')}<span class="bb-sp"></span><button class="apply-btn-sm" onclick="bbOpenAdd()">등록</button>${off?'':`<button class="apply-btn-sm" onclick="bbOpenSet()">설정</button>`}</div>
+  el.innerHTML=`<div class="bb-top">${['재언','태현'].map(p=>`<button class="ttab ${p===bbPerson?'on':''}" onclick="bbWho('${p}')">${p}</button>`).join('')}<span class="bb-sp"></span><button class="apply-btn-sm" onclick="bbOpenAdd()">등록</button></div>
   <div class="bb-top">${[['weekly','WEEKLY 뽀개기'],['list','전체 목록'],['ana','분석']].map(([k,n])=>`<button class="ttab ${!off&&bbTab===k?'on':''}"${dis}${off?'':` onclick="bbTab='${k}';bbRender()"`}>${n}</button>`).join('')}</div>`
   +(off?`<div class="bb-cs" style="padding:30px 0;text-align:center;line-height:1.8">재언 또는 태현을 선택하면 시작돼요.</div>`
   :`<div class="bb-cs" style="margin-bottom:12px">${bbPerson} · 현재 ${bbSet.term}텀 · 목표 ${bbSet.min}~${bbSet.max}% <span id="bbSy" style="margin-left:6px;color:var(--text3)">${bbSyncLabel()}</span></div>`+(bbTab==='weekly'?bbWeekly():bbTab==='list'?bbList():bbAna()));
@@ -2773,14 +2844,44 @@ const bbWkSort=(a,b)=>{const ca=a.loc==='공통',cb=b.loc==='공통';if(ca!==cb)
   if(ca)return bbGrp(a)-bbGrp(b);
   const si=d=>{const i=SUBJECT_META.findIndex(s=>s.name===d.subj);return !d.subj?-1:i<0?99:i};
   return si(a)-si(b)||a.title.localeCompare(b.title,'ko',{numeric:true})};
+function bbDnBtn(key,id,v){const oc=`event.stopPropagation();bbDn('${key}','${id}')`;
+  if(v===1)return `<button class="apply-btn-sm" onclick="${oc}">✓ 완료됨</button>`;
+  if(v===2)return `<button class="apply-btn-sm" style="background:var(--amber);color:#111;border:1px solid var(--amber)" onclick="${oc}" title="눌러서 취소">PASS됨</button>`;
+  return `<button class="apply-btn-sm" style="background:none;color:var(--accent);border:1px solid var(--accent)" onclick="${oc}">완료하기</button>`}
+// 홈 '오늘 뽀개기' (3rd Term만): 요일 탭으로 다른 날 뽀개기도 미리 볼 수 있음. 모든 항목은 한 줄에 하나씩, 항목 없는 그룹은 줄째 숨김
+let bbHSel=null,bbHSelDay='';
+function bbHPick(i){bbHSel=i;bbHSelDay=new Date().toDateString();bbHome()}
+function bbHome(){
+  const el=document.getElementById('bbHome');if(!el)return;
+  const now=new Date(),td=(now.getDay()+6)%7;
+  if(bbHSelDay!==now.toDateString()){bbHSel=null;bbHSelDay=now.toDateString()}
+  const sel=bbHSel===null?td:bbHSel;
+  const dt=new Date(now);dt.setDate(now.getDate()-td+sel);const key=bbDK(dt);
+  let A=[],L=[];
+  try{if(currentTerm===3&&bbPerson){A=bbDocs.filter(d=>bbVis(d)&&d.loc);L=A.filter(d=>bbDays(d.day).includes(sel)).sort(bbWkSort)}}catch(e){A=[];L=[]}
+  if(!A.length){el.style.display='none';el.innerHTML='';return}
+  const dn=bbDone[key]||{},nd=L.filter(d=>dn[d.id]).length,G=[[],[],[],[],[]],LAB=['역량','총론·창체','모형','교육과정','커스텀'];
+  L.forEach(d=>G[d.loc==='공통'?bbGrp(d):4].push(d));
+  const btn=(d,v)=>{const oc=`event.stopPropagation();bbDn('${key}','${d.id}')`;
+    if(v===1)return `<button class="apply-btn-sm" onclick="${oc}">✓ 완료</button>`;
+    if(v===2)return `<button class="apply-btn-sm" style="background:var(--amber);color:#111;border:1px solid var(--amber)" onclick="${oc}" title="눌러서 취소">PASS</button>`;
+    return `<button class="apply-btn-sm" style="background:none;color:var(--accent);border:1px solid var(--accent)" onclick="${oc}">완료</button>`};
+  const cell=d=>{const v=dn[d.id];
+    return `<div class="bh-i ${v===2?'ps':v?'ok':''}" onclick="bbHomeOpen('${d.id}')"><div class="bh-t">${bbEsc(d.title)}</div>${btn(d,v)}</div>`};
+  const tabs=BB_DAYS.map((x,i)=>`<button class="pp-day${i===td?' today':''}${i===sel?' sel':''}" onclick="bbHPick(${i})">${x}</button>`).join('');
+  el.style.display='';
+  el.innerHTML=`<div class="bh-hd"><div class="sec-title">${sel===td?'오늘 뽀개기':'뽀개기'} · ${dt.getMonth()+1}/${dt.getDate()}(${BB_DAYS[sel]})<em>${nd}/${L.length}</em></div><button class="set-btn" onclick="bbHomeAll()">WEEKLY ›</button></div>`
+    +`<div class="pp-tabs" style="margin-bottom:6px">${tabs}</div>`
+    +`<div class="bh-card">`+(L.length?G.map((g,i)=>g.length?`<div class="bh-r"><div class="pp-lab">${LAB[i]}</div><div class="bh-g">${g.map(cell).join('')}</div></div>`:'').join(''):'<div class="bb-cs" style="padding:16px 0;text-align:center">이 요일에 지정된 뽀개기가 없어요.</div>')+`</div>`;
+}
+function bbHomeGo(){const t=document.querySelectorAll('.ntab')[1];if(t)goPage('bbogae',t)}
+function bbHomeAll(){bbTab='weekly';bbDay=null;bbView=null;bbS=null;bbHomeGo()}
+function bbHomeOpen(id){bbTab='weekly';bbHomeGo();bbOpen(id)}
 function bbWeekly(){
   const now=new Date(),td=(now.getDay()+6)%7;if(bbDay===null)bbDay=td;
   const dt=new Date(now);dt.setDate(now.getDate()-td+bbDay);const key=bbDK(dt),dn=bbDone[key]||{};
   const L=bbDocs.filter(d=>bbVis(d)&&d.loc&&bbDays(d.day).includes(bbDay)).sort(bbWkSort),nd=L.filter(d=>dn[d.id]).length;
-  const btn=d=>{const v=dn[d.id],oc=`event.stopPropagation();bbDn('${key}','${d.id}')`;
-    if(v===1)return `<button class="apply-btn-sm" onclick="${oc}">✓ 완료됨</button>`;
-    if(v===2)return `<button class="apply-btn-sm" style="background:var(--amber);color:#111;border:1px solid var(--amber)" onclick="${oc}" title="눌러서 취소">PASS됨</button>`;
-    return `<button class="apply-btn-sm" style="background:none;color:var(--accent);border:1px solid var(--accent)" onclick="${oc}">완료하기</button>`};
+  const btn=d=>bbDnBtn(key,d.id,dn[d.id]);
   return `<div class="pp-tabs" style="margin-bottom:10px">${BB_DAYS.map((x,i)=>`<button class="pp-day ${i===bbDay?'sel':''} ${i===td?'today':''}" onclick="bbDay=${i};bbRender()">${x}</button>`).join('')}</div>
   <div class="bb-cs" style="margin-bottom:8px">${dt.getMonth()+1}/${dt.getDate()}(${BB_DAYS[bbDay]}) · ${nd}/${L.length} 완료</div>`
   +(L.length?L.map(d=>bbCard(d,btn(d),dn[d.id])).join(''):'<div class="bb-cs" style="padding:24px 0;text-align:center">이 요일에 지정된 뽀개기가 없어요.<br>등록 시 구분(공통/재언/태현)과 요일을 고르면 여기에 떠요.</div>');
@@ -3765,7 +3866,7 @@ async function bbPush(who){
       if(!r.saved||['docs','records','runs','done','ses','stars','pens'].some(k=>b[k].length&&typeof r.saved[k]!=='number')||(b.settings&&typeof r.saved.settings!=='number'))throw new Error('server outdated');
       const q2=bbQRead(who);sent.forEach(k=>{if(q2[k]&&q2[k].item.ts===q[k].item.ts)delete q2[k]});bbQWrite(who,q2);
     }
-    bbSyErr=false;bbSyOk=true;
+    bbSyErr=false;bbSyOk=true;try{localStorage.setItem('imgo_last_sync',Date.now())}catch(e){}
   }catch(e){bbSyErr=true;clearTimeout(bbRT);bbRT=setTimeout(()=>bbPush(who),30000)}
   finally{bbBusy[who]=0;bbSyUI()}
 }
@@ -3840,7 +3941,7 @@ async function bbSync(){
     if(full&&Object.keys(bbQRead(who)).length)throw new Error('pending');   // 못 보낸 게 있으면 서버 내용으로 덮기 전에 중단
     await bbPull(who,full);bbFullDone[who]=true;
     const d=new Date();bbSyT=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-    bbSyOk=true;bbSyErr=false;
+    bbSyOk=true;bbSyErr=false;try{localStorage.setItem('imgo_last_sync',Date.now())}catch(e){}
   }catch(e){bbSyErr=true}
   finally{bbSyncing=false;bbSyUI();if(!bbSyErr&&!bbView&&document.getElementById('bbRoot'))bbRender()}
 }
@@ -3870,6 +3971,140 @@ function toggleTheme(){
   }
 })();
 
+// ==================== UI STATE RESTORE ====================
+// 홈 화면에 나갔다 오면 OS가 웹앱을 다시 로드하는 경우가 있어서, 마지막에 보던 탭과 탭 안쪽 선택을 저장해두고 복원
+const UI_K='imgo_ui_state';
+let uiReady=false;
+function uiSave(){
+  if(!uiReady)return;
+  try{
+    const pg=document.querySelector('.page.on');
+    localStorage.setItem(UI_K,JSON.stringify({
+      d:new Date().toDateString(),
+      pg:pg?pg.id.replace('page-',''):'schedule',
+      term:currentTerm,
+      subj:currentSubject,
+      swMode,swTerms:[...swTerms],swSubject,
+      exS:examSection,
+      bbTab
+    }));
+  }catch(e){}
+}
+function uiRestore(){
+  try{
+    const s=JSON.parse(localStorage.getItem(UI_K)||'null');
+    if(!s)return;
+    if(s.subj&&S.lectures&&S.lectures[s.subj]){currentSubject=s.subj;buildSubjectTabs();}
+    if(s.swMode==='study'||s.swMode==='exam')swMode=s.swMode;
+    if(Array.isArray(s.swTerms)&&s.swTerms.length)swTerms=new Set(s.swTerms);
+    if(s.swSubject)swSubject=s.swSubject;
+    if(['record','trend','wrong'].includes(s.exS))examSection=s.exS;
+    if(['weekly','list','ana'].includes(s.bbTab))bbTab=s.bbTab;
+    // 텀은 같은 날일 때만 복원 (날짜가 지나면 오늘 기준 텀으로)
+    if(s.d===new Date().toDateString()&&s.term>=1&&s.term<=3)showTerm(s.term);
+    if(s.pg){
+      const nb=[...document.querySelectorAll('.ntab')].find(t=>(t.getAttribute('onclick')||'').includes("'"+s.pg+"'"));
+      if(nb)goPage(s.pg,nb);
+    }
+  }catch(e){console.warn('[UI] restore failed:',e);}
+  finally{uiReady=true;}
+}
+document.addEventListener('visibilitychange',()=>{ if(document.hidden)uiSave(); });
+window.addEventListener('pagehide',uiSave);
+
+// ==================== SETTINGS (⚙️) ====================
+// 업데이트 기록: 새 수정을 할 때마다 맨 위에 한 줄씩 추가 (화면에는 최근 5개만 표시)
+const APP_LOG=[
+  ['10/14','통합된 설정 버튼 추가, 홈 화면 뽀개기 추가'],
+  ['10/14','사용자 지정 기능 추가, 마지막 보던 화면 복원']
+];
+function openExamMe(){
+  if(!me)return;
+  const b=[...document.querySelectorAll('#examPersonTabs .ttab')].find(t=>t.textContent.trim()===me);
+  if(b)showExamPerson(me,b);
+}
+function showMeModal(){document.getElementById('meModalBg').style.display='flex'}
+function closeMeModal(){document.getElementById('meModalBg').style.display='none'}
+function setMe(p){
+  if(p!=='재언'&&p!=='태현')return;
+  me=p;try{localStorage.setItem(ME_K,p)}catch(e){}
+  swAuthor=p;examInit=false;
+  bbView=null;bbS=null;   // 풀이 중이던 화면은 닫고 새 사용자 기준으로
+  bbWho(p);
+  const pg=document.querySelector('.page.on'),id=pg?pg.id:'';
+  if(id==='page-exams'){examInit=true;openExamMe();}
+  if(id==='page-studywrong'){renderStudyWrongPage();if(swMode==='exam')swxEnsure();}
+  closeMeModal();
+  if(document.getElementById('setModalBg').style.display!=='none')renderSettings();
+}
+function openSettings(){document.getElementById('setModalBg').style.display='flex';renderSettings()}
+function closeSettings(){document.getElementById('setModalBg').style.display='none'}
+function setBbSetOf(w){
+  if(w===bbPerson)return bbSet;
+  try{const v=JSON.parse(localStorage.getItem(BB.S+w)||'null');if(v&&v.min!==undefined)return v}catch(e){}
+  return {min:60,max:80,term:1};
+}
+function setSaveBb(){
+  const mn=+document.getElementById('setMn').value,mx=+document.getElementById('setMx').value,tm=Math.max(1,Math.floor(+document.getElementById('setTm').value||1));
+  if(!(mn>=0&&mx<=100&&mn<mx)){alert('최소 < 최대 (0~100) 로 입력해주세요');return}
+  const ts=bbNow(),it={min:mn,max:mx,term:tm,ts};
+  if(me===bbPerson){bbSet={min:mn,max:mx,term:tm,ts};bbS=null;bbEnq('settings','settings|'+me,it);bbSave();bbRender();}
+  else{   // 지금 다른 사람 화면을 보고 있어도 "나"의 설정에 저장
+    try{localStorage.setItem(BB.S+me,JSON.stringify(it))}catch(e){}
+    const q=bbQRead(me);q['settings|'+me]={kind:'settings',item:it};bbQWrite(me,q);bbPush(me);
+  }
+  closeBbGoal();
+  if(document.getElementById('setModalBg').style.display!=='none')renderSettings();
+}
+function closeBbGoal(){document.getElementById('bbGoalModalBg').style.display='none'}
+function openBbGoal(){
+  if(!me)return;
+  const b=setBbSetOf(me);
+  document.getElementById('bbGoalTitle').textContent=me+' 뽀개기 목표 설정';
+  document.getElementById('bbGoalBody').innerHTML=`<div class="set-lbl">최소 목표 정답률 (미만이면 빨강)</div><input id="setMn" class="set-in" type="number" min="0" max="100" value="${b.min}">
+    <div class="set-lbl">최대 목표 정답률 (이상이면 초록, 사이는 주황)</div><input id="setMx" class="set-in" type="number" min="0" max="100" value="${b.max}">
+    <div class="set-lbl">현재 진행 중인 텀</div><div style="display:flex;gap:6px;margin-bottom:6px"><input id="setTm" type="number" min="1" value="${b.term}" style="flex:1"><button class="set-btn" onclick="const i=document.getElementById('setTm');i.value=+i.value+1">새 텀 시작 (+1)</button></div>
+    <div class="set-hint">새 텀을 시작하면 정답률·약점·안 푼 것이 0부터 다시 집계돼요. 이전 텀 기록은 뽀개기 분석 탭에서 볼 수 있어요.</div>`;
+  document.getElementById('setBbSt').textContent='';
+  document.getElementById('bbGoalModalBg').style.display='flex';
+}
+function setSyncInfo(){
+  let t='';
+  try{const v=+localStorage.getItem('imgo_last_sync');if(v){const d=new Date(v),z=n=>String(n).padStart(2,'0');t=(d.getMonth()+1)+'/'+d.getDate()+' '+z(d.getHours())+':'+z(d.getMinutes())}}catch(e){}
+  const pend=['재언','태현'].reduce((n,w)=>n+Object.keys(bbQRead(w)).length,0);
+  return{t,pend};
+}
+async function refreshApp(){
+  if(!confirm('저장돼 있던 앱 파일을 지우고 최신 버전을 다시 받아올게요.\n(기록·설정 데이터는 그대로 남아요)'))return;
+  try{uiSave()}catch(e){}
+  try{const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}catch(e){}
+  try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}
+  location.reload();
+}
+function renderSettings(){
+  const el=document.getElementById('setBody');if(!el)return;
+  const sec=(t,first)=>`<div class="set-sec${first?' first':''}">${t}</div>`;
+  const hint=t=>`<div class="set-hint">${t}</div>`;
+  const sy=setSyncInfo();
+  // 1. 사용자
+  let h=sec('사용자',true)+hint('뽀개기·모의고사·오답이 "나" 기준으로 열려요. 다른 사람 화면은 임시로만 볼 수 있고, 앱을 다시 열면 "나"로 돌아와요.');
+  h+=`<div style="display:flex;gap:8px">${['재언','태현'].map(p=>`<button class="ttab${p===me?' on':''}" onclick="setMe('${p}')">${p}</button>`).join('')}</div>`;
+  // 2. 목표 (둘 다 접힌 카드)
+  if(me){
+    const b=setBbSetOf(me),g=personGoals(me),f=v=>v===null||v===undefined?'-':v;
+    h+=sec(me+' 목표')+hint('목표는 "나"의 것만 고칠 수 있어요.');
+    h+=`<div class="set-card"><div><b>뽀개기 목표</b><span>${b.min}~${b.max}% · ${b.term}텀</span></div><button class="set-btn" onclick="openBbGoal()">수정</button></div>
+      <div class="set-card"><div><b>모의고사 목표</b><span>총점 ${f(g.total)} · A ${f(g.A)} · B ${f(g.B)}</span></div><button class="set-btn" onclick="openGoalModal()">수정</button></div>`;
+  }
+  // 3. 동기화
+  h+=sec('동기화')+`<div class="set-info">마지막 동기화: <b>${sy.t||'아직 없음'}</b><br>서버에 못 보낸 변경: <b style="color:${sy.pend?'var(--amber)':'var(--text)'}">${sy.pend}개</b>${bbSyErr?'<br><span style="color:var(--red)">⚠ 최근 동기화에 실패했어요. 연결되면 자동으로 다시 시도해요.</span>':''}</div>`;
+  // 4. 업데이트 (새로고침 포함)
+  h+=sec('업데이트')+`<div class="set-log">${APP_LOG.slice(0,5).map(([d,t])=>`<div><span>${d}</span>${t}</div>`).join('')}</div>`;
+  h+=`<div style="margin-top:12px"><button class="apply-btn-sm" onclick="refreshApp()">최신 버전으로 새로고침</button></div>`;
+  el.innerHTML=h;
+}
+if(!me)showMeModal();   // 처음 실행: 사용자 선택
+
 // ==================== INIT ====================
 (async()=>{
   await loadData();
@@ -3879,6 +4114,7 @@ function toggleTheme(){
   renderNoticeView();
   buildSubjectTabs();
   renderExams();
+  uiRestore();
 })();
 
 // ==================== SERVICE WORKER ====================
