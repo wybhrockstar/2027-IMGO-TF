@@ -3974,15 +3974,14 @@ function toggleTheme(){
 // ==================== UI STATE RESTORE ====================
 // 홈 화면에 나갔다 오면 OS가 웹앱을 다시 로드하는 경우가 있어서, 마지막에 보던 탭과 탭 안쪽 선택을 저장해두고 복원
 const UI_K='imgo_ui_state';
-const UI_TTL=10*60*1000;   // 마지막으로 앱을 벗어난 지 이 시간(10분)이 지나면 복원하지 않고 홈에서 시작
+// sessionStorage: 최근 작업 목록에서 앱을 완전히 지우면 값이 사라져 홈에서 시작, 단순히 나갔다 오거나 OS가 재로드한 경우는 복원
 let uiReady=false;
 function uiSave(){
   if(!uiReady)return;
   try{
     const pg=document.querySelector('.page.on');
-    localStorage.setItem(UI_K,JSON.stringify({
+    sessionStorage.setItem(UI_K,JSON.stringify({
       d:new Date().toDateString(),
-      t:Date.now(),
       pg:pg?pg.id.replace('page-',''):'schedule',
       term:currentTerm,
       subj:currentSubject,
@@ -3994,9 +3993,8 @@ function uiSave(){
 }
 function uiRestore(){
   try{
-    const s=JSON.parse(localStorage.getItem(UI_K)||'null');
+    const s=JSON.parse(sessionStorage.getItem(UI_K)||'null');
     if(!s)return;
-    if(!s.t||Date.now()-s.t>UI_TTL)return;   // 오래 지난 기록은 무시 (완전 종료 후 다시 연 경우)
     if(s.subj&&S.lectures&&S.lectures[s.subj]){currentSubject=s.subj;buildSubjectTabs();}
     if(s.swMode==='study'||s.swMode==='exam')swMode=s.swMode;
     if(Array.isArray(s.swTerms)&&s.swTerms.length)swTerms=new Set(s.swTerms);
