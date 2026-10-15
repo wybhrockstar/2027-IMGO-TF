@@ -4581,9 +4581,9 @@ function bbMmQs(root){   // 마인드맵형: 요약(오른쪽 괄호선)·관계
     const old=m.querySelector(':scope>svg.mmqs');if(old)old.remove();m.style.paddingRight='';
     if(m.classList.contains('lst'))return;
     const qs=[...m.querySelectorAll('.mmq.mmqs,.mmq.mmqr')],mr=m.getBoundingClientRect();if(!qs.length||!mr.width)return;
-    const z=parseFloat(m.style.zoom)||1,R=el=>{const r=el&&el.getBoundingClientRect();return r&&(r.width||r.height)?{l:(r.left-mr.left)/z,r:(r.right-mr.left)/z,t:(r.top-mr.top)/z,b:(r.bottom-mr.top)/z}:null};
+    const z=bbMmZ(m),R=el=>{const r=el&&el.getBoundingClientRect();return r&&(r.width||r.height)?{l:(r.left-mr.left)/z,r:(r.right-mr.left)/z,t:(r.top-mr.top)/z,b:(r.bottom-mr.top)/z}:null};
     const by={};m.querySelectorAll('.mmn[data-x]').forEach(n=>{by[n.dataset.x]=n});
-    const svg=E('svg',{class:'mmqs',width:Math.ceil(m.scrollWidth/z),height:Math.ceil(m.scrollHeight/z)}),ln='fill:none;stroke:var(--text2);stroke-width:1.6px',tx='fill:var(--text2);font-size:.8em;font-family:\'OwnglyphCocoa\',\'EliceNeolli\',sans-serif';
+    const svg=E('svg',{class:'mmqs',width:Math.ceil(m.scrollWidth),height:Math.ceil(m.scrollHeight)}),ln='fill:none;stroke:var(--text2);stroke-width:1.6px',tx='fill:var(--text2);font-size:.8em;font-family:\'OwnglyphCocoa\',\'EliceNeolli\',sans-serif';
     const df=E('defs',{},svg),mk=E('marker',{id:'bbqa'+mi,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:8,markerHeight:8,orient:'auto-start-reverse'},df);E('path',{d:'M0,1 L10,5 L0,9 z',style:'fill:var(--text2)'},mk);
     const labs=[];
     qs.forEach(q=>{
@@ -4614,7 +4614,7 @@ function bbMmQs(root){   // 마인드맵형: 요약(오른쪽 괄호선)·관계
     });
     m.appendChild(svg);
     let mx=0;labs.forEach(e=>{try{const b=e.getBBox();mx=Math.max(mx,b.x+b.width)}catch(x){}});
-    const need=mx+8-(m.clientWidth/z);if(need>0)m.style.paddingRight=Math.ceil(need+2)+'px';   // 요약 글이 맵 오른쪽 밖으로 나가면 스크롤되게 여백 확보
+    const need=mx+8-m.clientWidth;if(need>0)m.style.paddingRight=Math.ceil(need+2)+'px';   // 요약 글이 맵 오른쪽 밖으로 나가면 스크롤되게 여백 확보
   });
 }
 function bbMmQx(m,on){   // 목록 모드: 요약(.mmqs)·관계(.mmqr) 데이터를 글줄(.mmqx)로 그림. 마인드맵형이거나 다시 그릴 땐 먼저 지움
@@ -4747,13 +4747,17 @@ document.addEventListener('click',e=>{
   while(b){const par=b.parentElement;p.unshift([...par.children].indexOf(b));if(par===m)break;b=par.parentElement}
   bbMm.path=[[...document.querySelectorAll('#bbDoc .mm')].indexOf(m),...p];bbMm.pick=false;bbOptClr();bbMmRun2();
 },true);
+function bbMmZ(m){   // 화면에서 실제로 곱해지는 줌(.mm 줌 × 폰의 body 줌). rect(화면 px) ÷ offsetWidth(자기 좌표 px)로 실측
+  try{const o=m.offsetWidth,r=m.getBoundingClientRect().width;if(o>0&&r>0)return r/o}catch(e){}
+  return (parseFloat(m.style.zoom)||1)*(parseFloat(getComputedStyle(document.body).zoom)||1);
+}
 function bbMmFix(root){
-  const cs=[...root.querySelectorAll('.mmc')],Z=c=>parseFloat(c.closest('.mm').style.zoom)||1,mid=(b,z)=>{const br=b.getBoundingClientRect(),nr=b.firstElementChild&&b.firstElementChild.getBoundingClientRect();return(((nr&&nr.height?nr:br).top+(nr&&nr.height?nr.height:br.height)/2)-br.top)/z};
+  const cs=[...root.querySelectorAll('.mmc')],Z=c=>bbMmZ(c.closest('.mm')),mid=(b,z)=>{const br=b.getBoundingClientRect(),nr=b.firstElementChild&&b.firstElementChild.getBoundingClientRect();return(((nr&&nr.height?nr:br).top+(nr&&nr.height?nr.height:br.height)/2)-br.top)/z};
   cs.forEach(c=>{   // 같은 부모 아래 상자 노드는 가장 긴 글자(또는 Xmind 너비) 기준으로 너비 통일
     const ns=[...c.children].map(b=>b.firstElementChild).filter(n=>n&&!(n.classList.contains('mm3')&&!/ mf/.test(n.className)));
-    if(ns.length<2)return;const z=Z(c);ns.forEach(n=>{n.style.width='';n.style.maxWidth=''});
+    if(ns.length<2)return;const z=Z(c);ns.forEach(n=>{n.style.width='';n.style.minWidth='';n.style.maxWidth=''});
     const w=Math.ceil(Math.max(0,...ns.map(n=>Math.max(+n.dataset.w||0,n.getBoundingClientRect().width/z))));
-    if(w)ns.forEach(n=>{n.style.maxWidth='none';n.style.width=w+'px'});
+    if(w)ns.forEach(n=>{n.style.maxWidth='none';n.style.minWidth=w+'px'});   // width 고정 대신 min-width: 글자가 더 넓어져도 상자가 같이 커짐
   });
   cs.forEach(c=>{   // 줄바꿈 등으로 행 높이가 달라도 연결선은 실제 노드 중심에 맞춤
     const pn=c.parentElement.firstElementChild;if(!pn||!pn.classList.contains('mmn'))return;
