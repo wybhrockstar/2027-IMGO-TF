@@ -310,8 +310,9 @@ body.light .set-sec{color:var(--text3)}
 .set-card span{display:block;font-size:12px;color:var(--text2)}
 .set-btn{padding:5px 13px;font-size:12px;font-weight:600;border-radius:20px;border:1px solid var(--accent);color:var(--accent);background:none;transition:.15s;cursor:pointer;white-space:nowrap}
 .set-btn:hover{background:var(--accent2)}
-.set-log div{font-size:12px;line-height:1.7;color:var(--text2)}
-.set-log span{color:var(--text3);margin-right:8px}
+.set-log div{display:flex;gap:8px;font-size:12px;line-height:1.7;color:var(--text2)}
+.set-log span{color:var(--text3);flex:none}
+.set-log em{font-style:normal;flex:1;min-width:0}   /* 줄이 바뀌어도 날짜 뒤 글자 시작 위치에 세로 맞춤 */
 .set-info{font-size:12px;line-height:1.8;color:var(--text2)}
 .set-info b{color:var(--text)}
 .set-lbl{font-size:11px;color:var(--text3);margin:0 0 3px}
@@ -4390,9 +4391,8 @@ window.addEventListener('pagehide',uiSave);
 // ==================== SETTINGS (⚙️) ====================
 // 업데이트 기록: 새 수정을 할 때마다 맨 위에 한 줄씩 추가 (화면에는 최근 5개만 표시)
 const APP_LOG=[
-  ['10/15','★·메모 통합 및 관계·요약 추가, 편집 모드 개선, Xmind 다운로드 추가'],
-  ['10/14','통합된 설정 버튼 추가, 홈 화면 뽀개기 추가'],
-  ['10/14','사용자 지정 기능 추가, 마지막 보던 화면 복원']
+  ['10/15','★·메모 디자인 통합, 마인드맵 관계·요약·탭 추가, 편집 모드 개선, Xmind 다운로드 추가 및 다시 올리기 연동'],
+  ['10/14','통합된 설정 버튼 추가, 홈 화면 뽀개기 추가, 사용자 지정 기능 추가, 마지막 보던 화면 복원']
 ];
 function openExamMe(){
   if(!me)return;
@@ -4475,7 +4475,7 @@ function renderSettings(){
   // 3. 동기화
   h+=sec('동기화')+`<div class="set-info">마지막 동기화: <b>${sy.t||'아직 없음'}</b><br>서버에 못 보낸 변경: <b style="color:${sy.pend?'var(--amber)':'var(--text)'}">${sy.pend}개</b>${bbSyErr?'<br><span style="color:var(--red)">⚠ 최근 동기화에 실패했어요. 연결되면 자동으로 다시 시도해요.</span>':''}</div>`;
   // 4. 업데이트 (새로고침 포함)
-  h+=sec('업데이트')+`<div class="set-log">${APP_LOG.slice(0,5).map(([d,t])=>`<div><span>${d}</span>${t}</div>`).join('')}</div>`;
+  h+=sec('업데이트')+`<div class="set-log">${APP_LOG.slice(0,5).map(([d,t])=>`<div><span>${d}</span><em>${t}</em></div>`).join('')}</div>`;
   h+=`<div style="margin-top:12px"><button class="apply-btn-sm" onclick="refreshApp()">최신 버전으로 새로고침</button></div>`;
   el.innerHTML=h;
 }
