@@ -224,16 +224,29 @@ body.light .nc-stitle{color:var(--text3)}
 @media(hover:hover){.bb-doc.study .bb-b:hover{color:var(--text);background:var(--accent3);outline:1px solid var(--accent)}}
 .bb-b.ok{outline:2px solid var(--accent)}
 /* ── 뽀개기 문제 카드 전용 눈 편한 팔레트: 카드(.bb-doc) 안에서만 변수를 덮어써서 다른 화면의 색은 그대로 ── */
-.bb-doc{--bg3:#201e1c;--text:#d9d9d9;--text2:#bdbdbd;--text3:#979797;--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);--border3:#6e6e6e;--accent:#a8c76a;--accent2:rgba(168,199,106,.30);--accent3:rgba(168,199,106,.17);--tint:36%;--tintng:26%;--red:#e07a6f;--purple:#9d8fc4;--blue:#7aa3c9;--teal:#6fb7a0;--amber:#d9a85a;--pink:#d98c9c;--star:#e0b84a;--mmbd:#808080;--mm0bg:#121212;--mm0tx:#e6e6e6;color:var(--text)}
-body.light .bb-doc{--bg3:#fbfbf8;--text:#2b2b2b;--text2:#555;--text3:#888;--border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);--border3:#b9b9b0;--accent:#6f9a2e;--accent2:rgba(111,154,46,.16);--accent3:rgba(111,154,46,.10);--tint:22%;--tintng:14%;--red:#c4533f;--purple:#6b4fc4;--blue:#1a6fc4;--teal:#1a8a6a;--amber:#c87800;--pink:#c4204a;--star:#c99a1e;--mmbd:#a9a9a0;--mm0bg:#34362f;--mm0tx:#f1f1ea}
+.bb-doc{--bg3:#201e1c;--text:#d9d9d9;--text2:#bdbdbd;--text3:#979797;--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);--border3:#6e6e6e;--accent:#a8c76a;--accent2:rgba(168,199,106,.30);--accent3:rgba(168,199,106,.17);--tint:36%;--tintng:26%;--red:#e07a6f;--purple:#9d8fc4;--blue:#7aa3c9;--teal:#6fb7a0;--amber:#d9a85a;--pink:#d98c9c;--star:#f2994a;--mmbd:#808080;--mm0bg:#121212;--mm0tx:#e6e6e6;color:var(--text)}
+body.light .bb-doc{--bg3:#fbfbf8;--text:#2b2b2b;--text2:#555;--text3:#888;--border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);--border3:#b9b9b0;--accent:#6f9a2e;--accent2:rgba(111,154,46,.16);--accent3:rgba(111,154,46,.10);--tint:22%;--tintng:14%;--red:#c4533f;--purple:#6b4fc4;--blue:#1a6fc4;--teal:#1a8a6a;--amber:#c87800;--pink:#c4204a;--star:#e8751a;--mmbd:#a9a9a0;--mm0bg:#34362f;--mm0tx:#f1f1ea}
 .bb-doc b,.bb-doc strong{font-weight:500}
 .bb-doc .mm b,.bb-doc .mm strong{font-weight:400;-webkit-text-stroke:.25px currentColor}   /* 마인드맵 글꼴은 굵은 서체가 없어 얇은 외곽선으로 중간 굵기 (가려진 빈칸에선 글자색이 투명이라 같이 안 보임) */   /* 굵은 글씨 굵기 */
 /* ── 중요 표시(★): 빈칸 안쪽 글자 앞. 가려진 동안은 투명(자리만 차지), 열리면 노란 별 ── */
 .bb-b{-webkit-touch-callout:none}
 .bb-b.star::before{content:'★';color:transparent;font-size:.8em;margin-right:3px}
-.bb-b.star.open::before{color:var(--star,#e0b84a)}
-@media(hover:hover){.bb-doc.study .bb-b.star:hover::before{color:var(--star,#e0b84a)}}
+.bb-b.star.open::before{color:var(--star,#f2994a)}
+@media(hover:hover){.bb-doc.study .bb-b.star:hover::before{color:var(--star,#f2994a)}}
 body.bbnostar .bb-b.star::before{display:none}
+/* 내 중요 표시(빈칸): 주황 별 + 주황 글씨 (온글잎은 굵게, DX는 굵기 그대로) */
+.bb-doc .bb-b.star.open{color:var(--star);font-weight:700}
+.bb-doc .mmn.mk2 .bb-b.star.open{font-weight:inherit}
+@media(hover:hover){.bb-doc.study .bb-b.star:hover{color:var(--star);font-weight:700}.bb-doc.study .mmn.mk2 .bb-b.star:hover{font-weight:inherit}}
+#bbPv2 .blank.star{color:var(--star);font-weight:700}
+#bbPv2 .mmn.mk2 .blank.star{font-weight:inherit}
+/* 내 중요 표시(드래그한 구간): 빨간 글씨(온글잎은 굵게) + 앞에 주황 별 */
+.ip{color:var(--star);font-weight:700}
+.mmn.mk2 .ip{font-weight:inherit}
+.ip.ipf::before{content:'★ ';color:var(--star,#f2994a);font-weight:700}
+.bb-b:not(.open) .ip,.bb-b:not(.open) .ip.ipf::before{color:transparent}
+@media(hover:hover){.bb-doc.study .bb-b:hover .ip{color:var(--star)}.bb-doc.study .bb-b:hover .ip.ipf::before{color:var(--star,#f2994a)}}
+#bbPv2.imped .ip{cursor:pointer;outline:1px dashed var(--star);border-radius:3px}
 /* 풀이 화면: 헤더·탭 숨김, 제목줄, 옵션 패널, 하단 고정 바 */
 body.bbsolve .hdr,body.bbsolve .nav{display:none}
 body.bbsolve #page-bbogae.main{max-width:none;padding:10px 20px 80px}
@@ -266,9 +279,9 @@ body.bbnoline .bb-b.open:not(.ok):not(.ng),body.bbnoline .bb-doc.study .bb-b:hov
 .bb-b.ng{outline:2px solid var(--red);background:color-mix(in srgb,var(--red) var(--tintng,14%),transparent)}
 .bb-b.pass{outline:2px dashed var(--text3);background:color-mix(in srgb,var(--text3) 16%,transparent)}
 .bb-pen:not(.bb-b){padding:0 4px;margin:0 2px;border-radius:4px;color:var(--text2);background:color-mix(in srgb,var(--text) 9%,transparent)}
-.bb-pen.c1:not(.bb-b){color:var(--amber);background:color-mix(in srgb,var(--amber) 15%,transparent)}
+.bb-pen.c1:not(.bb-b){color:var(--star);background:color-mix(in srgb,var(--star) 18%,transparent)}
 .bb-b.bb-pen{box-shadow:inset 0 -2px 0 var(--text3)}
-.bb-b.bb-pen.c1{box-shadow:inset 0 -2px 0 var(--amber)}
+.bb-b.bb-pen.c1{box-shadow:inset 0 -2px 0 var(--star)}
 .bb-pen-mk{display:inline-block;width:0;height:1.1em;border-left:2px solid var(--accent);margin:0 1px;vertical-align:text-bottom}
 .bb-pop{position:absolute;z-index:300;background:var(--bg2);border:1px solid var(--border3);border-radius:10px;padding:4px;display:flex;gap:4px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .bb-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
@@ -361,12 +374,14 @@ body.light .set-sec{color:var(--text3)}
 .mm.lst .mmn.mf5{background:color-mix(in srgb,var(--text) 16%,var(--bg3))}
 #bbPv2.me .mmn{cursor:pointer}
 #bbPv2 .mmn.me-sel{outline:2px solid var(--accent);outline-offset:3px;cursor:text}
-#bbMeTb,#bbMemoTb{position:sticky;top:0;z-index:5;margin:0 0 8px;padding:8px 10px;line-height:1.4;font-size:12px;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+#bbMeTb,#bbMemoTb,#bbTyMsg{position:sticky;top:0;z-index:5;margin:0 0 8px;padding:8px 10px;line-height:1.4;font-size:12px;box-shadow:0 3px 10px rgba(0,0,0,.25)}
 #bbMeOv{position:fixed;z-index:600;pointer-events:none}
 .bbme-b{position:absolute;width:24px;height:24px;border-radius:50%;border:none;background:var(--accent,#4a9eff);color:#111;font-size:17px;line-height:24px;padding:0;pointer-events:auto;cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,.45)}
 .bbme-dr{background:#555;color:#eee;cursor:grab;touch-action:none;font-size:14px}
 #bbMeDrop{position:fixed;z-index:601;pointer-events:none;border-radius:3px;box-sizing:border-box}
 .bb-pen:not(.bb-b){white-space:pre-wrap}
+#bbPv2 .blank.star::before{content:'★';color:var(--star,#f2994a);font-size:.8em;margin-right:3px}
+#bbPv2.imped .blank{cursor:pointer}
 #bbPv2 .bbmm{cursor:text;outline:1px dashed var(--border3)}
 #bbPv2 .bbmm:focus{outline:2px solid var(--accent)}
 #bbPv2 .bbmm:empty::before{content:'메모 입력';color:var(--text3)}
@@ -404,6 +419,31 @@ body.light .set-sec{color:var(--text3)}
 .bb-dh:hover::before,.bb-dh.on::before{background:var(--accent);height:64px}
 @media(max-width:699px){.bb-dw{padding-right:0}.bb-dh{display:none}}
 .mm i.d{font-style:normal;margin:0 .32em}
+.mm.tabx{display:none}
+.mmcl{display:block;margin:3px 0 0;padding:1px 6px;font-size:.82em;font-weight:400;text-align:inherit;white-space:pre-wrap;width:max-content;max-width:16em;border-top:1px dashed var(--border3);border-radius:4px;color:var(--text2);background:color-mix(in srgb,var(--text) 9%,transparent)}   /* 설명선: 메모와 같은 모양, 항상 보이는 공통 메모 */
+.mmn>.mmcl{margin-left:auto;margin-right:auto;text-align:center}
+.mmcl:not(.sx){background:color-mix(in srgb,#9a9a9a 22%,transparent);color:var(--text2)}   /* 설명선 일반: 회색 */
+body.light .mmcl:not(.sx){background:color-mix(in srgb,#9a9a9a 22%,transparent);color:#444}
+.mmcl.sx{background:color-mix(in srgb,var(--star) 24%,transparent);color:var(--star);border-top-color:var(--star)}   /* 설명선 강조: 주황 계열 */
+body.light .mmcl.sx{color:#b4530c}   /* 설명선은 노드 가운데 정렬 */
+.mm{position:relative}
+svg.mmqs{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+body.bbnocl .mmcl,body.bbnocl .bb-pen:not(.bb-b){display:none}
+.mmq{display:none}   /* 설명선·요약·관계 데이터 (3단계에서 화면 표시) */
+.mmqx{display:block;box-sizing:border-box;margin:3px 0 3px 4px;padding:1px 6px;font-size:.82em;font-weight:400;font-style:normal;text-align:left;white-space:pre-wrap;width:max-content;max-width:100%;border-top:1px dashed var(--border3);border-radius:4px;color:var(--text2);background:color-mix(in srgb,var(--text) 9%,transparent);font-family:'Noto Sans KR',sans-serif}   /* 요약·관계 글줄 (목록 모드에서만 만들어짐) */
+mark{background:none;color:#F22816;font-weight:700}   /* ★ 중요 구간 (Xmind 빨강). 글자 ★는 저장하지 않고 ::before로 그림 */
+mark::before{content:"★ "}
+.bb-b:not(.open) mark{color:transparent}
+.mmn.mk2 mark{font-weight:inherit}
+.mmcl,.mmqx,.mm .bb-pen,.mm .mmn>.bb-pen{font-family:'OwnglyphCocoa','EliceNeolli',sans-serif}   /* 메모·설명선·요약·관계 글씨는 온글잎체로 통일 */
+body.bbined .bb-dw,body.bbined #bbMmTabs{display:none!important}
+/* 마인드맵 안의 중요 표시는 온글잎체에 맞춰 '굵은 글씨'와 같은 굵기(굵기 400 + 가는 외곽선), DX체는 그대로 */
+.mm mark.px,mark.px{color:var(--star,#f2994a)}
+.mm mark,.mm .ip,.bb-doc .mm .bb-b.star.open,#bbPv2 .mm .blank.star{font-weight:400;-webkit-text-stroke:.25px currentColor}
+.mm .ip.ipf::before{font-weight:400}
+@media(hover:hover){.bb-doc.study .mm .bb-b.star:hover{font-weight:400;-webkit-text-stroke:.25px currentColor}}
+.mm .mmn.mk2 mark,.mm .mmn.mk2 .ip,.bb-doc .mm .mmn.mk2 .bb-b.star.open,#bbPv2 .mm .mmn.mk2 .blank.star{-webkit-text-stroke:0}
+@media(hover:hover){.bb-doc.study .mm .mmn.mk2 .bb-b.star:hover{-webkit-text-stroke:0}}
 #bbPv2[contenteditable=true]{outline:2px solid var(--accent);cursor:text}
 #bbPv2[contenteditable=true] .blank{cursor:text}
 #bbMmPv:empty{display:none}
@@ -424,6 +464,15 @@ body.bblen .bb-b:not(.open){display:inline-block;width:4.5em;overflow:hidden;whi
 .mm.lst .mmc{display:block;margin:2px 0 4px 14px;padding-left:10px;border-left:2px solid var(--border3)}
 .mm.lst .mmb::before,.mm.lst .mmb::after,.mm.lst .mmc::before{display:none!important}
 .mm.lst .mmn{display:block;width:fit-content!important;max-width:100%!important;margin:3px 0;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere}
+.mm.imp .mmb.imx{display:none}
+.mm.impn::after{content:'중요(★) 표시된 내용이 없어요';display:block;padding:8px;color:var(--text3);font-size:.9em;font-family:'Noto Sans KR',sans-serif}
+.mm.imp .mmc>.mmb.if::after{top:calc(50% + var(--dy,0px))!important}
+.mm.imp .mmc>.mmb.il::after{bottom:calc(50% - var(--dy,0px))!important}
+.mm.imp .mmc>.mmb.io::after{display:none!important}
+.mm.imp .mmc>.mmb.io::before{display:block!important}
+.mm.imp .mmc.ml2>.mmb.if:not(.io):not(.mst)::before,.mm.imp .mmc.ml2>.mmb.il:not(.io):not(.mst)::before{display:none!important}
+.mm.imp .mmc.ml2>.mmb.if:not(.io):not(.mst)::after{width:22px;box-sizing:border-box;border-top:2px solid var(--ml);border-top-left-radius:12px}
+.mm.imp .mmc.ml2>.mmb.il:not(.io):not(.mst)::after{width:22px;box-sizing:border-box;border-bottom:2px solid var(--ml);border-bottom-left-radius:12px}
 .mm.foc .mmx{display:none}
 .mm.foc .mmb.anc>.mmn{display:none}
 .mm.foc .mmb.anc>.mmc{margin-left:0}
@@ -2795,18 +2844,18 @@ function bbLoadP(){
 function bbSave(){try{const w=(k,v)=>localStorage.setItem(k,JSON.stringify(v));w(BB.D,bbDocs);if(!bbPerson){bbEC=null;return}w(BB.R+bbPerson,bbRec);w(BB.S+bbPerson,bbSet);w(BB.N+bbPerson,bbDone);w('imgo_bb_runs_'+bbPerson,bbRuns);w('imgo_bb_ses_'+bbPerson,bbSes);w('imgo_bb_star_'+bbPerson,bbStar);w('imgo_bb_pens_'+bbPerson,bbPens);bbEC=null;localStorage.setItem(BB.P,bbPerson)}catch(e){alert('저장 실패 (용량 초과?)')}}
 
 // ── 파서 ──
-const BB_OK=new Set(['P','DIV','B','STRONG','I','EM','U','BR','TABLE','TBODY','THEAD','TR','H2','H3','H4','UL','OL','LI','SUB','SUP']);
+const BB_OK=new Set(['P','DIV','B','STRONG','I','EM','U','BR','TABLE','TBODY','THEAD','TR','H2','H3','H4','UL','OL','LI','SUB','SUP','MARK']);
 const BB_SKIP=new Set(['SCRIPT','STYLE','INS','IFRAME','FIGURE','IMG','BUTTON','INPUT','TEXTAREA','SVG','NOSCRIPT']);
 function bbClean(src,out){
   src.childNodes.forEach(n=>{
     if(n.nodeType===3){out.appendChild(document.createTextNode(n.nodeValue));return}
     if(n.nodeType!==1||BB_SKIP.has(n.tagName))return;
     const t=n.tagName;let el=null;
-    if(t==='SPAN'&&n.classList.contains('blank')){el=document.createElement('span');el.className='blank';if(n.querySelector('b,u,strong,i.d'))bbClean(n,el);else el.textContent=n.textContent.trim();out.appendChild(el);return}
+    if(t==='SPAN'&&n.classList.contains('blank')){el=document.createElement('span');el.className='blank';if(n.querySelector('b,u,strong,i.d,mark'))bbClean(n,el);else el.textContent=n.textContent.trim();out.appendChild(el);return}
     if(t==='TD'||t==='TH'){el=document.createElement('td');
       ['colspan','rowspan'].forEach(a=>{const v=parseInt(n.getAttribute(a));if(v>1&&v<20)el.setAttribute(a,v)});
       if(/background/.test(n.getAttribute('style')||'')&&!n.querySelector('.blank'))el.className='bb-th';
-    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='I'&&n.classList.contains('d'))el.className='d';if(t==='DIV'){const c=[...n.classList].filter(x=>x==='contentbox'||/^(mm[0-9a-z]?|mf[0-5]|ml[12]|mk[12]|ms[12])$/.test(x)).join(' ');if(c)el.className=c;if(/^\d{2,3}$/.test(n.dataset.w||''))el.dataset.w=n.dataset.w}}
+    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='I'&&n.classList.contains('d'))el.className='d';if(t==='MARK'&&n.classList.contains('px'))el.className='px';if(t==='DIV'){const c=[...n.classList].filter(x=>x==='contentbox'||/^(mm[0-9a-z]?|mf[0-5]|ml[12]|mk[12]|ms[12]|mmq[csrp])$/.test(x)).join(' ');if(c)el.className=c;if(/^\d{2,3}$/.test(n.dataset.w||''))el.dataset.w=n.dataset.w;if(t==='DIV'&&n.classList.contains('mm')&&n.dataset.tab)el.dataset.tab=n.dataset.tab.slice(0,60);if(t==='DIV'){['x','t','a','b','s'].forEach(k=>{if(/^[A-Za-z0-9_-]{1,48}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}}}
     if(el){bbClean(n,el);out.appendChild(el)}else bbClean(n,out);
   });
 }
@@ -2814,7 +2863,7 @@ function bbParse(raw){
   raw=raw.trim();let m={title:'',src:'',html:raw};
   if(raw.startsWith('IMGO_BBOGAE::')){try{m=JSON.parse(raw.slice(13))}catch(e){return null}}
   const d=new DOMParser().parseFromString('<body>'+m.html+'</body>','text/html'),box=document.createElement('div');bbClean(d.body,box);
-  box.querySelectorAll('p,div:not(.contentbox)').forEach(e=>{if(!e.textContent.replace(/\u00a0/g,'').trim()&&!e.querySelector('table,br'))e.remove()});
+  box.querySelectorAll('p,div:not(.contentbox):not(.mmq)').forEach(e=>{if(!e.textContent.replace(/\u00a0/g,'').trim()&&!e.querySelector('table,br'))e.remove()});
   const n=box.querySelectorAll('.blank').length;
   return n?{title:m.title||'',src:m.src||'',html:box.innerHTML,n}:null;
 }
@@ -2934,12 +2983,13 @@ function bbFinish(){
   const dys=bbDays(d.day);if(dys.length&&d.loc){const td0=(new Date().getDay()+6)%7,dd=dys.includes(bbDay)?bbDay:dys.includes(td0)?td0:dys[0],k=bbWK(dd);(bbDone[k]=bbDone[k]||{})[d.id]=1;bbEnq('done',`done|${k}|${d.id}`,{date:k,docId:d.id,done:1})}
   bbSave();bbView=null;bbRender();scrollTo(0,0);
 }
-function bbRenderDoc(el){const hb=document.getElementById('bbMmHBar');if(hb)hb.classList.remove('on');
+function bbRenderDoc(el){bbInOff();const hb=document.getElementById('bbMmHBar');if(hb)hb.classList.remove('on');
   const d=bbDocs.find(x=>x.id===bbView);if(!d){bbView=null;return bbRender()}
   const box=bbBoxP(d),r=bbEff()[d.id]||{},S=bbS,rv=bbS.mode==='rate',ks=[...box.querySelectorAll('.bb-b')].map(e=>e.dataset.k),cu=k=>bbT(r[k],bbSet.term);
   const sets={all:new Set(ks),weak:new Set(ks.filter(k=>bbWk(cu(k)))),new:new Set(ks.filter(k=>!cu(k).a))};
   if(!S.tgt)S.tgt=sets[S.filter];
   box.querySelectorAll('.bb-b').forEach(e=>{const k=e.dataset.k;if(!S.tgt.has(k))e.className='bb-plain';else if(S.judged[k])e.className='bb-b open '+(S.judged[k]==='O'?'ok':'ng');else if(S.passed&&S.passed[k])e.className='bb-b open pass'});
+  bbIpPaint(box,d.id);
   {const sm=bbStar[d.id]||{};box.querySelectorAll('.bb-b').forEach(e=>{if(sm[e.dataset.k])e.classList.add('star')})}
   if(rv)box.querySelectorAll('.bb-b').forEach(e=>{const x=cu(e.dataset.k),p=x.a?Math.round(x.c*100/x.a):null,c=bbCol(p);e.classList.add('open');e.style.background='color-mix(in srgb,'+c+' var(--tint,22%),transparent)';e.style.outline='1px solid '+c;e.insertAdjacentHTML('afterend','<small style="color:'+c+';margin-left:4px;font-weight:700">'+(p===null?'-':p+'%')+'</small>')});
   const js=Object.values(S.judged),jo=js.filter(x=>x==='O').length,st=bbAgg(d.id,bbSet.term);
@@ -2953,8 +3003,9 @@ function bbRenderDoc(el){const hb=document.getElementById('bbMmHBar');if(hb)hb.c
     :`${fn} 푸는 중 · ${rt} · 약점 ${st.w}개 · 풀이 ${bbRn(d.id)}회`;
   const fsBar=`<span style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;flex-wrap:wrap"><button class="bb-btn" style="width:36px;padding:5px 0" onclick="bbFsStep(-1)">−</button><b id="bbFsPct" style="min-width:44px;text-align:center">${Math.round(bbFs*100)}%</b><button class="bb-btn" style="width:36px;padding:5px 0" onclick="bbFsStep(1)">+</button><button class="bb-btn" style="padding:5px 11px" onclick="bbFsSet(1)">기본</button><input id="bbFsR" type="range" min="60" max="180" step="5" value="${Math.round(bbFs*100)}" oninput="bbFsSet(this.value/100)" style="padding:0;border:none;background:none;flex:1;min-width:100px"></span>`;
   const hasMm=!!box.querySelector('.mm');
-  el.innerHTML=`<div class="bb-tt"><button class="bb-btn" onclick="bbLeave()">← 목록</button><b>${bbEsc(d.title)}</b><button class="bb-btn" onclick="bbOpenAdd('${d.id}')">수정</button><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div>
-  <div class="bb-r1"><div>${mc('study','학습')}${mc('test','테스트')}${mc('rate','정답률')}</div><div><button class="bb-btn" onclick="bbAll(1)">전체 열기</button><button class="bb-btn" onclick="bbAll(0)">전체 가리기</button><button class="bb-btn bb-theme" title="라이트/다크 전환" aria-label="라이트/다크 전환" onclick="toggleTheme()">${document.body.classList.contains('light')?'🌞':'🌙'}</button><button id="bbOptB" class="bb-btn ${S.opt?'pri':''}" onclick="bbOptTog()">${S.opt?'옵션 ∧':'옵션 ∨'}</button></div></div>
+  el.innerHTML=`<div class="bb-tt"><button class="bb-btn" onclick="bbLeave()">← 목록</button><b>${bbEsc(d.title)}</b>${d.xm?`<button class="bb-btn" onclick="bbXmExport('${d.id}')">다운로드</button>`:''}<button class="bb-btn" onclick="bbOpenAdd('${d.id}')">수정</button><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div>
+  <div class="bb-r1"><div>${mc('study','학습')}${mc('test','테스트')}${mc('rate','정답률')}</div><div>${S.mode==='study'?`<button class="bb-btn ${S.edit?'pri':''}" onclick="bbEditTog()">편집하기</button>`:''}<button class="bb-btn" onclick="bbAll(1)">전체 열기</button><button class="bb-btn" onclick="bbAll(0)">전체 가리기</button><button class="bb-btn bb-theme" title="라이트/다크 전환" aria-label="라이트/다크 전환" onclick="toggleTheme()">${document.body.classList.contains('light')?'🌞':'🌙'}</button><button id="bbOptB" class="bb-btn ${S.opt?'pri':''}" onclick="bbOptTog()">${S.opt?'옵션 ∧':'옵션 ∨'}</button></div></div>
+  ${S.mode==='study'&&S.edit?`<div class="bb-top" style="margin:0 0 8px"><button id="${/class="mm"/.test(d.html||'')?'bbMeB':'bbTyB'}" class="bb-btn" onclick="bbInTog('text')">✎ 글자 및 빈칸 편집</button><button id="bbImpB" class="bb-btn" onclick="bbInTog('imp')">✎ 중요 내용 편집</button><button id="bbMmoB" class="bb-btn" onclick="bbInTog('memo')">✎ 메모 편집</button></div><div id="bbInEdBox"></div>`:''}
   <div class="bb-opt" id="bbOptP" style="display:${S.opt?'flex':'none'}">
     <div class="bb-orow"><span class="bb-ol">범위</span>${fc('all','전체')}${fc('weak','약점')}${fc('new','안 푼 것')}</div>
     <div class="bb-orow"><span class="bb-ol">표시</span><span class="bb-orow" id="bbOptDisp"></span></div>
@@ -2978,6 +3029,7 @@ function bbDwInit(){   // 카드 우측 끝을 좌우로 끌어 폭 조절(기�
   h.ondblclick=()=>{ap(0);sv(0);rl()};
 }
 function bbLeave(){const hb=document.getElementById('bbMmHBar');if(hb)hb.classList.remove('on');if(bbS&&Object.keys(bbS.judged).length&&!confirm('완료하기를 누르지 않으면 이번 판정은 기록되지 않아요. 나갈까요?'))return;bbView=null;bbRender()}
+function bbEditTog(){if(bbS){bbS.edit=!bbS.edit;bbRender()}}
 function bbAll(v){document.querySelectorAll('#bbDoc .bb-b').forEach(e=>e.classList.toggle('open',!!v));bbPopX()}
 function bbPopX(){const p=document.getElementById('bbPop');if(p)p.remove()}
 function bbClick(ev){
@@ -3003,7 +3055,7 @@ function bbDel(id){if(!confirm('이 문서를 삭제할까요? 공유 문서라 
 
 // ── 등록 / 수정 / 설정 ──
 function bbGuess(t){const s=SUBJECT_META.find(s=>{const p=s.name.split('·');if(s.name.includes('통합'))p.push('바른','슬기','즐거');if(s.name.includes('총론'))p.push('창의적');return p.some(w=>t.includes(w))});return s?s.name:''}
-function bbClose(){if(bbMemo.on)bbMemoOff();if(bbMe.on)bbMeOff();bbMe.used=false;const o=document.getElementById('bbOv');if(o)o.remove();bbTmp=null}
+function bbClose(){if(bbImp.on)bbImpOff();if(bbImp.d){bbImp.d=0;setTimeout(()=>{if(bbView)bbRender()},0)}if(bbMemo.on)bbMemoOff();if(bbMe.on)bbMeOff();bbMe.used=false;const o=document.getElementById('bbOv');if(o)o.remove();bbTmp=null}
 function bbModal(h){bbClose();const o=document.createElement('div');o.className='bb-ov';o.id='bbOv';o.innerHTML=`<div class="bb-md">${h}</div>`;document.body.appendChild(o)}
 function bbFRender(){
   document.getElementById('bbFx').innerHTML=`<div class="bb-cs" style="margin:8px 0 4px">과목</div><div class="bb-top">${SUBJECT_META.map(s=>`<button class="bb-sj ${bbF.subj===s.name?'on':''}" style="--c:${s.color}" onclick="bbF.subj=bbF.subj==='${s.name}'?'':'${s.name}';bbFRender()">${s.name}</button>`).join('')}</div>
@@ -3011,8 +3063,8 @@ function bbFRender(){
   +(bbF.loc?`<div class="bb-cs" style="margin:8px 0 4px">요일 (여러 개 선택 가능)</div><div class="bb-top">${BB_DAYS.map((x,i)=>`<button class="bb-sj ${bbF.days.includes(i)?'on':''}" style="--c:var(--blue)" onclick="bbF.days=bbF.days.includes(${i})?bbF.days.filter(z=>z!==${i}):[...bbF.days,${i}].sort((a,b)=>a-b);bbFRender()">${x}</button>`).join('')}<button class="bb-sj ${bbF.days.length===0?'on':''}" style="--c:var(--text3)" onclick="bbF.days=[];bbFRender()">없음</button></div>`:'');
 }
 let bbTypo=false;
-function bbOpenAdd(id){
-  bbTypo=false;const e=id&&bbDocs.find(d=>d.id===id);bbTmp=null;bbCv={blocks:[],pend:'',html:null,hv:'',pasted:false};
+function bbOpenAdd(id){   // 수정 모달: 정보·과목·구분·기록·Xmind 다시 올리기만 (글자·중요·메모 편집은 학습 화면의 '편집하기'에서)
+  bbTypo=false;const e=id&&bbDocs.find(d=>d.id===id);bbTmp=null;bbXmSrc=null;bbCv={blocks:[],pend:'',html:null,hv:'',pasted:false};
   bbF=e?{subj:e.subj||'',loc:e.loc||'',days:bbDays(e.day),edit:id}:{subj:'',loc:'',days:[],edit:null};
   bbModal(`<div class="sec-title">${e?'수정':'뽀개기 문서 등록'}</div>`+(e?'':`<div class="bb-top"><button id="bbM0" class="ttab on" onclick="bbMode(0)">북마크 붙여넣기</button><button id="bbM1" class="ttab" onclick="bbMode(1)">표·텍스트 변환</button><button id="bbM2" class="ttab" onclick="bbMode(2)">마인드맵</button></div>
   <input id="bbTi" placeholder="제목"><div id="bbFx"></div>
@@ -3025,30 +3077,152 @@ function bbOpenAdd(id){
   <div id="bbCvPv" class="bb-doc study bbpv" onclick="bbCvTog(event)" onpointerup="bbPUp(event,1)" style="max-height:38vh;overflow:auto;padding:8px;margin:0 0 6px"></div></div>
   <div id="bbP2" style="display:none"><div class="bb-cs" style="margin:8px 0 4px">자동 빈칸 규칙 (전부 켜 둠 · 필요 없는 것만 끄세요 · 직접 [[ ]] 넣은 줄은 제외)</div>
   <div class="bb-top" style="gap:4px 12px;margin-bottom:6px">${bbMmRules()}</div>
-  <div class="bb-top"><label class="bb-btn pri" style="cursor:pointer">XMind(.xmind) · OPML 불러오기<input type="file" accept=".xmind,.opml" onchange="bbMmFile(this)" style="display:none"></label><span class="bb-cs">굵게·밑줄은 모양으로만 가져와요 (빈칸과 무관)</span></div>
+  <div class="bb-top"><label class="bb-btn pri" style="cursor:pointer">Xmind(.xmind) · OPML 불러오기<input type="file" accept=".xmind,.opml" onchange="bbMmFile(this)" style="display:none"></label><span class="bb-cs">굵게·밑줄은 모양으로만 가져와요 (빈칸과 무관)</span></div>
   <textarea id="bbMmIn" style="height:110px" placeholder="마인드맵을 들여쓰기(탭/스페이스)로 계층을 나눠 붙여넣으세요&#10;기본이론&#10;  스포츠 교육 모델&#10;    특징 ×6 : ① 시즌 ② 팀 소속 ③ 공식 경기&#10;직접 빈칸은 [[글자]]" oninput="bbMmRun()"></textarea>
   <div id="bbMmPv" class="bb-doc study bbpv" onclick="bbMmClick(event)" style="max-height:40vh;overflow:auto;padding:8px;margin:0 0 6px"></div></div>
   <div id="bbMgBar" class="bb-top" style="display:none;margin:6px 0 0"><button class="bb-btn pri" onpointerdown="event.preventDefault()" onclick="bbMergeSel()">✂ 선택한 부분을 하나의 빈칸으로</button></div>`)
-  +(e?`<div style="font-size:13px;font-weight:700;color:var(--text);margin:0 0 6px">정보 수정</div><input id="bbTi" placeholder="제목" value="${bbEsc(e.title)}"><div id="bbFx"></div>`:'')
+  +(e?`<div id="bbEdInfo"><div style="font-size:13px;font-weight:700;color:var(--text);margin:0 0 6px">정보 수정</div><input id="bbTi" placeholder="제목" value="${bbEsc(e.title)}"><div id="bbFx"></div>`:'')
   +(e?'':`<div class="bb-cs" style="margin:10px 0 4px">등록 위치</div><select id="bbAp" onchange="bbApSet(this.value)"><option value="">새 문서로 등록</option>${bbDocs.filter(bbVis).map(d=>`<option value="${d.id}">${bbEsc(d.title)} · 맨 아래에 추가</option>`).join('')}</select>`)
   +(e?`<div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div style="font-size:13px;font-weight:700;color:var(--text);margin:0 0 6px">기록 수정</div>
-  <details id="bbRecDet"><summary style="cursor:pointer;font-size:12px;color:var(--text2);padding:4px 0">풀이 ${bbSes.filter(z=>z.doc===id).length}회 — 눌러서 펼치기 (풀이 1회 단위로 삭제하면 정답률·약점·풀이 횟수가 다시 계산돼요)</summary><div id="bbRecBox" style="margin-top:8px">${bbRecHTML(id)}</div></details>
-  <div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div style="font-size:13px;font-weight:700;color:var(--text);margin:0 0 4px">빈칸 수정</div>
-  <div class="bb-cs" style="margin:0 0 8px">빈칸을 누르면 해제, 드래그하면 선택한 부분이 하나의 빈칸이 돼요 (건드리지 않은 빈칸의 기록은 유지돼요)</div>
-  ${/class="mm"/.test(e.html||'')?bbMmEditRules():''}
-  <div class="bb-top" style="margin:0 0 6px">${/class="mm"/.test(e.html||'')?bbMmEditTop():''}${/class="mm"/.test(e.html||'')?'<button id="bbMeB" class="bb-btn" onclick="bbMeTog()">✎ 편집하기</button>':'<button id="bbTyB" class="bb-btn" onclick="bbTypoTog()">✎ 편집하기</button>'}<button id="bbMmoB" class="bb-btn" onclick="bbMemoTog()">✎ 메모하기</button></div>
-  <div id="bbEdSec"><div id="bbTyMsg" class="bb-cs" style="display:none;margin:0 0 6px"></div>${/class="mm"/.test(e.html||'')?'<div id="bbMeTb" class="bb-doc" style="display:none"></div>':''}<div id="bbMemoTb" class="bb-doc" style="display:none"></div>
-  <div id="bbPv" class="bb-cs" style="margin:0 0 6px"></div><div id="bbPv2" class="bb-doc study bbpv" onclick="bbBmClick(event)" onpointerup="bbPUp(event,0)" style="max-height:38vh;overflow:auto;padding:8px;margin:0 0 6px"></div>
-  <div id="bbMgBar" class="bb-top" style="display:none;margin:6px 0 0"><button class="bb-btn pri" onpointerdown="event.preventDefault()" onclick="bbMergeSel()">✂ 선택한 부분을 하나의 빈칸으로</button></div></div>
-  ${/class="mm"/.test(e.html||'')?bbMmEditPv():''}`:'')
+  <details id="bbRecDet"><summary style="cursor:pointer;font-size:12px;color:var(--text2);padding:4px 0">풀이 ${bbSes.filter(z=>z.doc===id).length}회 — 눌러서 펼치기 (풀이 1회 단위로 삭제하면 정답률·약점·풀이 횟수가 다시 계산돼요)</summary><div id="bbRecBox" style="margin-top:8px">${bbRecHTML(id)}</div></details></div>
+  ${/class="mm"/.test(e.html||'')?`<div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div style="font-size:13px;font-weight:700;color:var(--text);margin:0 0 4px">Xmind 다시 올리기</div>
+  ${bbMmEditRules()}<div class="bb-top" style="margin:0 0 6px">${bbMmEditTop()}</div>${bbMmEditPv()}`:''}`:'')
   
   +`<div class="bb-top" style="margin:14px 0 0"><span class="bb-sp"></span><button class="bb-btn" onclick="bbClose()">${e?'닫기':'취소'}</button><button class="bb-btn pri" onclick="bbAdd()">${e?'저장':'저장'}</button></div>`);
   bbFRender();document.getElementById('bbOv').classList.add('full');   // 폰·PC 모두 전체화면 편집기
-  if(e){const pv=document.getElementById('bbPv2'),t=document.createElement('div');t.innerHTML=e.html||'';let i=0;
-    t.querySelectorAll('.blank').forEach(x=>{x.dataset.ok=(i++)+'_'+bbHash(x.textContent)});   // 원래 빈칸 표시 (기록 이전용)
-    pv.innerHTML=t.innerHTML;bbBm={title:'',src:''};bbBmSync();bbTypoInit(pv);bbPenInit(id)}
 }
 
+// ── 학습 화면 '편집하기': 맵 화면 안에서 바로 편집 (3버튼 바로 아래에 안내·도구·저장/닫기, 맵 자리에 편집용 맵) ──
+function bbInOff(){document.body.classList.remove('bbined');if(bbImp.on)bbImpOff();if(bbMemo.on)bbMemoOff();if(bbMe.on)bbMeOff();bbMe.used=false;bbTypo=false;bbImp.d=0;bbTmp=null}
+function bbInEnd(){bbInOff();bbRender()}
+function bbInSave(){const d=bbDocs.find(x=>x.id===bbView);if(!d)return;if(!bbEdBlanks(d))return;bbSave();bbInEnd()}
+function bbInOpen(d){
+  if(document.getElementById('bbPv2'))return true;
+  const box=document.getElementById('bbInEdBox');if(!box)return false;
+  const mm=/class="mm"/.test(d.html||'');
+  bbTypo=false;bbTmp=null;bbF={subj:d.subj||'',loc:d.loc||'',days:bbDays(d.day),edit:d.id};
+  box.innerHTML=`<div id="bbEdSec" style="margin:0 0 8px"><div id="bbTyMsg" class="bb-doc" style="display:none"></div>${mm?'<div id="bbMeTb" class="bb-doc" style="display:none"></div>':''}<div id="bbMemoTb" class="bb-doc" style="display:none"></div>
+  <div class="bb-top" style="margin:0 0 8px"><button class="bb-btn" onclick="bbInEnd()">닫기</button><button class="bb-btn pri" onclick="bbInSave()">저장</button><span class="bb-cs">글자·빈칸 편집은 [저장]을 눌러야 반영돼요 (중요 내용·메모는 바로 저장)</span></div>
+  <div id="bbPv2" class="bb-doc study bbpv" onclick="bbBmClick(event)" onpointerup="bbPUp(event,0)" style="overflow:auto;padding:8px;margin:0 0 6px"></div>
+  <div id="bbMgBar" class="bb-top" style="display:none;margin:6px 0 0"><button class="bb-btn pri" onpointerdown="event.preventDefault()" onclick="bbMergeSel()">✂ 선택한 부분을 하나의 빈칸으로</button></div></div>`;
+  const pv=bbMePv(),t=document.createElement('div');t.innerHTML=d.html||'';let i=0;
+  t.querySelectorAll('.blank').forEach(x=>{x.dataset.ok=(i++)+'_'+bbHash(x.textContent)});   // 원래 빈칸 표시 (기록 이전용)
+  pv.innerHTML=t.innerHTML;{const sm=bbStar[d.id]||{};pv.querySelectorAll('.blank').forEach(x=>{if(sm[x.dataset.ok])x.classList.add('star')})}
+  bbIpPaint(pv,d.id);bbEdTab=0;bbEdTabs();
+  bbBm={title:'',src:''};bbBmSync();bbTypoInit(pv);
+  document.body.classList.add('bbined');
+  if(!mm)bbTypoMsg('빈칸을 누르면 해제, 드래그하면 선택한 부분이 하나의 빈칸이 돼요. 글자를 고치려면 [글자 및 빈칸 편집]을 누르세요.');
+  return true;
+}
+function bbInTog(go){
+  const d=bbDocs.find(x=>x.id===bbView);if(!d||!bbS||!bbInOpen(d))return;
+  if(go==='text'){if(/class="mm"/.test(d.html||''))bbMeTog();else bbTypoTog()}else if(go==='imp')bbImpTog();else bbMemoTog();
+}
+// ── 수정 화면: 중요 내용 편집 (내 주황 ★ · 누르는 즉시 저장 · Xmind에서 온 빨간 ★는 건드리지 않음) ──
+// ① 빈칸을 누르면 주황 ★ + 주황 글씨 켜기/끄기  ② 빈칸이 아닌 부분을 드래그하면 그 구간이 빨간 글씨 + 주황 ★ 로 바로 저장  ③ 표시된 구간을 누르면 취소
+// 드래그 구간은 bbStar에 키 'g시작-끝_글자해시' 로 저장돼요 (기존 별 동기화 그대로 사용 · 시작/끝은 문서 글자 위치)
+const bbImp={on:false,h:null,hd:null,hu:null,hs:null,t:null,la:0,dn:false};
+let bbEdTab=0;
+function bbIpNodes(root){const o=[],w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){const p=n.parentElement;if(p&&p.closest('.mmq,.mmcl,.mmqx,.bb-pen,[data-pen],small,svg,#bbMeOv'))continue;o.push(n)}return o}
+function bbIpGet(root){const N=bbIpNodes(root),S=[];let G='';N.forEach(n=>{S.push(G.length);G+=n.data});return{N,S,G}}
+const bbIpKeys=id=>Object.keys(bbStar[id]||{}).filter(k=>k[0]==='g');
+const bbIpParse=k=>{const q=/^g(\d+)-(\d+)_([0-9a-z]+)$/.exec(k);return q?{a:+q[1],b:+q[2],h:q[3]}:null};
+function bbIpClear(root){root.querySelectorAll('.ip').forEach(x=>x.replaceWith(...x.childNodes));root.normalize()}
+function bbIpPaint(root,id){
+  const ks=bbIpKeys(id);if(!ks.length||!root)return;
+  const g=bbIpGet(root),per=new Map(),used=[];
+  ks.forEach(k=>{const q=bbIpParse(k);if(!q||q.a>=q.b||q.b>g.G.length||bbHash(g.G.slice(q.a,q.b))!==q.h)return;   // 글자가 바뀌어 맞지 않으면 그리지 않음
+    if(used.some(u=>u[0]<q.b&&u[1]>q.a))return;used.push([q.a,q.b]);let f=1;
+    g.N.forEach((n,i)=>{const st=g.S[i],en=st+n.length;if(en<=q.a||st>=q.b)return;const l=per.get(n)||[];l.push({lo:Math.max(q.a,st)-st,hi:Math.min(q.b,en)-st,k,f});f=0;per.set(n,l)})});
+  per.forEach((L,n)=>{L.sort((x,y)=>y.lo-x.lo).forEach(sg=>{
+    if(sg.hi<n.length)n.splitText(sg.hi);
+    const mid=sg.lo>0?n.splitText(sg.lo):n,sp=document.createElement('span');sp.className='ip'+(sg.f?' ipf':'');sp.dataset.gk=sg.k;mid.replaceWith(sp);sp.appendChild(mid)})});
+}
+// 글자를 고쳐 저장할 때: 고친 곳 앞은 그대로, 뒤는 밀린 만큼 옮기고, 고친 곳과 겹치는 구간은 삭제
+function bbIpMove(id,oldHtml,nw,now){
+  const ks=bbIpKeys(id);if(!ks.length)return;
+  const o=document.createElement('div');o.innerHTML=oldHtml||'';const G0=bbIpGet(o).G,G1=bbIpGet(nw).G;if(G0===G1)return;
+  let p=0;const mx=Math.min(G0.length,G1.length);while(p<mx&&G0[p]===G1[p])p++;
+  let sf=0;while(sf<mx-p&&G0[G0.length-1-sf]===G1[G1.length-1-sf])sf++;
+  const m=bbStar[id],d=G1.length-G0.length;
+  ks.forEach(k=>{const q=bbIpParse(k);if(!q)return;if(q.b<=p)return;
+    delete m[k];bbEnq('stars',`stars|${id}|${k}`,{docId:id,blankKey:k,star:0,ts:now});
+    if(q.a>=G0.length-sf){const nk=`g${q.a+d}-${q.b+d}_${q.h}`;m[nk]=now;bbEnq('stars',`stars|${id}|${nk}`,{docId:id,blankKey:nk,star:1,ts:now})}});
+  if(!Object.keys(m).length)delete bbStar[id];
+}
+function bbIpApply(){
+  const pv=bbMePv(),id=bbF&&bbF.edit;if(!bbImp.on||!pv||!id)return;
+  const s=getSelection();if(!s||!s.rangeCount||s.isCollapsed)return;
+  const r=s.getRangeAt(0);if(!pv.contains(r.commonAncestorContainer))return;
+  const e0=bbDocs.find(d=>d.id===id);
+  if(e0){const o=document.createElement('div');o.innerHTML=e0.html||'';if(bbIpGet(o).G!==bbIpGet(pv).G){s.removeAllRanges();bbStarToast('글자·빈칸 편집을 먼저 저장해 주세요');return}}
+  const g=bbIpGet(pv);let a=-1,b=-1;
+  g.N.forEach((n,i)=>{if(!r.intersectsNode(n))return;const lo=n===r.startContainer?r.startOffset:0,hi=n===r.endContainer?r.endOffset:n.length;if(hi<=lo)return;const A=g.S[i]+lo,B=g.S[i]+hi;if(a<0||A<a)a=A;if(B>b)b=B});
+  if(a<0){s.removeAllRanges();return}
+  {const T=g.G.slice(a,b);a+=/^\s*/.exec(T)[0].length;b-=/\s*$/.exec(T)[0].length}
+  if(b<=a){s.removeAllRanges();return}
+  const m=(bbStar[id]=bbStar[id]||{}),now=Date.now(),del=[];let a0=a,b0=b;
+  bbIpKeys(id).forEach(k=>{const q=bbIpParse(k);if(q&&q.a<b&&q.b>a){a=Math.min(a,q.a);b=Math.max(b,q.b);del.push(k)}});
+  const key=`g${a}-${b}_${bbHash(g.G.slice(a,b))}`;
+  s.removeAllRanges();bbImp.la=Date.now();
+  if(m[key]!==undefined&&del.length===1&&del[0]===key){if(!Object.keys(m).length)delete bbStar[id];return}   // 이미 표시된 구간 안쪽 드래그: 변화 없음
+  del.forEach(k=>{delete m[k];bbEnq('stars',`stars|${id}|${k}`,{docId:id,blankKey:k,star:0,ts:now})});
+  m[key]=now;bbEnq('stars',`stars|${id}|${key}`,{docId:id,blankKey:key,star:1,ts:now});bbSave();bbImp.d=1;
+  bbIpClear(pv);bbIpPaint(pv,id);
+  bbStarToast('★ 중요 내용 표시 (눌러서 취소)');
+}
+function bbIpDel(id,k){
+  const m=bbStar[id],pv=bbMePv();if(!m||m[k]===undefined||!pv)return;
+  delete m[k];if(!Object.keys(m).length)delete bbStar[id];
+  bbEnq('stars',`stars|${id}|${k}`,{docId:id,blankKey:k,star:0,ts:Date.now()});bbSave();bbImp.d=1;
+  bbIpClear(pv);bbIpPaint(pv,id);bbStarToast('중요 표시 취소');
+}
+function bbImpTog(){
+  if(bbImp.on)return bbImpOff();
+  const pv=bbMePv(),id=bbF&&bbF.edit;if(!pv||!id)return;
+  if(!bbPerson){alert('재언/태현을 먼저 선택해 주세요');return}
+  if(bbF.reup){alert('Xmind 다시 올리기 미리보기가 켜져 있어요. 먼저 그 내용을 비우거나 저장하세요.');return}
+  if(bbMemo.on)bbMemoOff();if(bbMe.on)bbMeOff();if(bbTypo)bbTypoTog();
+  bbImp.on=true;pv.classList.add('imped');
+  bbImp.h=e=>{const t=e.target;if(!t||!t.closest||!pv.contains(t))return;
+    const sl=getSelection();
+    if(sl&&!sl.isCollapsed&&String(sl).trim()){e.preventDefault();e.stopImmediatePropagation();return}   // 드래그 직후의 클릭은 무시
+    if(Date.now()-bbImp.la<600){e.preventDefault();e.stopImmediatePropagation();return}
+    const ip=t.closest('.ip');
+    if(ip&&ip.dataset.gk){e.preventDefault();e.stopImmediatePropagation();bbIpDel(id,ip.dataset.gk);return}   // 표시된 구간을 누르면 취소
+    const b=t.closest('.blank');if(!b)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    const k=b.dataset.ok;if(!k){bbStarToast('새 빈칸은 저장한 뒤에 중요 표시를 할 수 있어요');return}
+    const m=(bbStar[id]=bbStar[id]||{}),on=m[k]===undefined,now=Date.now();
+    if(on)m[k]=now;else{delete m[k];if(!Object.keys(m).length)delete bbStar[id]}
+    b.classList.toggle('star',on);
+    bbEnq('stars',`stars|${id}|${k}`,{docId:id,blankKey:k,star:on?1:0,ts:now});bbSave();bbImp.d=1};
+  bbImp.hd=e=>{if(e.pointerType!=='touch')bbImp.dn=true};
+  bbImp.hu=e=>{bbImp.dn=false;if(e.pointerType!=='touch')setTimeout(bbIpApply,0)};
+  bbImp.hs=()=>{clearTimeout(bbImp.t);if(bbImp.dn)return;const s=getSelection();if(!s||s.isCollapsed)return;bbImp.t=setTimeout(bbIpApply,700)};   // 터치: 선택이 멈추면 적용
+  pv.addEventListener('click',bbImp.h,true);pv.addEventListener('pointerdown',bbImp.hd,true);
+  document.addEventListener('pointerup',bbImp.hu,true);document.addEventListener('selectionchange',bbImp.hs);
+  const bt=document.getElementById('bbImpB');if(bt){bt.classList.add('pri');bt.textContent='✓ 중요 내용 편집 마치기'}
+  bbTypoMsg('빈칸을 누르거나 빈칸이 아닌 부분을 드래그하면 주황 ★ + 주황 글씨(내 중요 표시)로 바로 표시돼요. 표시된 곳을 다시 누르면 취소돼요. 누르는 즉시 저장되고, 끝나면 다시 눌러 마치세요.');
+}
+function bbImpOff(){
+  const pv=bbMePv();if(pv){if(bbImp.h)pv.removeEventListener('click',bbImp.h,true);if(bbImp.hd)pv.removeEventListener('pointerdown',bbImp.hd,true);pv.classList.remove('imped')}
+  if(bbImp.hu)document.removeEventListener('pointerup',bbImp.hu,true);if(bbImp.hs)document.removeEventListener('selectionchange',bbImp.hs);
+  clearTimeout(bbImp.t);bbImp.on=false;bbImp.h=bbImp.hd=bbImp.hu=bbImp.hs=null;bbImp.dn=false;
+  const b=document.getElementById('bbImpB');if(b){b.classList.remove('pri');b.textContent='✎ 중요 내용 편집'}
+  bbTypoMsg('');
+}
+// 수정 화면 탭: 탭이 둘 이상이면 탭 바로 한 탭씩 (옵션 '탭: 구분/통합'을 따라감)
+function bbEdTabs(){
+  const pv=bbMePv();if(!pv)return;const ms=[...pv.querySelectorAll('.mm')];let bar=document.getElementById('bbEdTabs');
+  if(!(ms.length>1&&bbMm.tm!=='all')){if(bar)bar.remove();ms.forEach(m=>m.classList.remove('tabx'));return}
+  if(bbEdTab>=ms.length)bbEdTab=0;
+  if(!bar){bar=document.createElement('div');bar.id='bbEdTabs';bar.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin:0 0 6px';
+    bar.onclick=e=>{const a=e.target.closest('[data-tab]');if(!a)return;const i=+a.dataset.tab;if(i===bbEdTab)return;if(bbMe.on)bbMeSel(null);const sl=getSelection();if(sl)sl.removeAllRanges();bbEdTab=i;bbEdTabs()};
+    pv.parentNode.insertBefore(bar,pv)}
+  bar.innerHTML=ms.map((m,i)=>`<button type="button" class="bb-btn${i===bbEdTab?' pri':''}" style="padding:4px 12px" data-tab="${i}">${bbEsc(m.dataset.tab||'탭 '+(i+1))}</button>`).join('');
+  ms.forEach((m,i)=>m.classList.toggle('tabx',i!==bbEdTab));
+}
 // ── 수정 화면: 마인드맵 직접 편집 (노드 추가·삭제·이동·서식·글자 수정) ──
 // 빈칸 span(data-ok)이 노드와 함께 움직이므로, 저장할 때 bbEdBlanks가 기록·별표·풀이 판정을 새 번호로 옮겨 줘요 (새로 만든 노드만 처음부터)
 const bbMe={on:false,used:false,sel:null,bs:'',bh:'',bo:0,h0:'',xm:false,dr:null,h:null};
@@ -3063,10 +3237,10 @@ function bbMeNew(t,from,child){
 // 구조가 바뀐 뒤 노드 종류(mm0~mm3: 맨 위/대단원/중간/끝)와 빈 가지 칸을 정리
 function bbMeFix(pv){
   pv.querySelectorAll('.mmc').forEach(c=>{if(!c.querySelector(':scope>.mmb'))c.remove()});
-  (function w(el,d){[...el.children].forEach(b=>{if(!b.classList.contains('mmb'))return;
+  const wf=(function w(el,d){[...el.children].forEach(b=>{if(!b.classList.contains('mmb'))return;
     const n=b.firstElementChild,c=b.querySelector(':scope>.mmc');
     if(n&&n.classList.contains('mmn')){const bx=/\bmf\d\b/.test(n.className)||n.classList.contains('mme'),k=d===0?0:!c?3:d===1?1:(bbMe.xm&&!bx?3:2);n.className=n.className.replace(/\bmm\d\b/,'mm'+k)}
-    if(c)w(c,d+1)})})(pv.querySelector('.mm')||pv,0);
+    if(c)w(c,d+1)})});(pv.querySelectorAll('.mm').length?[...pv.querySelectorAll('.mm')]:[pv]).forEach(r=>wf(r,0));
 }
 function bbMeRecN(root){const id=bbF&&bbF.edit,r=(id&&bbRec[id])||{};return [...root.querySelectorAll('.blank')].filter(s=>s.dataset.ok&&r[s.dataset.ok]).length}
 function bbMeBase(n){bbMe.bh=n.innerHTML;bbMe.bs=bbSkel(n);bbMe.bo=bbCaret(n)}
@@ -3156,8 +3330,8 @@ function bbMeDragEnd(e){
 function bbMeTog(){
   if(bbMe.on)return bbMeOff();
   const pv=bbMePv();if(!pv||!pv.querySelector('.mm'))return;
-  if(bbF&&bbF.reup){alert('XMind 다시 올리기 미리보기가 켜져 있어요. 먼저 그 내용을 비우거나 저장하세요.');return}
-  if(bbMemo.on)bbMemoOff();if(bbTypo)bbTypoTog();
+  if(bbF&&bbF.reup){alert('Xmind 다시 올리기 미리보기가 켜져 있어요. 먼저 그 내용을 비우거나 저장하세요.');return}
+  if(bbMemo.on)bbMemoOff();if(bbTypo)bbTypoTog();if(bbImp.on)bbImpOff();
   bbMe.on=bbMe.used=true;bbMe.xm=!!pv.querySelector('.mmn[class*=" mf"]');pv.classList.add('me');
   const H=bbMe.h={
     pd:e=>{const n=e.target.closest('.mmn');if(n&&pv.contains(n)){if(bbMe.sel!==n)bbMeSel(n)}else bbMeSel(null)},
@@ -3178,7 +3352,7 @@ function bbMeTog(){
   ov.innerHTML=bt('top','left:50%;top:-30px;margin-left:-12px','+','위에 같은 단계 노드 추가')+bt('bottom','left:50%;top:100%;margin:6px 0 0 -12px','+','아래에 같은 단계 노드 추가')+bt('child','left:100%;top:50%;margin:-12px 0 0 8px','+','하위 노드 추가')+bt('drag','left:-32px;top:50%;margin-top:-12px','⠿','끌어서 옮기기',' bbme-dr');
   document.body.appendChild(ov);
   const tb=document.getElementById('bbMeTb');if(tb){tb.style.display='';tb.dataset.k='x'}
-  const b=document.getElementById('bbMeB');if(b){b.classList.add('pri');b.textContent='✓ 편집 마치기'}
+  const b=document.getElementById('bbMeB');if(b){b.classList.add('pri');b.textContent='✓ 글자 및 빈칸 편집 마치기'}
   const ty=document.getElementById('bbTyB');if(ty)ty.style.display='none';
   bbTypoMsg('');bbMeSel(null)}
 function bbMeOff(){
@@ -3191,7 +3365,7 @@ function bbMeOff(){
   if(pv){pv.classList.remove('me');pv.querySelectorAll('.me-sel').forEach(x=>x.classList.remove('me-sel'));pv.querySelectorAll('[contenteditable]').forEach(x=>{x.removeAttribute('contenteditable');x.removeAttribute('spellcheck')})}
   const ov=document.getElementById('bbMeOv');if(ov)ov.remove();
   const tb=document.getElementById('bbMeTb');if(tb){tb.style.display='none';tb.innerHTML=''}
-  const b=document.getElementById('bbMeB');if(b){b.classList.remove('pri');b.textContent='✎ 편집하기'}
+  const b=document.getElementById('bbMeB');if(b){b.classList.remove('pri');b.textContent='✎ 글자 및 빈칸 편집'}
   const ty=document.getElementById('bbTyB');if(ty)ty.style.display='';
   bbTypoMsg('')}
 
@@ -3259,8 +3433,8 @@ function bbMemoDel(){
 function bbMemoTog(){
   if(bbMemo.on)return bbMemoOff();
   const pv=bbMePv(),id=bbF&&bbF.edit;if(!pv||!id)return;
-  if(bbF.reup){alert('XMind 다시 올리기 미리보기가 켜져 있어요. 먼저 그 내용을 비우거나 저장하세요.');return}
-  if(bbTypo)bbTypoTog();if(bbMe.on)bbMeOff();
+  if(bbF.reup){alert('Xmind 다시 올리기 미리보기가 켜져 있어요. 먼저 그 내용을 비우거나 저장하세요.');return}
+  if(bbTypo)bbTypoTog();if(bbMe.on)bbMeOff();if(bbImp.on)bbImpOff();
   bbMemo.on=true;bbMemo.sel=null;pv.classList.add('memo');bbMemoLoad(pv,id);
   const H=bbMemo.h={
     ck:e=>{e.stopImmediatePropagation();if(!e.target.closest('[data-pen]'))bbMemoNew(pv,e)},   // 평소의 '빈칸 누르면 해제'는 끔
@@ -3274,7 +3448,7 @@ function bbMemoTog(){
     fo:e=>{const s=e.target.closest&&e.target.closest('[data-pen]');if(!s)return;bbMemoCommit(s);const nx=e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('[data-pen]');if(!nx&&bbMemo.sel===s){bbMemo.sel=null}bbMemoUi()}};
   pv.addEventListener('click',H.ck,true);pv.addEventListener('keydown',H.kd);pv.addEventListener('beforeinput',H.bi);pv.addEventListener('paste',H.ps);pv.addEventListener('drop',H.dp);pv.addEventListener('focusin',H.fi);pv.addEventListener('focusout',H.fo);pv.addEventListener('input',H.ip);pv.addEventListener('compositionend',H.ce);
   const tb=document.getElementById('bbMemoTb');if(tb)tb.style.display='';
-  const b=document.getElementById('bbMmoB');if(b){b.classList.add('pri');b.textContent='✓ 메모하기 마치기'}
+  const b=document.getElementById('bbMmoB');if(b){b.classList.add('pri');b.textContent='✓ 메모 편집 마치기'}
   bbTypoMsg('');bbMemoUi()}
 function bbMemoOff(){
   const pv=bbMePv();
@@ -3283,11 +3457,11 @@ function bbMemoOff(){
   if(pv){pv.querySelectorAll('[data-pen]').forEach(x=>x.remove());pv.normalize();pv.classList.remove('memo')}
   bbMemo.h=null;bbMemo.on=false;bbMemo.sel=null;
   const tb=document.getElementById('bbMemoTb');if(tb){tb.style.display='none';tb.innerHTML=''}
-  const b=document.getElementById('bbMmoB');if(b){b.classList.remove('pri');b.textContent='✎ 메모하기'}}
+  const b=document.getElementById('bbMmoB');if(b){b.classList.remove('pri');b.textContent='✎ 메모 편집'}}
 
 // ── 수정 화면: 오타 고치기 (글자만 고치고, 상자·줄·빈칸 구조가 바뀌는 입력은 자동으로 되돌림) ──
 let bbSk0='',bbLast='',bbLastOff=0;
-const BB_SKIPC=['mst','me-sel','lst','foc','anc','tgt','mcol'];
+const BB_SKIPC=['star','mst','me-sel','lst','foc','anc','tgt','mcol','imx','imp','impn','if','il','io'];
 function bbSkel(el){const c=el.cloneNode(true);   // style·보조 클래스·표시용 data는 배치 보정(bbMmFix 등)이 계속 바꾸므로 구조 비교에서 제외
   [c,...c.querySelectorAll('*')].forEach(x=>{['contenteditable','spellcheck','style','data-num','data-nm'].forEach(a=>x.removeAttribute(a));if(x.classList.length){BB_SKIPC.forEach(k=>x.classList.remove(k));if(!x.classList.length)x.removeAttribute('class')}});
   (function w(n){[...n.childNodes].forEach(k=>{if(k.nodeType===3)k.remove();else if(k.nodeType===1){if(k.tagName==='BR')k.remove();else w(k)}})})(c);return c.innerHTML}   // 줄바꿈(<br>)은 구조 변경으로 보지 않음
@@ -3297,7 +3471,7 @@ function bbFixFx(el,ref){const o=bbCaret(el);let ch=0;
   if(!ch)return false;el.normalize();bbCaretSet(el,o);return bbSkel(el)===ref}
 function bbCaret(pv){const s=getSelection();if(!s.rangeCount||!pv.contains(s.anchorNode))return 0;const r=document.createRange();r.selectNodeContents(pv);r.setEnd(s.anchorNode,s.anchorOffset);return r.toString().length}
 function bbCaretSet(pv,o){const w=document.createTreeWalker(pv,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(o<=n.length){const r=document.createRange();r.setStart(n,o);r.collapse(true);const s=getSelection();s.removeAllRanges();s.addRange(r);return}o-=n.length}}
-function bbTypoMsg(m){const e=document.getElementById('bbTyMsg');if(!e)return;e.style.display=m?'':'none';e.textContent=m||''}
+function bbTypoMsg(m){const e=document.getElementById('bbTyMsg');if(!e)return;e.style.display=m?'':'none';e.innerHTML=m?'<div class="bb-cs" style="line-height:1.6">'+bbEsc(m)+'</div>':''}
 function bbTypoChk(pv){
   if(bbSkel(pv)!==bbSk0&&!bbFixFx(pv,bbSk0)){pv.innerHTML=bbLast;bbCaretSet(pv,bbLastOff);bbTypoMsg('구조(줄·상자·빈칸)가 바뀌는 입력은 되돌렸어요. 글자만 고칠 수 있어요.')}
   else{bbLast=pv.innerHTML;bbLastOff=bbCaret(pv)}
@@ -3325,22 +3499,23 @@ function bbTypoInit(pv){
 function bbTypoTog(){
   const pv=document.getElementById('bbPv2'),b=document.getElementById('bbTyB');if(!pv)return;
   bbTypo=!bbTypo;
-  if(bbTypo&&bbMemo.on)bbMemoOff();if(bbTypo&&bbMe.on)bbMeOff();
+  if(bbTypo&&bbMemo.on)bbMemoOff();if(bbTypo&&bbMe.on)bbMeOff();if(bbTypo&&bbImp.on)bbImpOff();
   if(bbTypo){bbSk0=bbSkel(pv);bbLast=pv.innerHTML;bbLastOff=0;pv.contentEditable='true';pv.spellcheck=false;getSelection().removeAllRanges();bbTypoMsg('글자를 눌러 바로 고치세요. 엔터로 줄바꿈도 넣을 수 있어요(구조가 바뀌는 입력은 자동으로 되돌려요). 끝나면 다시 눌러 마친 뒤 저장하세요.')}
   else{pv.removeAttribute('contenteditable');bbTypoMsg('');bbBmSync()}
-  if(b){b.classList.toggle('pri',bbTypo);b.textContent=bbTypo?'✓ 편집 마치기':'✎ 편집하기'}
+  if(b){b.classList.toggle('pri',bbTypo);b.textContent=bbTypo?'✓ 글자 및 빈칸 편집 마치기':'✎ 글자 및 빈칸 편집'}
 }
 // 빈칸 수정 저장: 건드리지 않은 빈칸은 새 번호로 옮겨 기록(정답률·풀이 판정)을 유지, 바뀐 빈칸의 기록만 삭제
 function bbEdBlanks(tg){
+  if(bbImp.on)bbImpOff();
   if(bbMemo.on)bbMemoOff();   // 메모하기 중이면 먼저 저장·정리
   if(bbMe.on)bbMeOff();   // 마인드맵 편집 중이면 먼저 마무리(선택·편집 표시 제거)
   const pv=document.getElementById('bbPv2');if(!pv)return true;
   const cl=pv.cloneNode(true),map={},nk=[];let i=0;
-  cl.classList.remove('me','memo');cl.querySelectorAll('[data-pen]').forEach(x=>x.remove());cl.querySelectorAll('.mmb,.mmn').forEach(x=>{x.removeAttribute('style');x.classList.remove('mst','me-sel');x.removeAttribute('contenteditable');x.removeAttribute('spellcheck')});
-  cl.querySelectorAll('.blank').forEach(x=>{const k=(i++)+'_'+bbHash(x.textContent);nk.push(k);if(x.dataset.ok)map[x.dataset.ok]=k;x.removeAttribute('data-ok')});
+  cl.classList.remove('me','memo');cl.querySelectorAll('[data-pen]').forEach(x=>x.remove());cl.querySelectorAll('.ip').forEach(x=>x.replaceWith(...x.childNodes));cl.querySelectorAll('.mmcl,.mmqx').forEach(x=>x.remove());cl.querySelectorAll('.mm.tabx').forEach(x=>x.classList.remove('tabx'));cl.normalize();cl.querySelectorAll('.mmb,.mmn').forEach(x=>{x.removeAttribute('style');x.classList.remove('mst','me-sel');x.removeAttribute('contenteditable');x.removeAttribute('spellcheck')});
+  cl.querySelectorAll('.blank').forEach(x=>{const k=(i++)+'_'+bbHash(x.textContent);nk.push(k);if(x.dataset.ok)map[x.dataset.ok]=k;x.removeAttribute('data-ok');x.classList.remove('star')});
   const ok=[...bbBox(tg).querySelectorAll('.bb-b')].map(x=>x.dataset.k);
   if(bbTypo||bbMe.used||cl.querySelector('[contenteditable]')){const w=document.createTreeWalker(cl,NodeFilter.SHOW_TEXT);let q;while(q=w.nextNode())if(q.nodeValue.indexOf('\u00a0')>=0)q.nodeValue=q.nodeValue.replace(/\u00a0/g,' ')}
-  if(ok.join('|')===nk.join('|')){const o=document.createElement('div');o.innerHTML=tg.html||'';if(o.innerHTML!==cl.innerHTML){tg.html=cl.innerHTML;bbEnqDoc(tg,1)}return true}
+  if(ok.join('|')===nk.join('|')){const o=document.createElement('div');o.innerHTML=tg.html||'';if(o.innerHTML!==cl.innerHTML){bbIpMove(tg.id,tg.html,cl,bbNow());tg.html=cl.innerHTML;bbEnqDoc(tg,1)}return true}
   if(!nk.length){alert('빈칸이 하나 이상 있어야 해요');return false}
   const lost=ok.filter(k=>!map[k]).length;
   if((lost||ok.length!==nk.length)&&!confirm(`빈칸을 ${ok.length}개 → ${nk.length}개로 바꿀까요? 기록이 삭제되는 빈칸은 ${lost}개이고, 나머지 빈칸의 기록은 유지돼요.`))return false;
@@ -3349,7 +3524,7 @@ function bbEdBlanks(tg){
   for(const k in r)if(map[k]){const m=map[k];nr[m]={T:r[k].T};for(const t in r[k].T){const x=r[k].T[t];if(m!==k)bbEnq('records',`records|${id}|${m}|${t}`,{docId:id,blankKey:m,term:+t,a:x.a,c:x.c,l:x.l,ts:now})}}
   bbRec[id]=nr;bbStarRemap(id,map,now);
   bbSes.forEach(s=>{if(s.doc!==id)return;const j={};for(const k in (s.j||{}))if(map[k])j[map[k]]=s.j[k];s.j=j;bbEnq('ses','ses|'+s.id,{sid:s.id,docId:id,term:s.term,at:s.ts,ts:now,j})});
-  tg.html=cl.innerHTML;tg.n=nk.length;bbEnqDoc(tg,1);
+  bbIpMove(id,tg.html,cl,now);tg.html=cl.innerHTML;tg.n=nk.length;bbEnqDoc(tg,1);
   if(bbS){bbS.judged={};bbS.undo=[];bbS.tgt=null}
   return true;
 }
@@ -3373,9 +3548,9 @@ function bbMode(m){
 }
 // ── 마인드맵 변환 (들여쓰기 목록 → 트리 디자인 + 빈칸) ──
 function bbMmRules(cv){return [['R0','줄 앞 -'],['R1','줄 앞 ='],['R2','줄 앞 • ∙'],['R3','원문자 ①❶'],['R4','쉼표 ,'],['R5','슬래시 /'],['R6','화살표 → ➞'],['R7','등호 =']].map((x,k)=>`<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><input type="checkbox" id="${cv?'bbCr'+k:'bb'+x[0]}" checked onchange="${cv?'bbCvRun()':'bbMmRun()'}" style="width:auto">${x[1]}</label>`).join('')+(cv?'':`<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><input type="checkbox" id="bbMo3" onchange="bbMmRun()" style="width:auto">각 가지 맨 끝 노드 통빈칸 (상자 있는 노드 제외)</label>`)}
-// 수정 화면: 고친 XMind 파일을 다시 올려 내용을 교체 (글자가 같은 빈칸의 기록은 유지)
-function bbMmEditTop(){return `<label class="bb-btn" style="cursor:pointer">XMind 다시 올리기<input type="file" accept=".xmind,.opml" onchange="bbMmFile(this)" style="display:none"></label><textarea id="bbMmIn" style="display:none"></textarea>`}
-function bbMmEditRules(){return `<div class="bb-cs" style="margin:8px 0 4px"><b style="color:var(--text)">자동 빈칸 규칙</b> (다시 올린 XMind에 적용 · 전부 켜 둠 · 필요 없는 것만 끄세요)</div><div class="bb-top" style="gap:4px 12px;margin-bottom:8px">${bbMmRules()}</div>`}
+// 수정 화면: 고친 Xmind 파일을 다시 올려 내용을 교체 (글자가 같은 빈칸의 기록은 유지)
+function bbMmEditTop(){return `<label class="bb-btn" style="cursor:pointer">Xmind 다시 올리기<input type="file" accept=".xmind,.opml" onchange="bbMmFile(this)" style="display:none"></label><textarea id="bbMmIn" style="display:none"></textarea>`}
+function bbMmEditRules(){return `<div class="bb-cs" style="margin:8px 0 4px"><b style="color:var(--text)">자동 빈칸 규칙</b> (다시 올린 Xmind에 적용 · 전부 켜 둠 · 필요 없는 것만 끄세요)</div><div class="bb-top" style="gap:4px 12px;margin-bottom:8px">${bbMmRules()}</div>`}
 function bbMmEditPv(){return `<div id="bbMmSt" class="bb-cs" style="margin:0 0 6px"></div><div id="bbMmPv" class="bb-doc study bbpv" onclick="bbMmClick(event)" style="overflow:auto;padding:8px;margin:0 0 6px"></div>`}
 function bbMmReplace(tg){
   const ob=[...bbBox(tg).querySelectorAll('.bb-b')],nb=[...bbBox({html:bbTmp.html}).querySelectorAll('.bb-b')],n=ob.length,m=nb.length,map={};
@@ -3389,6 +3564,7 @@ function bbMmReplace(tg){
   for(const k in r)if(map[k]){const q=map[k];nr[q]={T:r[k].T};for(const t in r[k].T){const x=r[k].T[t];if(q!==k)bbEnq('records',`records|${id}|${q}|${t}`,{docId:id,blankKey:q,term:+t,a:x.a,c:x.c,l:x.l,ts:now})}}
   bbRec[id]=nr;bbStarRemap(id,map,now);
   bbSes.forEach(z=>{if(z.doc!==id)return;const j={};for(const k in (z.j||{}))if(map[k])j[map[k]]=z.j[k];z.j=j;bbEnq('ses','ses|'+z.id,{sid:z.id,docId:id,term:z.term,at:z.ts,ts:now,j})});
+  {const nd=document.createElement('div');nd.innerHTML=bbTmp.html;bbIpMove(id,tg.html,nd,now)}
   tg.html=bbTmp.html;tg.n=m;bbEnqDoc(tg,1);
   if(bbS){bbS.judged={};bbS.undo=[];bbS.tgt=null}
   return true;
@@ -3405,6 +3581,38 @@ function bbMmTree(txt){
   });
   return root.c;
 }
+// 탭: Xmind 시트마다 '§§ 탭이름' 줄로 시작. 머리 줄이 없으면 탭 하나(이름 없음). 줄 번호(i)는 머리 줄을 포함한 원래 줄 번호
+function bbMmTabs(txt){
+  const tabs=[];let cur=null;
+  txt.replace(/\r/g,'').split('\n').forEach((raw,i)=>{
+    const h=raw.match(/^§§[ \t]*(.*)$/);
+    if(h){cur={name:h[1].trim(),root:{c:[]},st:null,lines:[]};cur.st=[{ind:-1,n:cur.root}];tabs.push(cur);return}
+    if(!cur){if(!raw.trim())return;cur={name:'',root:{c:[]},st:null,lines:[]};cur.st=[{ind:-1,n:cur.root}];tabs.push(cur)}
+    cur.lines.push([raw,i]);
+  });
+  return tabs.map((t,k)=>({k,name:t.name,nodes:bbMmTreeL(t.lines)}));
+}
+function bbMmTreeL(lines){
+  const root={c:[]},st=[{ind:-1,n:root}],ID=/^[A-Za-z0-9_-]{1,48}$/;let last=null;
+  lines.forEach(([raw,i])=>{
+    const q=raw.match(/^[ \t]*([※∑⇢◇])[ \t]?([\s\S]*)$/);   // 설명선·요약·관계: 바로 앞 노드에 붙임
+    if(q){if(!last)return;const v=q[2].trim();
+      if(q[1]==='※'){let w=v,sg=0;if(w[0]==='‼'){sg=1;w=w.slice(1).trim()}if(w){last.cl=(last.cl?last.cl+'⏎':'')+w;if(sg)last.cs=1}}
+      else if(q[1]==='◇'){let w=v,sg=0;if(w[0]==='‼'){sg=1;w=w.slice(1).trim()}if(w)(last.pm=last.pm||[]).push({t:w,c:sg})}
+      else if(q[1]==='∑'){const k=v.match(/^(\S+)\s+(\S+)\s?([\s\S]*)$/);if(k&&ID.test(k[1])&&ID.test(k[2]))(last.sm=last.sm||[]).push({a:k[1],b:k[2],t:k[3].trim()})}
+      else{const k=v.match(/^(\S+)\s?([\s\S]*)$/);if(k&&ID.test(k[1]))(last.rl=last.rl||[]).push({to:k[1],t:k[2].trim()})}
+      return}
+    const m=raw.match(/^([ \t]*)(?:[-*•▪○●■□]\s+)?(◯\s+)?(.*)$/);let t=m[3].trim();if(!t)return;
+    let mt=null;const mk=t.match(/^⟦([^⟧]*)⟧\s*/);if(mk){mt={};mk[1].split(/\s+/).forEach(x=>{if(x)mt[x[0]]=x[0]==='x'?x.slice(1):+x.slice(1)});t=t.slice(mk[0].length)}
+    if(!t)return;t=t.replace(BB_DOT,'·');const ind=m[1].replace(/\t/g,'    ').length,n={t,i,e:!!m[2],c:[],m:mt};
+    while(st.length>1&&st[st.length-1].ind>=ind)st.pop();
+    st[st.length-1].n.c.push(n);st.push({ind,n});last=n;
+  });
+  return root.c;
+}
+let bbMmTabOff=new Set(),bbMmPvT=null;   // 체크 해제한 탭 / 미리보기로 보는 탭
+function bbMmPvTab(k){bbMmPvT=k;bbMmRun()}   // 미리보기에서 체크 해제한 탭 번호
+function bbMmTabTog(k,on){if(on)bbMmTabOff.delete(k);else bbMmTabOff.add(k);bbMmRun()}
 // 한 노드 안의 줄바꿈은 ⏎, **굵게**, __밑줄__(모양일 뿐), [[직접 빈칸]]
 // 괄호 ( ) 는 항상 보이게 남기고 안쪽을 따로 빈칸으로 나눔 (필요 없으면 수정 화면에서 빈칸 해제)
 // 자동 빈칸 규칙 r[0..7] = 줄 앞 - / = / •∙ / 원문자 · 구분자 쉼표 / 슬래시 / →➞ / =  (줄마다 따로 판단, ·는 제외)
@@ -3435,35 +3643,44 @@ function bbMmLine(L,r,F,B){
 }
 function bbMmTxt(t,o){
   const E=x=>bbEsc(x).replace(/\uE000/g,'<i class="d">·</i>');
-  const F=x=>E(x).replace(/\*\*([^*]+?)\*\*/g,'<b>$1</b>').replace(/__([^_]+?)__/g,'<u>$1</u>').replace(/⏎/g,'\n'),B=x=>`<span class="blank">${E(x.replace(/\*\*|__/g,'')).replace(/⏎/g,'\n')}</span>`;
+  const MK=x=>x.replace(/⟪/g,'<mark>').replace(/⟫/g,'</mark>').replace(/⟬/g,'<mark class="px">').replace(/⟭/g,'</mark>'),F=x=>MK(E(x).replace(/\*\*([^*]+?)\*\*/g,'<b>$1</b>').replace(/__([^_]+?)__/g,'<u>$1</u>')).replace(/⏎/g,'\n'),B=x=>`<span class="blank">${MK(E(x.replace(/\*\*|__/g,''))).replace(/⏎/g,'\n')}</span>`;
   if(/\[\[.+?\]\]/.test(t))return t.split(/(\[\[.+?\]\])/).map(x=>/^\[\[.+\]\]$/.test(x)?B(x.slice(2,-2)):F(x)).join('');
   if(o.leaf)return B(t);
-  let P='',S=[],bo=0,un=0,pos=0;
-  for(let i=0;i<t.length;){if(t.startsWith('**',i)){bo^=1;i+=2}else if(t.startsWith('__',i)){un^=1;i+=2}else{P+=t[i];S.push(bo|un<<1);i++}}
-  const cl=(r,st)=>{if(!r)return'';let e=E(r);if(st&2)e='<u>'+e+'</u>';if(st&1)e='<b>'+e+'</b>';return e};
+  let P='',S=[],bo=0,un=0,sr=0,pr=0,pos=0;
+  for(let i=0;i<t.length;){if(t.startsWith('**',i)){bo^=1;i+=2}else if(t.startsWith('__',i)){un^=1;i+=2}else if(t[i]==='⟪'){sr=1;i++}else if(t[i]==='⟫'){sr=0;i++}else if(t[i]==='⟬'){pr=1;i++}else if(t[i]==='⟭'){pr=0;i++}else{P+=t[i];S.push(bo|un<<1|sr<<2|pr<<3);i++}}
+  const cl=(r,st)=>{if(!r)return'';let e=E(r);if(st&8)e='<mark class="px">'+e+'</mark>';if(st&4)e='<mark>'+e+'</mark>';if(st&2)e='<u>'+e+'</u>';if(st&1)e='<b>'+e+'</b>';return e};
   const W=x=>{let h='',run='',st=-1;for(let k=0;k<x.length;k++){const q=S[pos++];if(q!==st){h+=cl(run,st);run='';st=q}run+=x[k]}return h+cl(run,st)};
   const F2=x=>W(x),B2=x=>'<span class="blank">'+W(x)+'</span>';
   return P.split('⏎').map((l,i)=>{if(i)pos++;return bbMmLine(l,o.r||[],F2,B2)}).join('\n');
 }
+function bbMmExtra(n){   // 설명선·요약·관계 데이터 (자식 목록 .mmc 밖, 노드 블록 맨 끝). 요약 범위는 형제 노드 id로 가리킴
+  const X=v=>bbEsc(v).replace(/⏎/g,'\n');
+  return (n.cl?`<div class="mmq mmqc"${n.cs?' data-s="1"':''}>${X(n.cl)}</div>`:'')+(n.sm||[]).map(s=>`<div class="mmq mmqs" data-a="${s.a}" data-b="${s.b}">${X(s.t)}</div>`).join('')+(n.rl||[]).map(r=>`<div class="mmq mmqr" data-t="${r.to}">${X(r.t)}</div>`).join('')+(n.pm||[]).map(p=>`<div class="mmq mmqp"${p.c?' data-s="1"':''}>${X(p.t)}</div>`).join('');
+}
 function bbMmNode(n,d,o,pv){
-  const lf=!n.c.length,m=n.m||{},bx=m.f!=null||n.e,o2=Object.assign({},o,{leaf:o.leaf&&lf&&!bx}),k=d===0?0:lf?3:d===1?1:(o.xm&&!bx?3:2);   // XMind 문서: 상자 없는 노드는 하위가 있어도 상자 없이
+  const lf=!n.c.length,m=n.m||{},bx=m.f!=null||n.e,o2=Object.assign({},o,{leaf:o.leaf&&lf&&!bx}),k=d===0?0:lf?3:d===1?1:(o.xm&&!bx?3:2);   // Xmind 문서: 상자 없는 노드는 하위가 있어도 상자 없이
   const cx=(m.f!=null&&k>0?' mf'+m.f:'')+(m.k===2?' mk2':m.k?' mk1':'')+(m.s?' ms'+m.s:'');
-  return `<div class="mmb"><div class="mmn mm${k}${n.e?' mme':''}${cx}"${m.w?` data-w="${m.w}"`:''}${pv?` data-i="${n.i}"`:''}>${bbMmTxt(n.t,o2)}</div>${lf?'':`<div class="mmc ml${m.l||2}">${n.c.map(c=>bbMmNode(c,d+1,o,pv)).join('')}</div>`}</div>`;
+  return `<div class="mmb"><div class="mmn mm${k}${n.e?' mme':''}${cx}"${m.w?` data-w="${m.w}"`:''}${m.x?` data-x="${m.x}"`:''}${pv?` data-i="${n.i}"`:''}>${bbMmTxt(n.t,o2)}</div>${lf?'':`<div class="mmc ml${m.l||2}">${n.c.map(c=>bbMmNode(c,d+1,o,pv)).join('')}</div>`}${bbMmExtra(n)}</div>`;
 }
 function bbMmRun(){
   const inp=document.getElementById('bbMmIn'),pv=document.getElementById('bbMmPv'),st=document.getElementById('bbMmSt');if(!inp)return;
   const g=i=>{const e=document.getElementById(i);return !!(e&&e.checked)},o={leaf:g('bbMo3'),r:[0,1,2,3,4,5,6,7].map(i=>g('bbR'+i))};
-  const tr=bbMmTree(inp.value);
-  if(!tr.length){if(bbF&&bbF.edit){bbF.reup=false;const z=document.getElementById('bbEdSec'),tb=document.getElementById('bbTyB');if(z)z.style.display='';if(tb)tb.style.display=''}pv.innerHTML='';st.style.color='var(--text3)';st.textContent='붙여넣거나 파일을 불러오면 미리보기가 나와요.';bbTmp=null;return}
+  const tabs=bbMmTabs(inp.value),named=tabs.length>1||(tabs.length===1&&tabs[0].name),sel=tabs.filter(t=>!bbMmTabOff.has(t.k)),tr=sel.reduce((a,t)=>a.concat(t.nodes),[]),pvt=sel.find(t=>t.k===bbMmPvT)||sel[0];
+  {let tb=document.getElementById('bbMmTb');
+   if(named){if(!tb){tb=document.createElement('div');tb.id='bbMmTb';tb.className='bb-cs';tb.style.cssText='margin:0 0 6px;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center';st.parentNode.insertBefore(tb,st)}
+     tb.innerHTML='<b style="color:var(--text)">가져올 탭</b>'+tabs.map(t=>`<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><input type="checkbox" ${bbMmTabOff.has(t.k)?'':'checked'} onchange="bbMmTabTog(${t.k},this.checked)" style="width:auto">${bbEsc(t.name||'(이름 없음)')}</label>`).join('')+(sel.length>1?'<span style="flex-basis:100%;height:0"></span><b style="color:var(--text)">미리보기</b>'+sel.map(t=>`<button class="bb-btn${t===pvt?' pri':''}" style="padding:3px 10px" onclick="bbMmPvTab(${t.k})">${bbEsc(t.name||'탭 '+(t.k+1))}</button>`).join(''):'')}
+   else if(tb)tb.remove()}
+  if(!tr.length){if(bbF&&bbF.edit){bbF.reup=false;const z=document.getElementById('bbEdSec'),tb=document.getElementById('bbTyB');if(z)z.style.display='';if(tb)tb.style.display=''}pv.innerHTML='';st.style.color='var(--text3)';st.textContent=tabs.length&&!sel.length?'가져올 탭을 하나 이상 골라 주세요.':'붙여넣거나 파일을 불러오면 미리보기가 나와요.';bbTmp=null;return}
   o.xm=(function f(a){return a.some(n=>(n.m&&n.m.f!=null)||f(n.c))})(tr);
-  const mk=p=>`<div class="mm">${tr.map(n=>bbMmNode(n,0,o,p)).join('')}</div>`;
-  pv.innerHTML=mk(true);
-  const t=bbParse(mk(false));bbTmp=t?{title:'',src:'',html:t.html,n:t.n}:null;
+  const mk=(p,L)=>(L||sel).filter(t=>t.nodes.length).map(t=>`<div class="mm"${t.name?` data-tab="${bbEsc(t.name)}"`:''}>${t.nodes.map(n=>bbMmNode(n,0,o,p)).join('')}</div>`).join('');
+  pv.innerHTML=mk(true,[pvt]);   // 미리보기는 고른 탭 하나만 (저장 내용은 체크한 모든 탭)
+  const t=bbParse(mk(false));bbTmp=t?{title:'',src:'',html:t.html,n:t.n,xm:bbXmSrc&&bbXmSrc.z||''}:null;
   if(bbF&&bbF.edit){bbF.reup=!!t;if(t&&bbMe.on)bbMeOff();const z=document.getElementById('bbEdSec'),tb=document.getElementById('bbTyB');if(z)z.style.display=t?'none':'';if(tb)tb.style.display=t?'none':''}
   const kc=(function f(a){return a.reduce((x,n)=>x+(n.m&&n.m.k===1?1:0)+f(n.c),0)})(tr),dx=(function f(a){return a.reduce((x,n)=>x+(n.m&&n.m.k===2?1:0)+f(n.c),0)})(tr);
+  const xf=a=>a.reduce((x,n)=>{const y=xf(n.c);return[x[0]+(n.cl?1:0)+y[0],x[1]+(n.sm?n.sm.length:0)+y[1],x[2]+(n.rl?n.rl.length:0)+y[2]]},[0,0,0]),xc=xf(tr);
   st.style.color=t?'var(--accent)':'var(--red)';
-  st.textContent=t?`빈칸 ${t.n}개 ✓${dx?` · DX체 ${dx}개`:''}${kc?` · 온글잎 ${kc}개`:''}${dx||kc?' · 그 외는 온글잎':''} · 노드를 누르면 그 줄 전체가 빈칸으로 / 다시 누르면 해제`:'빈칸이 없어요. 위 규칙, [[글자]], 노드 클릭 중 하나로 지정해 주세요.';
-  const ti=document.getElementById('bbTi');if(ti&&!ti.value)ti.value=tr[0].t;
+  st.textContent=t?`빈칸 ${t.n}개 ✓${dx?` · DX체 ${dx}개`:''}${kc?` · 온글잎 ${kc}개`:''}${dx||kc?' · 그 외는 온글잎':''}${xc[0]||xc[1]||xc[2]?` · 설명선 ${xc[0]} · 요약 ${xc[1]} · 관계 ${xc[2]}`:''} · 노드를 누르면 그 줄 전체가 빈칸으로 / 다시 누르면 해제`:'빈칸이 없어요. 위 규칙, [[글자]], 노드 클릭 중 하나로 지정해 주세요.';
+  const ti=document.getElementById('bbTi');if(ti&&!ti.value)ti.value=tr[0].t.replace(/[⟪⟫]/g,'').replace(/\*\*|__/g,'');
 }
 function bbMmClick(e){
   const row=e.target.closest('.mmb'),nd=(e.target.closest('[data-i]')||(row&&row.querySelector(':scope>.mmn[data-i]')));if(!nd)return;
@@ -3472,14 +3689,19 @@ function bbMmClick(e){
   b=/^\[\[[\s\S]+\]\]$/.test(b)&&b.indexOf('[[',2)<0?b.slice(2,-2):'[['+b.replace(/\[\[|\]\]/g,'')+']]';
   L[i]=m[1]+tk+b;inp.value=L.join('\n');bbMmRun();
 }
-// ── XMind / OPML 불러오기 ──
+// ── Xmind / OPML 불러오기 ──
 function bbXmTitle(t){   // 굵게·밑줄은 표시용 표식(**, __)으로만 가져오고 빈칸 판단에는 영향 없음
-  const a=t.attributedTitle;if(!a)return t.title||'';
+  const nr=/^#?F22816/i.test(String(((t.style&&t.style.properties)||{})['fo:color']||''));   // 상자 전체 글자색이 빨강이면 일부 구간에 색이 없어도 빨강으로 침
+  let a=t.attributedTitle;if(!a&&nr&&t.title)a=[{text:t.title}];if(!a)return t.title||'';
+  let pend=true,pendO=true;   // 빨강(#F22816) 구간 = 중요(★). 구간 맨 앞 '★ ' 글자는 떼고 표식 ⟪ ⟫로만 가져옴 (빈칸 글자·키에 ★가 섞이지 않게)
   return a.map(s=>{
-    const x=s.text||'',u=/underline/.test(s['fo:text-decoration']||''),b=/^(bold|[6-9]\d\d)$/.test(String(s['fo:font-weight']||''));
-    if(!x.trim()||(!u&&!b))return x;
+    let x=s.text||'';const og=/^#?(FF6F00|F2994A)/i.test(String(s['fo:color']||''));   // 내려받기 때 넣은 개인 ★(주황): '★ '만 떼고 서식은 가져오지 않음
+    if(og){const k=pendO&&x.match(/^\s*★\s*/);if(k)x=x.slice(k[0].length);pendO=false;pend=true;if(!x.trim())return x;const q=x.match(/^(\s*)([\s\S]*?)(\s*)$/);return q[1]+'⟬'+q[2]+'⟭'+q[3]}pendO=true;   // 주황 구간 = 내 개인 ★ (저장할 때 개인층으로 옮김)
+    const r=/^#?F22816/i.test(String(s['fo:color']||(nr?'#F22816':'')||'')),u=/underline/.test(s['fo:text-decoration']||''),b=/^(bold|[6-9]\d\d)$/.test(String(s['fo:font-weight']||''));
+    if(r){if(pend){const k=x.match(/^\s*★\s*/);if(k)x=x.slice(k[0].length);if(x||k)pend=false}}else pend=true;
+    if(!x.trim()||(!u&&!b&&!r))return x;
     const m=x.match(/^(\s*)([\s\S]*?)(\s*)$/);
-    return m[1]+(b?'**':'')+(u?'__':'')+m[2]+(u?'__':'')+(b?'**':'')+m[3];
+    return m[1]+(r?'⟪':'')+(b?'**':'')+(u?'__':'')+m[2]+(u?'__':'')+(b?'**':'')+(r?'⟫':'')+m[3];
   }).join('');
 }
 function bbXmFam(h){
@@ -3494,18 +3716,39 @@ function bbXmMeta(t){
   const p=(t.style&&t.style.properties)||{},o=[];
   if(parseFloat(p['border-line-width']||0)>0)o.push('f'+bbXmFam(p['svg:fill']||p['border-line-color']||''));
   const sh=p['shape-class']||'';
-  if(/roundedRect|topicShape\.rect/i.test(sh))o.push('s1');   // XMind '각진 상자' = roundedRect
+  if(/roundedRect|topicShape\.rect/i.test(sh))o.push('s1');   // Xmind '각진 상자' = roundedRect
   if(p['line-class'])o.push('l'+(/rounded|curve/i.test(p['line-class'])?2:1));
   if(t.customWidth)o.push('w'+Math.round(t.customWidth));
   const pf=String(p['fo:font-family']||''),af=(t.attributedTitle||[]).map(x=>x['fo:font-family']).filter(Boolean).join(' ');
   const kd=s=>/elice|neolli|\bdx\b|엘리스|디엑스/i.test(s)?2:/cocoa|코코아|ownglyph|온글잎/i.test(s)?1:0;   // 상자 전체 글꼴 우선, 없으면 일부 글자 글꼴. DX·온글잎 외(미지정·Droid Serif 등)는 기본 온글잎
   const kk=kd(pf)||kd(af);if(kk)o.push('k'+kk);
+  if(/^[A-Za-z0-9_-]{1,48}$/.test(t.id||''))o.push('x'+t.id);   // Xmind 노드 id (다시 내려받기용 대응표)
   return o.length?'⟦'+o.join(' ')+'⟧':'';
 }
-function bbXmLines(t,d,out){
+function bbXmLines(t,d,out,rel){
   const sh=(t.style&&t.style.properties&&t.style.properties['shape-class'])||'';
   out.push('  '.repeat(d)+'• '+(/ellipse/i.test(sh)?'◯ ':'')+bbXmMeta(t)+bbXmTitle(t).replace(/\r/g,'').replace(/\n/g,'⏎'));
-  ((t.children||{}).attached||[]).forEach(c=>bbXmLines(c,d+1,out));
+  // 설명선(※ 글) · 요약(∑ 첫형제id 끝형제id 글) · 관계(⇢ 도착id 글): 이 노드 바로 아래 줄에 붙여 둠
+  const ind='  '.repeat(d+1),tx=v=>String(v||'').replace(/\r/g,'').replace(/\n/g,'⏎').trim(),ch=t.children||{},at=ch.attached||[];
+  (ch.callout||[]).forEach(c=>{const pf=/^#?(FFE0B2|FFB74D)/i.exec(String(((c.style&&c.style.properties)||{})['svg:fill']||''));
+    if(pf){const y=tx(c.title);if(y)out.push(ind+'◇'+(/B74D/i.test(pf[1])?'‼':'')+' '+y);return}   // 주황 계열 설명선 = 내 메모 (저장할 때 개인층으로 옮김)
+    let x=tx(c.title),sg=-1;const tg=x.match(/\s*#(강조|일반)\s*$/);if(tg){sg=tg[1]==='강조'?1:0;x=x.slice(0,tg.index).trim()}
+    if(sg<0){const f=String(((c.style&&c.style.properties)||{})['svg:fill']||'').replace('#',''),q=/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(f);sg=q&&(parseInt(q[1],16)+parseInt(q[2],16)+parseInt(q[3],16))/3<150?1:0}   // 진한 회색(#666) = 강조, 연한 회색(#D0D0D0) = 일반
+    if(x)out.push(ind+'※'+(sg?'‼':'')+' '+x)});
+  (t.summaries||[]).forEach(sm=>{const m=String(sm.range||'').match(/\((\d+),\s*(\d+)\)/),tp=(ch.summary||[]).find(x=>x.id===sm.topicId),a=m&&at[+m[1]],b=m&&at[+m[2]];if(tp&&a&&b&&a.id&&b.id)out.push(ind+'∑ '+a.id+' '+b.id+' '+tx(tp.title))});
+  ((rel&&rel[t.id])||[]).forEach(r=>out.push(ind+'⇢ '+r.to+' '+r.t));
+  at.forEach(c=>bbXmLines(c,d+1,out,rel));
+}
+let bbXmSrc=null;   // 방금 불러온 Xmind 원본 {z: 압축 문자열}
+const BB_XM='\u241EXM\u241E';   // 서버로 보낼 때 html 뒤에 붙이는 구분 표식 (Code.gs 변경 없이 같은 조각 저장 방식 사용)
+async function bbXmPack(s){   // 원본 content.json → 'g:'+gzip(base64) (압축 못 하면 'r:'+원문)
+  try{if(!window.CompressionStream)return 'r:'+s;const cs=new CompressionStream('gzip'),w=cs.writable.getWriter();w.write(new TextEncoder().encode(s));w.close();
+    const b=new Uint8Array(await new Response(cs.readable).arrayBuffer());let bin='';for(let i=0;i<b.length;i+=8192)bin+=String.fromCharCode.apply(null,b.subarray(i,i+8192));return 'g:'+btoa(bin)}catch(e){return 'r:'+s}
+}
+async function bbXmUnpack(z){
+  if(z.slice(0,2)==='r:')return z.slice(2);
+  const bin=atob(z.slice(2)),b=Uint8Array.from(bin,c=>c.charCodeAt(0)),ds=new DecompressionStream('gzip'),w=ds.writable.getWriter();w.write(b);w.close();
+  return await new Response(ds.readable).text();
 }
 async function bbMmFile(inp){
   const f=inp.files&&inp.files[0];if(!f)return;const lines=[];
@@ -3513,9 +3756,11 @@ async function bbMmFile(inp){
     if(/\.xmind$/i.test(f.name)){
       if(!window.JSZip)throw new Error('압축 해제 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.');
       const z=await JSZip.loadAsync(await f.arrayBuffer()),c=z.file('content.json');
-      if(!c)throw new Error('이 XMind 파일 형식(content.json 없음)은 지원하지 않아요. 최신 XMind에서 저장한 파일을 써 주세요.');
-      JSON.parse(await c.async('string')).forEach(sh=>{if(sh.rootTopic)bbXmLines(sh.rootTopic,0,lines)});
+      if(!c)throw new Error('이 Xmind 파일 형식(content.json 없음)은 지원하지 않아요. 최신 Xmind에서 저장한 파일을 써 주세요.');
+      const raw=await c.async('string');bbXmSrc={z:await bbXmPack(raw)};   // 다시 내려받기용 원본 (등록·다시 올리기 때 문서에 같이 저장)
+      JSON.parse(raw).forEach(sh=>{if(sh.rootTopic){lines.push('§§ '+String(sh.title||'').replace(/\s+/g,' ').trim());const rel={};(sh.relationships||[]).forEach(r=>{if(r.end1Id&&r.end2Id)(rel[r.end1Id]=rel[r.end1Id]||[]).push({to:r.end2Id,t:String(r.title||'').replace(/\s+/g,' ').trim()})});bbXmLines(sh.rootTopic,0,lines,rel)}});
     }else if(/\.opml$/i.test(f.name)){
+      bbXmSrc=null;
       const x=new DOMParser().parseFromString(await f.text(),'text/xml');
       const w=(el,d)=>[...el.children].filter(e=>e.tagName==='outline').forEach(e=>{lines.push('  '.repeat(d)+'• '+(e.getAttribute('text')||'').replace(/\r?\n/g,'⏎'));w(e,d+1)});
       w(x.querySelector('body'),0);
@@ -3523,7 +3768,128 @@ async function bbMmFile(inp){
     if(!lines.length)throw new Error('내용이 비어 있어요.');
   }catch(e){alert(e.message||'파일을 읽지 못했어요.');inp.value='';return}
   {const e=document.getElementById('bbMo3');if(e)e.checked=false}   // 끝 가지 통빈칸은 직접 눌러서 켬
+  bbMmTabOff=new Set();bbMmPvT=null;   // 새 파일이면 탭 선택은 전부 켠 상태로 시작
   document.getElementById('bbMmIn').value=lines.join('\n');inp.value='';bbMmRun();
+}
+// ── 다시 내려받기: 문서에 보관한 원본 content.json에 사이트의 글자 수정·개인 ★(주황)·내 메모를 덮어써서 .xmind로 저장 ──
+// 노드는 Xmind id(.mmn[data-x])로 맞춘다. 글자가 안 바뀐 노드는 원본 글자 서식을 그대로 두고 주황 ★만 겹쳐 입히고, 글자가 바뀐 노드만 사이트 글자로 다시 만든다.
+// 개인 메모는 해당 노드의 설명선(주황 계열)으로 넣는다. 공통층(설명선·요약·관계·빨간 ★)은 원본 그대로.
+const BB_XO='#FF6F00FF',BB_XR='#F22816FF',BB_XMEMO=['#FFE0B2FF','#FFB74DFF'];   // 개인 ★ / 공통 ★ / 개인 메모(기본·강조)
+function bbXmSegs(n){   // 노드 안 글자를 서식 조각으로: {t,b,u,mk,p}
+  const out=[];
+  (function w(e,f){
+    e.childNodes.forEach(c=>{
+      if(c.nodeType===3){if(c.data)out.push({t:c.data,b:f.b,u:f.u,mk:f.mk,p:f.p});return}
+      if(c.nodeType!==1||c.matches('.mmq,.mmcl,.mmqx,.bb-pen,[data-pen],small,svg'))return;
+      const g={b:f.b||c.tagName==='B',u:f.u||c.tagName==='U',mk:f.mk||c.tagName==='MARK',p:f.p||c.classList.contains('ip')||(c.classList.contains('bb-b')&&c.classList.contains('star'))};
+      w(c,g);
+    });
+  })(n,{b:0,u:0,mk:0,p:0});
+  return out;
+}
+function bbXmSite(d){   // id → {segs, pens:[{text,col}]}
+  const b=bbBox(d),sm=bbStar[d.id]||{},info=new Map();
+  b.querySelectorAll('.bb-b').forEach(e=>{if(sm[e.dataset.k])e.classList.add('star')});
+  bbIpPaint(b,d.id);
+  b.querySelectorAll('.mmn[data-x]').forEach(n=>info.set(n.dataset.x,{segs:bbXmSegs(n),pens:[],dx:n.classList.contains('mk2')}));
+  const ps=Object.values(bbPens[d.id]||{});
+  if(ps.length){   // 메모 → 노드 (메모 편집 화면과 같은 계산: 설명선 글자까지 센 노드 글자 이어붙이기 + 앞 글자 ctx로 위치 보정)
+    bbMmCl(b);let t=0,full='';const L=[];
+    b.querySelectorAll('.mmn').forEach(n=>{const x=bbMemoPlain(n).textContent;full+=x;t+=x.length;L.push({n,end:t})});
+    if(L.length)ps.map(p=>({p,o:bbPenOff(full,p)})).sort((x,y)=>x.o-y.o||(x.p.ts||0)-(y.p.ts||0)).forEach(a=>{
+      const nd=(L.find(x=>x.end>=a.o)||L[L.length-1]).n,r=info.get(nd.dataset.x);
+      if(r&&String(a.p.text||'').trim())r.pens.push({text:String(a.p.text).trim(),col:a.p.col?1:0});
+    });
+  }
+  return info;
+}
+function bbXmApply(t,f,cnt){
+  const IG=/[\s·★•]/,norm=x=>x.replace(/[\s·★•]+/g,'');
+  const orig=(t.attributedTitle&&t.attributedTitle.length)?t.attributedTitle:[{text:t.title||''}],
+    oPlain=orig.map(s=>s.text||'').join(''),sPlain=f.segs.map(s=>s.t).join(''),hasP=f.segs.some(s=>s.p&&s.t.trim());
+  const bd=f.dx?{}:{'fo:font-weight':'700'},   // 엘리스 DX널리체는 색만, 온글잎 코코아체는 색+굵게
+    star=(base,col)=>Object.assign({},base,{text:'★ ','fo:color':col},bd);
+  let spans=null;
+  if(norm(oPlain)===norm(sPlain)){   // 글자 그대로 → 원본 서식 위에 주황 ★만 겹침
+    if(!hasP)return;
+    const O=[],S=[];[...oPlain].forEach((c,i)=>{if(!IG.test(c))O.push(i)});
+    const sf=[];f.segs.forEach(s=>{for(const c of s.t)if(!IG.test(c))sf.push(!!s.p)});
+    if(O.length!==sf.length)return;
+    const fo=new Array(oPlain.length).fill(false);O.forEach((oi,r)=>{if(sf[r])fo[oi]=true});
+    for(let i=0;i<fo.length;i++)if(!fo[i]&&IG.test(oPlain[i])){let a=i-1,b=i+1;while(a>=0&&IG.test(oPlain[a]))a--;while(b<fo.length&&IG.test(oPlain[b]))b++;if(a>=0&&b<fo.length&&fo[a]&&fo[b])fo[i]=true}
+    spans=[];let pos=0,inP=false;
+    orig.forEach(sp=>{
+      const tx=sp.text||'',red=/^#?F22816/i.test(String(sp['fo:color']||'')),tail=[];
+      let run='',cur=null;
+      const flush=()=>{if(!run)return;if(cur){if(!inP){spans.push(star(sp,BB_XO));inP=true}spans.push(Object.assign({},sp,{text:run,'fo:color':BB_XO},bd))}else{spans.push(Object.assign({},sp,{text:run}));inP=false}run=''};
+      [...tx].forEach(c=>{const on=fo[pos]&&!red;pos+=c.length;if(cur!==null&&on!==cur)flush();cur=on;run+=c});
+      flush();cur=null;
+    });
+  }else{   // 글자를 고쳤음 → 사이트 글자로 다시 만듦 (굵게·밑줄·빨간 ★·주황 ★)
+    const fam=(orig.find(s=>s['fo:font-family'])||{})['fo:font-family'];spans=[];let pm=false,pp=false;
+    f.segs.forEach(s=>{
+      let tx=s.t;if(!tx)return;
+      if(!tx.trim()){spans.push({text:tx});return}
+      const sp={text:tx};if(fam)sp['fo:font-family']=fam;
+      if(s.mk){if(!pm)sp.text='★ '+sp.text;sp['fo:color']=BB_XR;Object.assign(sp,bd)}
+      else if(s.p){if(!pp)sp.text='★ '+sp.text;sp['fo:color']=BB_XO;Object.assign(sp,bd)}
+      else if(s.b)sp['fo:font-weight']='700';
+      if(s.u)sp['fo:text-decoration']='underline';
+      pm=!!s.mk;pp=!!s.p&&!s.mk;spans.push(sp);
+    });
+    cnt.t++;
+  }
+  if(!spans)return;
+  if(hasP)cnt.s++;
+  t.attributedTitle=spans;t.title=spans.map(s=>s.text||'').join('');
+}
+async function bbXmExport(id){
+  const d=bbDocs.find(x=>x.id===id);if(!d||!d.xm){alert('이 문서에는 보관된 Xmind 원본이 없어요. Xmind 파일을 다시 올려 주세요.');return}
+  if(!window.JSZip){alert('압축 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.');return}
+  let src;try{src=JSON.parse(await bbXmUnpack(d.xm))}catch(e){alert('보관된 원본을 읽지 못했어요. Xmind 파일을 다시 올려 주세요.');return}
+  const info=bbXmSite(d),cnt={t:0,s:0,m:0},uid=()=>(crypto.randomUUID?crypto.randomUUID():'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,10));
+  const walk=t=>{
+    const f=info.get(t.id);
+    if(f){
+      bbXmApply(t,f,cnt);
+      if(f.pens.length){const ch=(t.children=t.children||{});ch.callout=(ch.callout||[]).concat(f.pens.map(p=>({id:uid(),title:p.text,style:{id:uid(),properties:{'fo:font-size':'12pt','svg:fill':BB_XMEMO[p.col]}}})));cnt.m+=f.pens.length}
+    }
+    ((t.children&&t.children.attached)||[]).forEach(walk);
+  };
+  src.forEach(sh=>{if(sh.rootTopic)walk(sh.rootTopic)});
+  const z=new JSZip();
+  z.file('content.json',JSON.stringify(src));
+  z.file('metadata.json',JSON.stringify({dataStructureVersion:'3',creator:{name:'Vana',version:'26.05.01107'},layoutEngineVersion:'5'}));
+  z.file('manifest.json',JSON.stringify({'file-entries':{'content.json':{},'metadata.json':{}}}));
+  const blob=await z.generateAsync({type:'blob',compression:'DEFLATE',mimeType:'application/vnd.xmind.workbook'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=(String(d.title||'뽀개기').replace(/[\\/:*?"<>|]+/g,'_').trim()||'뽀개기')+'.xmind';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  alert(`내려받기 완료\n글자 수정 ${cnt.t}개 노드 · 개인 ★ ${cnt.s}개 노드 · 내 메모 ${cnt.m}개`);
+}
+// 다시 올린 파일의 주황(★ 구간·설명선)을 내 개인층으로 옮김: 문서 글자에서 표식(mark.px, .mmqp)을 떼고 개인 ★·메모로 저장. 기존 개인층은 그대로 두고 합침(없애지 않음)
+function bbXmPersonal(tg){
+  if(!tg||!tg.html||!/class="px"|mmqp/.test(tg.html))return;
+  const id=tg.id,w=document.createElement('div');w.innerHTML=tg.html;const now=Date.now(),m=(bbStar[id]=bbStar[id]||{});
+  const g=bbIpGet(w),rng=[],bs=new Set();
+  w.querySelectorAll('mark.px').forEach(p=>{const b=p.closest('.blank');if(b){bs.add(b);return}
+    const ix=[],wk=document.createTreeWalker(p,NodeFilter.SHOW_TEXT);let n;while(n=wk.nextNode()){const i=g.N.indexOf(n);if(i>=0)ix.push(i)}
+    if(ix.length)rng.push([g.S[ix[0]],g.S[ix[ix.length-1]]+g.N[ix[ix.length-1]].length])});
+  let bi=0;w.querySelectorAll('.blank').forEach(e=>{if(bs.has(e)){const k=(bi)+'_'+bbHash(e.textContent);if(!m[k]){m[k]=now;bbEnq('stars',`stars|${id}|${k}`,{docId:id,blankKey:k,star:1,ts:now})}}bi++});   // 빈칸 안 주황 = 빈칸 개인 ★
+  rng.sort((a,b)=>a[0]-b[0]);const mg=[];rng.forEach(r=>{const l=mg[mg.length-1];if(l&&/^\s*$/.test(g.G.slice(l[1],r[0])))l[1]=Math.max(l[1],r[1]);else mg.push(r.slice())});
+  mg.forEach(r=>{let a=r[0],b=r[1];{const T=g.G.slice(a,b);a+=/^\s*/.exec(T)[0].length;b-=/\s*$/.exec(T)[0].length}if(b<=a)return;
+    bbIpKeys(id).forEach(k=>{const q=bbIpParse(k);if(q&&q.a<b&&q.b>a){a=Math.min(a,q.a);b=Math.max(b,q.b);delete m[k];bbEnq('stars',`stars|${id}|${k}`,{docId:id,blankKey:k,star:0,ts:now})}});
+    const key=`g${a}-${b}_${bbHash(g.G.slice(a,b))}`;m[key]=now;bbEnq('stars',`stars|${id}|${key}`,{docId:id,blankKey:key,star:1,ts:now})});
+  if(!Object.keys(m).length)delete bbStar[id];
+  const qs=[...w.querySelectorAll('.mmq.mmqp')].map(q=>{const nd=q.parentElement&&q.parentElement.firstElementChild;return{x:nd&&nd.dataset.x,t:q.textContent.trim(),c:q.dataset.s?1:0}}).filter(q=>q.x&&q.t);
+  w.querySelectorAll('.mmq.mmqp').forEach(q=>q.remove());w.querySelectorAll('mark.px').forEach(p=>p.replaceWith(...p.childNodes));w.normalize();
+  tg.html=w.innerHTML;
+  if(qs.length){   // 메모: 노드 글자 끝 위치에 달고(메모 편집 화면과 같은 계산), 같은 노드에 같은 글이 이미 있으면 건너뜀
+    const b=bbBox(tg);bbMmCl(b);let t=0,full='';const L=[];b.querySelectorAll('.mmn').forEach(n=>{const x=bbMemoPlain(n).textContent;full+=x;t+=x.length;L.push({n,end:t})});
+    const nodeOf=o=>(L.find(x=>x.end>=o)||L[L.length-1]),have=new Set(Object.values(bbPens[id]||{}).map(p=>{const k=L.length&&nodeOf(bbPenOff(full,p));return (k&&k.n.dataset.x)+'|'+String(p.text||'').trim()}));
+    qs.forEach(q=>{const k=L.find(x=>x.n.dataset.x===q.x);if(!k||have.has(q.x+'|'+q.t))return;
+      const off=k.end,np={id:'p'+bbNow().toString(36)+Math.random().toString(36).slice(2,5),off,s:0,ctx:full.slice(Math.max(0,off-8),off),text:q.t,col:q.c,bl:0};
+      (bbPens[id]=bbPens[id]||{})[np.id]=np;bbPenPut(id,np);have.add(q.x+'|'+q.t)})}
+  bbEnqDoc(tg,1);bbSave();
 }
 function bbApSet(v){bbF.append=v;['bbTi','bbFx'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display=v?'none':''})}
 function bbCvPaste(e){const h=(e.clipboardData&&e.clipboardData.getData('text/html'))||'';bbCv.pend=/<table/i.test(h)?h:'';bbCv.pasted=true}
@@ -3692,11 +4058,13 @@ function bbBmSync(){
   const pv=document.getElementById('bbPv2'),st=document.getElementById('bbPv');if(!pv||(bbF&&bbF.reup))return;
   const n=pv.querySelectorAll('.blank').length;
   bbTmp=n?{title:bbBm.title,src:bbBm.src,html:pv.innerHTML,n}:null;
+  if(!st)return;
   st.style.color=n?'var(--accent)':'var(--red)';
   st.textContent=n?`빈칸 ${n}개 인식 ✓ · 빈칸을 누르면 해제, 드래그하면 선택한 부분이 하나의 빈칸이 돼요`:'빈칸이 없어요. 드래그해서 빈칸을 만들 수 있어요.';
 }
+function bbIdle(){const pv=document.body.classList.contains('bbined')&&bbMePv();return !!pv&&!!pv.querySelector('.mm')&&!bbMe.on&&!bbMemo.on&&!bbImp.on&&!bbTypo}
 function bbBmClick(e){
-  if(bbTypo)return;
+  if(bbTypo||bbIdle())return;
   const s=getSelection();if(s&&!s.isCollapsed)return;
   if(Date.now()-bbSelClr<400)return;
   const sp=e.target.closest('.blank');if(!sp)return;
@@ -3744,34 +4112,34 @@ function bbBmMerge(){
 }
 function bbMergeRun(cv){
   const m=cv?bbCvApply():bbBmMerge();
-  if(m){const e=document.getElementById(cv?'bbCvSt':'bbPv');if(e){e.style.color='var(--red)';e.textContent=m}}
+  if(m){const e=document.getElementById(cv?'bbCvSt':'bbPv');if(e){e.style.color='var(--red)';e.textContent=m}else if(!cv)bbTypoMsg(m)}
 }
 function bbMergeSel(){const p=document.getElementById('bbP1');bbMergeRun(!!p&&p.style.display!=='none')}
-function bbPUp(e,cv){if(bbTypo||bbMemo.on||e.pointerType==='touch')return;setTimeout(()=>bbMergeRun(!!cv),0)}
+function bbPUp(e,cv){if(bbTypo||bbMemo.on||bbImp.on||bbIdle()||e.pointerType==='touch')return;setTimeout(()=>bbMergeRun(!!cv),0)}
 document.addEventListener('selectionchange',()=>{
   const s=getSelection(),pv=['bbCvPv','bbPv2'].map(i=>document.getElementById(i)).find(e=>e&&e.offsetParent);
-  const on=!bbTypo&&!!(pv&&s&&s.rangeCount&&!s.isCollapsed&&pv.contains(s.getRangeAt(0).commonAncestorContainer));
+  const on=!bbTypo&&!bbImp.on&&!bbIdle()&&!!(pv&&s&&s.rangeCount&&!s.isCollapsed&&pv.contains(s.getRangeAt(0).commonAncestorContainer));
   if(bbHadSel&&!on)bbSelClr=Date.now();
   bbHadSel=on;
   const bar=document.getElementById('bbMgBar');if(bar)bar.style.display=on?'':'none';
 });
 async function bbAdd(){
   const ti=document.getElementById('bbTi').value.trim()||'제목 없음',f={title:ti,subj:bbF.subj,loc:bbF.loc,day:bbDayStore(bbF.days)};let tg=null,hh=0;
-  if(bbF.edit){tg=bbDocs.find(d=>d.id===bbF.edit);if(!((bbF.reup&&bbTmp&&bbTmp.html)?bbMmReplace(tg):bbEdBlanks(tg)))return;Object.assign(tg,f);hh=0}
+  if(bbF.edit){tg=bbDocs.find(d=>d.id===bbF.edit);if(!((bbF.reup&&bbTmp&&bbTmp.html)?bbMmReplace(tg):bbEdBlanks(tg)))return;Object.assign(tg,f);if(bbF.reup&&bbTmp&&bbTmp.xm)tg.xm=bbTmp.xm;hh=0}
   else{
     if(!bbTmp){alert('먼저 내용을 붙여넣어주세요');return}
     try{if(bbPerson){await bbPush(bbPerson);await bbPull(bbPerson)}else await bbPush()}catch(e){}   // 등록 직전 서버 목록 확인
     if(bbF.append){   // 기존 문서 맨 아래에 추가 (앞쪽 빈칸 번호가 안 바뀌어 기록 유지)
       tg=bbDocs.find(d=>d.id===bbF.append);if(!tg){alert('대상 문서를 찾을 수 없어요');return}
-      tg.html=(tg.html||'')+bbTmp.html;tg.n=(tg.n||0)+bbTmp.n;hh=1;
+      tg.html=(tg.html||'')+bbTmp.html;tg.n=(tg.n||0)+bbTmp.n;hh=1;bbXmPersonal(tg);
       bbEnqDoc(tg,hh);bbSave();bbClose();bbRender();return;
     }
-    Object.assign(f,{src:bbTmp.src,html:bbTmp.html,n:bbTmp.n});
+    Object.assign(f,{src:bbTmp.src,html:bbTmp.html,n:bbTmp.n});if(bbTmp.xm)f.xm=bbTmp.xm;
     const ex=f.src&&bbDocs.find(d=>d.src===f.src);
     if(ex){if(!confirm('같은 글이 이미 있어요. 내용을 덮어쓸까요? (기록은 유지돼요)'))return;Object.assign(ex,f);tg=ex;hh=1}
     else{tg={id:'d'+Date.now().toString(36),...f};bbDocs.push(tg);hh=1}
   }
-  if(tg)bbEnqDoc(tg,hh);
+  if(tg){bbXmPersonal(tg);bbEnqDoc(tg,hh)}
   bbSave();bbClose();bbRender();
 }
 
@@ -3859,7 +4227,7 @@ async function bbPush(who){
         const o=q[k],it=o.item;
         if(o.kind==='docs'){
           if(it.del){if(nd>=3)continue;nd++;b.docs.push({id:it.id,ts:it.ts,deleted:1})}
-          else{const d=bbDocs.find(x=>x.id===it.id);if(d){if(nd>=3)continue;nd++;const p={id:d.id,ts:it.ts,title:d.title,subj:d.subj||'',loc:d.loc||'',day:d.day===undefined?'':d.day,src:d.src||'',n:d.n||0};if(it.h)p.html=d.html;b.docs.push(p)}}
+          else{const d=bbDocs.find(x=>x.id===it.id);if(d){if(nd>=3)continue;nd++;const p={id:d.id,ts:it.ts,title:d.title,subj:d.subj||'',loc:d.loc||'',day:d.day===undefined?'':d.day,src:d.src||'',n:d.n||0};if(it.h)p.html=d.html+(d.xm?BB_XM+d.xm:'');b.docs.push(p)}}
         }else if(o.kind==='ses'){if(ns>=40)continue;ns++;b.ses.push(it.del?{sid:it.sid,docId:it.docId,term:it.term,at:it.at,ts:it.ts,deleted:1}:it)}
         else if(o.kind==='settings')b.settings=it;
         else{if(nr>=400)continue;nr++;b[o.kind].push(it)}
@@ -3888,7 +4256,7 @@ async function bbPull(who,full){
     const i=bbDocs.findIndex(d=>d.id===sd.id),l=bbDocs[i];
     if(sd.deleted){if(l){bbDocs.splice(i,1);delete bbRec[sd.id];delete bbRuns[sd.id];delete bbStar[sd.id];delete bbPens[sd.id];if(bbView===sd.id)bbView=null;ch=true}return}
     if(l&&sd.ts<=(l.ts||0))return;
-    const nd={id:sd.id,title:sd.title,subj:sd.subj,loc:sd.loc,day:sd.day,src:sd.src,n:sd.n,html:sd.html,ts:sd.ts};
+    const xi=String(sd.html||'').indexOf(BB_XM),nd={id:sd.id,title:sd.title,subj:sd.subj,loc:sd.loc,day:sd.day,src:sd.src,n:sd.n,html:xi<0?sd.html:sd.html.slice(0,xi),ts:sd.ts};if(xi>=0)nd.xm=sd.html.slice(xi+BB_XM.length);
     if(l)bbDocs[i]=nd;
     else bbDocs.push(nd);
     ch=true;
@@ -4022,6 +4390,7 @@ window.addEventListener('pagehide',uiSave);
 // ==================== SETTINGS (⚙️) ====================
 // 업데이트 기록: 새 수정을 할 때마다 맨 위에 한 줄씩 추가 (화면에는 최근 5개만 표시)
 const APP_LOG=[
+  ['10/15','★·메모 통합 및 관계·요약 추가, 편집 모드 개선, Xmind 다운로드 추가'],
   ['10/14','통합된 설정 버튼 추가, 홈 화면 뽀개기 추가'],
   ['10/14','사용자 지정 기능 추가, 마지막 보던 화면 복원']
 ];
@@ -4138,8 +4507,8 @@ function bbMmFonts(){
   if(bbMmFonts.d)return;bbMmFonts.d=1;
   [['EliceNeolli','fonts/neolli.woff2'],['OwnglyphCocoa','fonts/cocoa.woff2']].forEach(([n,u])=>{try{new FontFace(n,'url('+u+')').load().then(f=>{document.fonts.add(f);bbMmFix(document)}).catch(()=>{})}catch(e){}});
 }
-const bbMm=(()=>{const g=k=>{try{return localStorage.getItem(k)}catch(e){return null}};return{mode:g('bbMmMode')||(innerWidth<700?'list':'map'),z:+g('bbMmZ')||1,lf:+g('bbMmLF')||15,len:g('bbLen')==='1',line:g('bbLine')==='1',star:g('bbStar')!=='0',pick:false,path:null}})();
-function bbMmSave(){try{localStorage.setItem('bbMmMode',bbMm.mode);localStorage.setItem('bbMmZ',bbMm.z);localStorage.setItem('bbMmLF',bbMm.lf);localStorage.setItem('bbLen',bbMm.len?'1':'0');localStorage.setItem('bbLine',bbMm.line?'1':'0');localStorage.setItem('bbStar',bbMm.star?'1':'0')}catch(e){}}
+const bbMm=(()=>{const g=k=>{try{return localStorage.getItem(k)}catch(e){return null}};return{mode:g('bbMmMode')||(innerWidth<700?'list':'map'),z:+g('bbMmZ')||1,lf:+g('bbMmLF')||15,len:g('bbLen')==='1',line:g('bbLine')==='1',star:g('bbStar')!=='0',pick:false,path:null,tm:g('bbMmTM')==='all'?'all':'split',tab:0,td:null,cl:g('bbMmCL')!=='0',imp:(v=>v==='my'?'my':(v==='1'||v==='imp')?'imp':'all')(g('bbMmImp'))}})();
+function bbMmSave(){try{localStorage.setItem('bbMmMode',bbMm.mode);localStorage.setItem('bbMmZ',bbMm.z);localStorage.setItem('bbMmLF',bbMm.lf);localStorage.setItem('bbLen',bbMm.len?'1':'0');localStorage.setItem('bbLine',bbMm.line?'1':'0');localStorage.setItem('bbStar',bbMm.star?'1':'0');localStorage.setItem('bbMmTM',bbMm.tm);localStorage.setItem('bbMmCL',bbMm.cl?'1':'0');localStorage.setItem('bbMmImp',bbMm.imp)}catch(e){}}
 function bbMmBar(doc,ms){const o=document.getElementById('bbMmHBar');if(o)o.remove();if(doc)doc.classList.toggle('mmdoc',!!ms.length)}
 function bbMmNum(m,on){   // 목록 모드: 상자에만 층위별 번호(I. 1. 가. 1) 가) (1) (가) •). 같은 부모 아래 상자끼리 순번, 번호 칸 폭은 그 묶음의 가장 긴 번호에 맞춤
   const KO='가나다라마바사아자차카타파하',RO=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV'];
@@ -4181,7 +4550,7 @@ function bbMmColl(){   // 노드를 누르면 그 아래 가지가 접힘/펼침
 }
 document.addEventListener('click',e=>{
   if(bbMm.pick||!e.target.closest)return;
-  const n=e.target.closest('#bbDoc .mmn');if(!n||e.target.closest('.bb-b'))return;
+  const n=e.target.closest('#bbDoc .mmn');if(!n||e.target.closest('.bb-b,.mmcl'))return;
   const b0=n.parentElement;if(!b0.querySelector(':scope>.mmc'))return;
   const sl=window.getSelection&&window.getSelection();if(sl&&!sl.isCollapsed&&String(sl).trim())return;
   const m=n.closest('.mm'),mi=[...document.querySelectorAll('#bbDoc .mm')].indexOf(m);
@@ -4190,13 +4559,115 @@ document.addEventListener('click',e=>{
   const k=mi+':'+p.join('.');if(bbColl.has(k))bbColl.delete(k);else bbColl.add(k);
   bbMmColl();bbMmFix(document);const d=document.getElementById('bbDoc');bbHS(d&&d.classList.contains('mmdoc')?d:null);
 });
+function bbMmImp(){   // 내용 표시 '중요만': ★ 노드 + 그 조상 경로 + 그 하위 전부만 남김. 번호는 이미 원래대로 매겨진 뒤라 숨긴 노드를 건너뛰지 않음
+  document.querySelectorAll('#bbDoc .mm').forEach(m=>{
+    m.querySelectorAll('.mmb').forEach(b=>b.classList.remove('imx','if','il','io'));m.classList.remove('imp','impn');
+    if(bbMm.imp==='all')return;
+    const sel=bbMm.imp==='my'?'.ip,.bb-b.star':'mark,.ip,.bb-b.star';   // 중요만 = Xmind 빨간 ★ + 내 중요 / 내 중요만 = 내가 표시한 것만
+    const keep=new Set(),st=b=>{const n=b.firstElementChild;return !!(n&&n.classList.contains('mmn')&&n.querySelector(sel))};
+    [...m.querySelectorAll('.mmb')].filter(st).forEach(b=>{keep.add(b);b.querySelectorAll('.mmb').forEach(x=>keep.add(x));let a=b.parentElement&&b.parentElement.closest('.mmb');while(a){keep.add(a);a=a.parentElement&&a.parentElement.closest('.mmb')}});
+    m.classList.add('imp');if(!keep.size)m.classList.add('impn');
+    m.querySelectorAll('.mmb').forEach(b=>{if(!keep.has(b))b.classList.add('imx')});
+    m.querySelectorAll('.mmc').forEach(c=>{   // 보이는 형제 중 첫째·끝째·유일한 것 표시 (연결선용; :first-child 등은 숨긴 형제까지 세므로)
+      const v=[...c.children].filter(x=>x.classList.contains('mmb')&&!x.classList.contains('imx')&&!x.classList.contains('mmx'));
+      if(v.length){v[0].classList.add('if');v[v.length-1].classList.add('il');if(v.length===1)v[0].classList.add('io')}
+    });
+  });
+}
+function bbMmQs(root){   // 마인드맵형: 요약(오른쪽 괄호선)·관계(점선 화살표)를 .mm 위 SVG로 그림. 접기·확대·탭·글꼴로 배치가 바뀔 때마다 bbMmFix 끝에서 다시 그림
+  if(!(root===document||(root&&root.closest&&root.closest('#bbDoc'))))return;
+  const NS='http://www.w3.org/2000/svg',E=(t,a,p)=>{const e=document.createElementNS(NS,t);Object.keys(a||{}).forEach(k=>e.setAttribute(k,a[k]));if(p)p.appendChild(e);return e};
+  document.querySelectorAll('#bbDoc .mm').forEach((m,mi)=>{
+    const old=m.querySelector(':scope>svg.mmqs');if(old)old.remove();m.style.paddingRight='';
+    if(m.classList.contains('lst'))return;
+    const qs=[...m.querySelectorAll('.mmq.mmqs,.mmq.mmqr')],mr=m.getBoundingClientRect();if(!qs.length||!mr.width)return;
+    const z=parseFloat(m.style.zoom)||1,R=el=>{const r=el&&el.getBoundingClientRect();return r&&(r.width||r.height)?{l:(r.left-mr.left)/z,r:(r.right-mr.left)/z,t:(r.top-mr.top)/z,b:(r.bottom-mr.top)/z}:null};
+    const by={};m.querySelectorAll('.mmn[data-x]').forEach(n=>{by[n.dataset.x]=n});
+    const svg=E('svg',{class:'mmqs',width:Math.ceil(m.scrollWidth/z),height:Math.ceil(m.scrollHeight/z)}),ln='fill:none;stroke:var(--text2);stroke-width:1.6px',tx='fill:var(--text2);font-size:.8em;font-family:\'OwnglyphCocoa\',\'EliceNeolli\',sans-serif';
+    const df=E('defs',{},svg),mk=E('marker',{id:'bbqa'+mi,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:8,markerHeight:8,orient:'auto-start-reverse'},df);E('path',{d:'M0,1 L10,5 L0,9 z',style:'fill:var(--text2)'},mk);
+    const labs=[];
+    qs.forEach(q=>{
+      if(q.classList.contains('mmqs')){   // 요약: 묶인 형제 블록들 오른쪽에 }
+        const c=q.parentElement.querySelector(':scope>.mmc');if(!c)return;
+        const bs=[...c.children].filter(b=>b.classList.contains('mmb')),ix=id=>bs.findIndex(b=>b.firstElementChild&&b.firstElementChild.dataset.x===id),a=ix(q.dataset.a),b=ix(q.dataset.b);if(a<0||b<0)return;
+        const rs=bs.slice(Math.min(a,b),Math.max(a,b)+1).map(R).filter(Boolean);if(!rs.length)return;
+        const x=Math.max(...rs.map(r=>r.r))+6,t=Math.min(...rs.map(r=>r.t))+4,bt=Math.max(...rs.map(r=>r.b))-4,md=(t+bt)/2,h=Math.min(10,(bt-t)/4);
+        E('path',{d:`M${x},${t} H${x+9} V${bt} H${x} M${x+9},${md} H${x+17}`,style:ln+';stroke-linejoin:round'},svg);
+        const s=q.textContent.replace(/\s+/g,' ').trim();if(s){const e=E('text',{x:x+23,y:md,'dominant-baseline':'middle',style:tx},svg);e.textContent=s;labs.push(e)}
+      }else{   // 관계: 출발 노드 → 도착 노드 점선 곡선 + 화살표
+        const sn=q.parentElement.firstElementChild,s=R(sn),e=R(by[q.dataset.t]);if(!s||!e)return;
+        let x1,y1,x2,y2,k1,k2,k3,k4;   // 위아래로 놓인 상자는 위 상자 아래→아래 상자 위로, 가능한 한 수직 직선
+        if(e.t>=s.b-2||e.b<=s.t+2){
+          const dn=e.t>=s.b-2,o0=Math.max(s.l,e.l),o1=Math.min(s.r,e.r),ov=o1-o0>=8;
+          x1=ov?(o0+o1)/2:(s.l+s.r)/2;x2=ov?x1:(e.l+e.r)/2;y1=dn?s.b:s.t;y2=dn?e.t:e.b;
+          const d=Math.max(14,Math.abs(y2-y1)/2)*(dn?1:-1);k1=x1;k2=y1+d;k3=x2;k4=y2-d;
+        }else{   // 같은 높이대: 옆으로 연결
+          y1=(s.t+s.b)/2;y2=(e.t+e.b)/2;
+          if(e.l>s.r+4){x1=s.r;x2=e.l;k1=x1+Math.max(30,(x2-x1)/2);k3=x2-Math.max(30,(x2-x1)/2)}
+          else if(e.r<s.l-4){x1=s.l;x2=e.r;k1=x1-Math.max(30,(x1-x2)/2);k3=x2+Math.max(30,(x1-x2)/2)}
+          else{x1=s.r;x2=e.r;k1=k3=Math.max(s.r,e.r)+50}
+          k2=y1;k4=y2;
+        }
+        E('path',{d:`M${x1},${y1} C${k1},${k2} ${k3},${k4} ${x2},${y2}`,style:ln+';stroke-dasharray:5 4','marker-end':`url(#bbqa${mi})`},svg);
+        const l=q.textContent.replace(/\s+/g,' ').trim();if(l){const e2=E('text',{x:(x1+3*k1+3*k3+x2)/8,y:(y1+3*k2+3*k4+y2)/8,'text-anchor':'middle','dominant-baseline':'middle',style:tx+';paint-order:stroke;stroke:var(--bg);stroke-width:4px'},svg);e2.textContent=l}
+      }
+    });
+    m.appendChild(svg);
+    let mx=0;labs.forEach(e=>{try{const b=e.getBBox();mx=Math.max(mx,b.x+b.width)}catch(x){}});
+    const need=mx+8-(m.clientWidth/z);if(need>0)m.style.paddingRight=Math.ceil(need+2)+'px';   // 요약 글이 맵 오른쪽 밖으로 나가면 스크롤되게 여백 확보
+  });
+}
+function bbMmQx(m,on){   // 목록 모드: 요약(.mmqs)·관계(.mmqr) 데이터를 글줄(.mmqx)로 그림. 마인드맵형이거나 다시 그릴 땐 먼저 지움
+  m.querySelectorAll('.mmqx').forEach(e=>e.remove());
+  if(!on)return;
+  const by={},tx=n=>{const c=n.cloneNode(true);c.querySelectorAll('.mmcl,[data-pen]').forEach(x=>x.remove());return c.textContent.replace(/\s+/g,' ').trim()},
+    lab=n=>{const p=[];let b=n.parentElement;while(b&&b.classList.contains('mmb')){const x=b.firstElementChild;if(x&&x.dataset.num)p.unshift(x.dataset.num);const c=b.parentElement;b=c&&c.classList.contains('mmc')?c.parentElement:null}return p.join('')},
+    mk=t=>{const e=document.createElement('div');e.className='mmqx';e.textContent=t;return e};
+  m.querySelectorAll('.mmn[data-x]').forEach(n=>{by[n.dataset.x]=n});
+  m.querySelectorAll('.mmq.mmqs').forEach(q=>{   // 요약: 묶인 범위의 마지막 형제 아래, 형제와 같은 들여쓰기. 예) 1번~2번: '요약'
+    const c=q.parentElement.querySelector(':scope>.mmc');if(!c)return;
+    const bs=[...c.children].filter(b=>b.classList.contains('mmb')),ix=id=>bs.findIndex(b=>b.firstElementChild&&b.firstElementChild.dataset.x===id),a=ix(q.dataset.a),z=ix(q.dataset.b);
+    if(a<0||z<0)return;const lo=Math.min(a,z),hi=Math.max(a,z),t=q.textContent.trim();
+    {const n1=bs[lo].firstElementChild,nd=bs[hi].firstElementChild,t1=tx(n1),t2=tx(nd);   // 범위의 첫·끝 상자 내용(상자 안 줄바꿈은 공백 한 칸으로 한 줄). 예) 주요 주제~주요 주제 2: '요약'
+     const e=mk((lo===hi?t2:t1+'~'+t2)+(t?': '+t:''));if(nd&&nd.style.marginLeft)e.style.marginLeft=nd.style.marginLeft;bs[hi].appendChild(e)}   // 같은 단계(형제 상자와 같은 왼쪽 선)
+  });
+  const last=new Map();
+  m.querySelectorAll('.mmq.mmqr').forEach(q=>{   // 관계: 출발 노드 아래. 예) → II. 주요 주제 2 : 관계
+    const b=q.parentElement,src=b.firstElementChild,tg=by[q.dataset.t];if(!src||!src.classList.contains('mmn')||!tg)return;
+    const t=q.textContent.trim(),e=mk('→ '+[lab(tg),tx(tg)].filter(Boolean).join(' ')+(t?' : '+t:''));
+    (last.get(b)||src).after(e);last.set(b,e);
+  });
+}
+function bbMmCl(root){   // 저장된 설명선 데이터(.mmq.mmqc)를 노드 아래 메모 줄(.mmcl)로 그림. 이미 있으면 건너뜀
+  root.querySelectorAll('.mmb>.mmq.mmqc').forEach(q=>{
+    const n=q.parentElement.firstElementChild;if(!n||!n.classList.contains('mmn')||n.querySelector(':scope>.mmcl'))return;
+    const e=document.createElement('div');e.className='mmcl'+(q.dataset.s?' sx':'');e.textContent=q.textContent;n.appendChild(e);
+  });
+}
+function bbMmTabBar(doc,ms,split){
+  const w=doc.closest('.bb-dw')||doc;let b=document.getElementById('bbMmTabs');
+  if(!split){if(b)b.remove();return}
+  if(!b){b=document.createElement('div');b.id='bbMmTabs';b.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px';
+    b.onclick=e=>{const a=e.target.closest('[data-tab]');if(!a)return;const i=+a.dataset.tab;if(i===bbMm.tab)return;
+      bbMm.tab=i;if(bbMm.path&&bbMm.path[0]!==i){bbMm.path=null;bbOptClr()}bbMmRun2()}}
+  if(b.parentNode!==w.parentNode||b.nextSibling!==w)w.parentNode.insertBefore(b,w);
+  const sig=bbMm.tab+'|'+ms.map(m=>m.dataset.tab||'').join('\u0001');
+  if(b.dataset.sig!==sig){b.dataset.sig=sig;
+    b.innerHTML=ms.map((m,i)=>`<button class="bb-btn${i===bbMm.tab?' pri':''}" style="padding:5px 12px" data-tab="${i}">${bbEsc(m.dataset.tab||'탭 '+(i+1))}</button>`).join('')}
+}
 function bbMmUi(){
   document.body.classList.toggle('bblen',bbMm.len);
-  document.body.classList.toggle('bbnoline',!bbMm.line);document.body.classList.toggle('bbnostar',!bbMm.star);
+  document.body.classList.toggle('bbnoline',!bbMm.line);document.body.classList.remove('bbnostar');document.body.classList.toggle('bbnocl',!bbMm.cl);
   const doc=document.getElementById('bbDoc');if(!doc){bbMmBar(null,[]);bbHS(null);return}
   const ms=[...doc.querySelectorAll('.mm')];
   ms.forEach(m=>{m.classList.toggle('lst',bbMm.mode==='list');m.style.zoom=bbMm.mode==='map'&&bbMm.z!==1?bbMm.z:'';m.style.setProperty('--lf',bbMm.lf+'px')});
   ms.forEach(m=>bbMmNum(m,bbMm.mode==='list'));
+  ms.forEach(m=>bbMmQx(m,bbMm.mode==='list'));
+  if(bbMm.td!==bbView){bbMm.td=bbView;bbMm.tab=0}   // 문서가 바뀌면 첫 탭부터
+  if(bbMm.tab>=ms.length)bbMm.tab=0;
+  const split=ms.length>1&&bbMm.tm==='split';   // 탭: 구분(한 탭씩, 기본) / 통합(모든 탭을 이어서)
+  ms.forEach((m,i)=>m.classList.toggle('tabx',split&&i!==bbMm.tab));
+  bbMmTabBar(doc,ms,split);
   bbMmColl();
   bbMmBar(doc,ms);bbHS(ms.length?doc:null);
   const d1=document.getElementById('bbOptDisp'),d2=document.getElementById('bbOptView');
@@ -4204,9 +4675,11 @@ function bbMmUi(){
   const L=bbMm.mode==='list',bt=(a,t,on)=>`<button class="bb-btn${on?' pri':''}" style="padding:5px 11px" data-a="${a}">${t}</button>`;
   const hd=[];
   if(ms.length)hd.push(bt('mode','형식: '+(L?'목록':'마인드맵')));
+  if(ms.length>1)hd.push(bt('tm','탭: '+(bbMm.tm==='all'?'통합':'구분'),bbMm.tm==='all'));
   hd.push(bt('len','빈칸 길이: '+(bbMm.len?'고정':'원래'),bbMm.len));
   hd.push(bt('line','빈칸 테두리: '+(bbMm.line?'보이기':'숨기기'),bbMm.line));
-  hd.push(bt('star','중요 표시: '+(bbMm.star?'보이기':'숨기기'),bbMm.star));
+  if(doc.querySelector('.mmqc,.bb-pen:not(.bb-b)'))hd.push(bt('cl','메모: '+(bbMm.cl?'보이기':'숨기기'),bbMm.cl));
+  hd.push(bt('imp','내용 표시: '+(bbMm.imp==='my'?'내 중요만':bbMm.imp==='imp'?'중요만':'전체'),bbMm.imp!=='all'));
   d1.innerHTML=hd.join('');d1.dataset.b=1;
   if(ms.length){
     const v=L?bbMm.lf:Math.round(bbMm.z*100),pc=L?Math.round(bbMm.lf/15*100):v;
@@ -4224,7 +4697,7 @@ function bbMmUi(){
       if(L)bbMm.lf=k==='sd'?15:Math.min(30,Math.max(10,bbMm.lf+(k==='sp'?1:-1)));
       else bbMm.z=k==='sd'?1:Math.min(2,Math.max(.4,Math.round((bbMm.z+(k==='sp'?.05:-.05))*100)/100));
       return ap()}
-    if(k==='len')bbMm.len=!bbMm.len;else if(k==='line')bbMm.line=!bbMm.line;else if(k==='star')bbMm.star=!bbMm.star;else if(k==='mode'){bbMm.mode=bbMm.mode==='list'?'map':'list';bbMm.pick=false}
+    if(k==='len')bbMm.len=!bbMm.len;else if(k==='line')bbMm.line=!bbMm.line;else if(k==='imp')bbMm.imp=bbMm.imp==='all'?'imp':bbMm.imp==='imp'?'my':'all';else if(k==='cl')bbMm.cl=!bbMm.cl;else if(k==='tm'){bbMm.tm=bbMm.tm==='all'?'split':'all';bbMm.path=null}else if(k==='mode'){bbMm.mode=bbMm.mode==='list'?'map':'list';bbMm.pick=false}
     else if(k==='pick')bbMm.pick=!bbMm.pick;else if(k==='all'){bbMm.path=null;bbMm.pick=false}
     bbMmSave();bbOptClr();bbMmRun2()};
   d1.onclick=hnd;d2.onclick=hnd;
@@ -4255,12 +4728,13 @@ function bbHS(doc){
   addEventListener('resize',()=>{const d=document.getElementById('bbDoc');bbHS(d&&d.classList.contains('mmdoc')?d:null)});
 })();
 function bbOptClr(){const a=document.getElementById('bbOptDisp'),b=document.getElementById('bbOptView');if(a){a.innerHTML='';delete a.dataset.b}if(b&&document.querySelector('#bbDoc .mm'))b.innerHTML=''}
-function bbMmFocus(){
-  const m=document.querySelector('#bbDoc .mm');if(!m)return;
-  m.querySelectorAll('.mmb').forEach(b=>b.classList.remove('mmx','anc','tgt'));m.classList.remove('foc');
+function bbMmFocus(){   // bbMm.path = [탭 번호, 루트 번호, 자식 번호, …]
+  const ms=[...document.querySelectorAll('#bbDoc .mm')];if(!ms.length)return;
+  ms.forEach(x=>{x.querySelectorAll('.mmb').forEach(b=>b.classList.remove('mmx','anc','tgt'));x.classList.remove('foc')});
   if(!bbMm.path||bbMm.mode!=='map')return;
-  let b=m.children[bbMm.path[0]];const ch=[b];
-  for(const i of bbMm.path.slice(1)){const c=b&&b.querySelector(':scope>.mmc');b=c&&c.children[i];ch.push(b)}
+  const m=ms[bbMm.path[0]];if(!m){bbMm.path=null;return}
+  let b=m.children[bbMm.path[1]];const ch=[b];
+  for(const i of bbMm.path.slice(2)){const c=b&&b.querySelector(':scope>.mmc');b=c&&c.children[i];ch.push(b)}
   if(ch.some(x=>!x)){bbMm.path=null;return}
   const t=ch[ch.length-1];
   m.querySelectorAll('.mmb').forEach(x=>{if(!ch.includes(x)&&!t.contains(x))x.classList.add('mmx')});
@@ -4271,11 +4745,11 @@ document.addEventListener('click',e=>{
   e.preventDefault();e.stopPropagation();
   let b=n.parentElement;const p=[];
   while(b){const par=b.parentElement;p.unshift([...par.children].indexOf(b));if(par===m)break;b=par.parentElement}
-  bbMm.path=p;bbMm.pick=false;bbOptClr();bbMmRun2();
+  bbMm.path=[[...document.querySelectorAll('#bbDoc .mm')].indexOf(m),...p];bbMm.pick=false;bbOptClr();bbMmRun2();
 },true);
 function bbMmFix(root){
   const cs=[...root.querySelectorAll('.mmc')],Z=c=>parseFloat(c.closest('.mm').style.zoom)||1,mid=(b,z)=>{const br=b.getBoundingClientRect(),nr=b.firstElementChild&&b.firstElementChild.getBoundingClientRect();return(((nr&&nr.height?nr:br).top+(nr&&nr.height?nr.height:br.height)/2)-br.top)/z};
-  cs.forEach(c=>{   // 같은 부모 아래 상자 노드는 가장 긴 글자(또는 XMind 너비) 기준으로 너비 통일
+  cs.forEach(c=>{   // 같은 부모 아래 상자 노드는 가장 긴 글자(또는 Xmind 너비) 기준으로 너비 통일
     const ns=[...c.children].map(b=>b.firstElementChild).filter(n=>n&&!(n.classList.contains('mm3')&&!/ mf/.test(n.className)));
     if(ns.length<2)return;const z=Z(c);ns.forEach(n=>{n.style.width='';n.style.maxWidth=''});
     const w=Math.ceil(Math.max(0,...ns.map(n=>Math.max(+n.dataset.w||0,n.getBoundingClientRect().width/z))));
@@ -4291,15 +4765,16 @@ function bbMmFix(root){
       if(Math.abs(d)<=Math.min(20,r.height/z/2-3))b.classList.add('mst');else b.classList.remove('mst');
     });
   });
+  try{bbMmQs(root)}catch(e){}
 }
-function bbMmRun2(){if(document.getElementById('bbDoc')||document.querySelector('.mm')){bbMmUi();bbMmFocus();if(document.querySelector('.mm')){bbMmFonts();bbMmFix(document)}const d=document.getElementById('bbDoc');if(d&&d.classList.contains('mmdoc'))bbHS(d)}else bbHS(null)}
+function bbMmRun2(){if(document.getElementById('bbDoc')||document.querySelector('.mm')){bbMmCl(document);bbMmUi();bbMmFocus();bbMmImp();if(document.querySelector('.mm')){bbMmFonts();bbMmFix(document)}const d=document.getElementById('bbDoc');if(d&&d.classList.contains('mmdoc'))bbHS(d)}else bbHS(null)}
 (function(){let q=0;const run=()=>{q=0;bbMmRun2()};
   const go=()=>{if(!q)q=requestAnimationFrame(run)};
   new MutationObserver(go).observe(document.body,{childList:true,subtree:true});addEventListener('resize',go);})();
 
 function bbStarRemap(id,map,now){   // 빈칸 수정 저장 시 중요 표시도 새 번호로 옮김 (바뀐 빈칸의 별은 삭제)
   const so=bbStar[id];if(!so)return;const sn={};
-  for(const k in so){if(map[k]===k)sn[k]=so[k];else bbEnq('stars',`stars|${id}|${k}`,{docId:id,blankKey:k,star:0,ts:now})}
+  for(const k in so){if(k[0]==='g'||map[k]===k)sn[k]=so[k];else bbEnq('stars',`stars|${id}|${k}`,{docId:id,blankKey:k,star:0,ts:now})}
   for(const k in so){const m=map[k];if(m&&m!==k){sn[m]=now;bbEnq('stars',`stars|${id}|${m}`,{docId:id,blankKey:m,star:1,ts:now})}}
   if(Object.keys(sn).length)bbStar[id]=sn;else delete bbStar[id];
 }
