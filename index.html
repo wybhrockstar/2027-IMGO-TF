@@ -2856,7 +2856,7 @@ function bbClean(src,out){
     if(t==='TD'||t==='TH'){el=document.createElement('td');
       ['colspan','rowspan'].forEach(a=>{const v=parseInt(n.getAttribute(a));if(v>1&&v<20)el.setAttribute(a,v)});
       if(/background/.test(n.getAttribute('style')||'')&&!n.querySelector('.blank'))el.className='bb-th';
-    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='I'&&n.classList.contains('d'))el.className='d';if(t==='MARK'&&n.classList.contains('px'))el.className='px';if(t==='DIV'){const c=[...n.classList].filter(x=>x==='contentbox'||/^(mm[0-9a-z]?|mf[0-5]|ml[12]|mk[12]|ms[12]|mmq[csrp])$/.test(x)).join(' ');if(c)el.className=c;if(/^\d{2,3}$/.test(n.dataset.w||''))el.dataset.w=n.dataset.w;if(t==='DIV'&&n.classList.contains('mm')&&n.dataset.tab)el.dataset.tab=n.dataset.tab.slice(0,60);if(t==='DIV'){['x','t','a','b','s'].forEach(k=>{if(/^[A-Za-z0-9_-]{1,48}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}}}
+    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='I'&&n.classList.contains('d'))el.className='d';if(t==='MARK'&&n.classList.contains('px'))el.className='px';if(t==='DIV'){const c=[...n.classList].filter(x=>x==='contentbox'||/^(mm[0-9a-z]?|mf[0-5]|ml[12]|mk[12]|ms[12]|mmq[csrp])$/.test(x)).join(' ');if(c)el.className=c;if(/^\d{2,3}$/.test(n.dataset.w||''))el.dataset.w=n.dataset.w;if(t==='DIV'&&n.classList.contains('mm')&&n.dataset.tab)el.dataset.tab=n.dataset.tab.slice(0,60);if(t==='DIV'){['x','t','a','b','s','r','p'].forEach(k=>{if(/^[A-Za-z0-9_-]{1,48}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}}}
     if(el){bbClean(n,el);out.appendChild(el)}else bbClean(n,out);
   });
 }
@@ -3601,7 +3601,7 @@ function bbMmTreeL(lines){
       if(q[1]==='※'){let w=v,sg=0;if(w[0]==='‼'){sg=1;w=w.slice(1).trim()}if(w){last.cl=(last.cl?last.cl+'⏎':'')+w;if(sg)last.cs=1}}
       else if(q[1]==='◇'){let w=v,sg=0;if(w[0]==='‼'){sg=1;w=w.slice(1).trim()}if(w)(last.pm=last.pm||[]).push({t:w,c:sg})}
       else if(q[1]==='∑'){const k=v.match(/^(\S+)\s+(\S+)\s?([\s\S]*)$/);if(k&&ID.test(k[1])&&ID.test(k[2]))(last.sm=last.sm||[]).push({a:k[1],b:k[2],t:k[3].trim()})}
-      else{const k=v.match(/^(\S+)\s?([\s\S]*)$/);if(k&&ID.test(k[1]))(last.rl=last.rl||[]).push({to:k[1],t:k[2].trim()})}
+      else{const k=v.match(/^(\S+)\s?([\s\S]*)$/);if(k){const pt=k[1].split(':'),id=pt[pt.length-1],kd=pt.length>1?pt[0]:'',cp=pt.length>2?pt[1]:'';if(ID.test(id)&&(!kd||kd==='s'||kd==='c')&&(!cp||/^-?\d+(_-?\d+){3}$/.test(cp)))(last.rl=last.rl||[]).push({to:id,t:k[2].trim(),k:kd,p:cp})}}
       return}
     const m=raw.match(/^([ \t]*)(?:[-*•▪○●■□]\s+)?(◯\s+)?(.*)$/);let t=m[3].trim();if(!t)return;
     let mt=null;const mk=t.match(/^⟦([^⟧]*)⟧\s*/);if(mk){mt={};mk[1].split(/\s+/).forEach(x=>{if(x)mt[x[0]]=x[0]==='x'?x.slice(1):+x.slice(1)});t=t.slice(mk[0].length)}
@@ -3656,7 +3656,7 @@ function bbMmTxt(t,o){
 }
 function bbMmExtra(n){   // 설명선·요약·관계 데이터 (자식 목록 .mmc 밖, 노드 블록 맨 끝). 요약 범위는 형제 노드 id로 가리킴
   const X=v=>bbEsc(v).replace(/⏎/g,'\n');
-  return (n.cl?`<div class="mmq mmqc"${n.cs?' data-s="1"':''}>${X(n.cl)}</div>`:'')+(n.sm||[]).map(s=>`<div class="mmq mmqs" data-a="${s.a}" data-b="${s.b}">${X(s.t)}</div>`).join('')+(n.rl||[]).map(r=>`<div class="mmq mmqr" data-t="${r.to}">${X(r.t)}</div>`).join('')+(n.pm||[]).map(p=>`<div class="mmq mmqp"${p.c?' data-s="1"':''}>${X(p.t)}</div>`).join('');
+  return (n.cl?`<div class="mmq mmqc"${n.cs?' data-s="1"':''}>${X(n.cl)}</div>`:'')+(n.sm||[]).map(s=>`<div class="mmq mmqs" data-a="${s.a}" data-b="${s.b}">${X(s.t)}</div>`).join('')+(n.rl||[]).map(r=>`<div class="mmq mmqr" data-t="${r.to}"${r.k?` data-r="${r.k}"`:''}${r.p?` data-p="${r.p}"`:''}>${X(r.t)}</div>`).join('')+(n.pm||[]).map(p=>`<div class="mmq mmqp"${p.c?' data-s="1"':''}>${X(p.t)}</div>`).join('');
 }
 function bbMmNode(n,d,o,pv){
   const lf=!n.c.length,m=n.m||{},bx=m.f!=null||n.e,o2=Object.assign({},o,{leaf:o.leaf&&lf&&!bx}),k=d===0?0:lf?3:d===1?1:(o.xm&&!bx?3:2);   // Xmind 문서: 상자 없는 노드는 하위가 있어도 상자 없이
@@ -3726,6 +3726,17 @@ function bbXmMeta(t){
   if(/^[A-Za-z0-9_-]{1,48}$/.test(t.id||''))o.push('x'+t.id);   // Xmind 노드 id (다시 내려받기용 대응표)
   return o.length?'⟦'+o.join(' ')+'⟧':'';
 }
+function bbXmRels(sh){   // 시트의 관계선 → 출발 노드 id별 목록. k: 's'=직선(shape-class straight) / 'c'=곡선, p: 곡선 제어점 4개(정수, x0_y0_x1_y1)
+  const rel={};
+  (sh.relationships||[]).forEach(r=>{
+    if(!(r.end1Id&&r.end2Id))return;
+    const pr=(r.style&&r.style.properties)||{},k=/straight/i.test(String(pr['shape-class']||''))?'s':'c',cp=r.controlPoints;
+    let p='';
+    if(k==='c'&&cp&&cp['0']&&cp['1']){const v=[cp['0'].x,cp['0'].y,cp['1'].x,cp['1'].y].map(x=>Math.round(+x));if(v.every(Number.isFinite))p=v.join('_')}
+    (rel[r.end1Id]=rel[r.end1Id]||[]).push({to:r.end2Id,t:String(r.title||'').replace(/\s+/g,' ').trim(),k,p});
+  });
+  return rel;
+}
 function bbXmLines(t,d,out,rel){
   const sh=(t.style&&t.style.properties&&t.style.properties['shape-class'])||'';
   out.push('  '.repeat(d)+'• '+(/ellipse/i.test(sh)?'◯ ':'')+bbXmMeta(t)+bbXmTitle(t).replace(/\r/g,'').replace(/\n/g,'⏎'));
@@ -3737,7 +3748,7 @@ function bbXmLines(t,d,out,rel){
     if(sg<0){const f=String(((c.style&&c.style.properties)||{})['svg:fill']||'').replace('#',''),q=/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(f);sg=q&&(parseInt(q[1],16)+parseInt(q[2],16)+parseInt(q[3],16))/3<150?1:0}   // 진한 회색(#666) = 강조, 연한 회색(#D0D0D0) = 일반
     if(x)out.push(ind+'※'+(sg?'‼':'')+' '+x)});
   (t.summaries||[]).forEach(sm=>{const m=String(sm.range||'').match(/\((\d+),\s*(\d+)\)/),tp=(ch.summary||[]).find(x=>x.id===sm.topicId),a=m&&at[+m[1]],b=m&&at[+m[2]];if(tp&&a&&b&&a.id&&b.id)out.push(ind+'∑ '+a.id+' '+b.id+' '+tx(tp.title))});
-  ((rel&&rel[t.id])||[]).forEach(r=>out.push(ind+'⇢ '+r.to+' '+r.t));
+  ((rel&&rel[t.id])||[]).forEach(r=>out.push(ind+'⇢ '+(r.k==='s'?'s:':r.k==='c'?'c:'+(r.p?r.p+':':''):'')+r.to+' '+r.t));   // 종류 접두: 's:'(직선) / 'c:'(곡선) / 'c:제어점:' . 접두가 없으면(예전 문서) 종전 방식
   at.forEach(c=>bbXmLines(c,d+1,out,rel));
 }
 let bbXmSrc=null;   // 방금 불러온 Xmind 원본 {z: 압축 문자열}
@@ -3759,7 +3770,7 @@ async function bbMmFile(inp){
       const z=await JSZip.loadAsync(await f.arrayBuffer()),c=z.file('content.json');
       if(!c)throw new Error('이 Xmind 파일 형식(content.json 없음)은 지원하지 않아요. 최신 Xmind에서 저장한 파일을 써 주세요.');
       const raw=await c.async('string');bbXmSrc={z:await bbXmPack(raw)};   // 다시 내려받기용 원본 (등록·다시 올리기 때 문서에 같이 저장)
-      JSON.parse(raw).forEach(sh=>{if(sh.rootTopic){lines.push('§§ '+String(sh.title||'').replace(/\s+/g,' ').trim());const rel={};(sh.relationships||[]).forEach(r=>{if(r.end1Id&&r.end2Id)(rel[r.end1Id]=rel[r.end1Id]||[]).push({to:r.end2Id,t:String(r.title||'').replace(/\s+/g,' ').trim()})});bbXmLines(sh.rootTopic,0,lines,rel)}});
+      JSON.parse(raw).forEach(sh=>{if(sh.rootTopic){lines.push('§§ '+String(sh.title||'').replace(/\s+/g,' ').trim());const rel=bbXmRels(sh);bbXmLines(sh.rootTopic,0,lines,rel)}});
     }else if(/\.opml$/i.test(f.name)){
       bbXmSrc=null;
       const x=new DOMParser().parseFromString(await f.text(),'text/xml');
@@ -4597,7 +4608,25 @@ function bbMmQs(root){   // 마인드맵형: 요약(오른쪽 괄호선)·관계
       }else{   // 관계: 출발 노드 → 도착 노드 점선 곡선 + 화살표
         const sn=q.parentElement.firstElementChild,s=R(sn),e=R(by[q.dataset.t]);if(!s||!e)return;
         let x1,y1,x2,y2,k1,k2,k3,k4;   // 위아래로 놓인 상자는 위 상자 아래→아래 상자 위로, 가능한 한 수직 직선
-        if(e.t>=s.b-2||e.b<=s.t+2){
+        const kd=q.dataset.r,cx=r=>(r.l+r.r)/2,cy=r=>(r.t+r.b)/2;
+        if(kd==='s'){   // 직선 관계선: 곡선 없이 곧은 선. 위아래면 폭이 더 작은 상자의 가로 중심에서 수직으로(두 상자 가로 범위가 겹치면), 옆이면 마주 보는 가장자리끼리 수평으로
+          if(e.t>=s.b-2||e.b<=s.t+2){
+            const dn=e.t>=s.b-2,sm=(s.r-s.l)<=(e.r-e.l)?s:e,lg=sm===s?e:s,mx0=cx(sm),ok=mx0>=lg.l&&mx0<=lg.r;
+            x1=ok?mx0:cx(s);x2=ok?mx0:cx(e);y1=dn?s.b:s.t;y2=dn?e.t:e.b;
+          }else{
+            const oy=Math.max(s.t,e.t),oe=Math.min(s.b,e.b),my=oe-oy>=4?(oy+oe)/2:null;
+            y1=my!==null?my:cy(s);y2=my!==null?my:cy(e);
+            if(e.l>=s.r-2){x1=s.r;x2=e.l}else if(e.r<=s.l+2){x1=s.l;x2=e.r}else{x1=cx(s);x2=cx(e)}
+          }
+          k1=x1+(x2-x1)/3;k2=y1+(y2-y1)/3;k3=x1+2*(x2-x1)/3;k4=y1+2*(y2-y1)/3;   // 곧은 선도 3차 곡선 꼴로 그려 화살표 방향이 제대로 나오게 함
+        }else if(kd==='c'){   // 곡선 관계선: Xmind 제어점(각 상자 중심 기준 오프셋)을 그대로 따라 휘게. 제어점이 없으면 오른쪽으로 둥글게
+          const pc=(q.dataset.p||'').split('_').map(Number),hp=pc.length===4&&pc.every(Number.isFinite),dir=cy(e)>=cy(s)?1:-1,
+            p=hp?pc:[45,35*dir,45,-35*dir],c1={x:cx(s)+p[0],y:cy(s)+p[1]},c2={x:cx(e)+p[2],y:cy(e)+p[3]},
+            hit=(r,c)=>{const ox=cx(r),oy=cy(r),dx=c.x-ox,dy=c.y-oy;if(!dx&&!dy)return{x:ox,y:oy};   // 중심에서 제어점 쪽으로 그은 선이 상자 가장자리와 만나는 점
+              const t=Math.min(dx?(r.r-r.l)/2/Math.abs(dx):Infinity,dy?(r.b-r.t)/2/Math.abs(dy):Infinity);return{x:ox+dx*t,y:oy+dy*t}},
+            a0=hit(s,c1),a1=hit(e,c2);
+          x1=a0.x;y1=a0.y;x2=a1.x;y2=a1.y;k1=c1.x;k2=c1.y;k3=c2.x;k4=c2.y;
+        }else if(e.t>=s.b-2||e.b<=s.t+2){
           const dn=e.t>=s.b-2,o0=Math.max(s.l,e.l),o1=Math.min(s.r,e.r),ov=o1-o0>=8;
           x1=ov?(o0+o1)/2:(s.l+s.r)/2;x2=ov?x1:(e.l+e.r)/2;y1=dn?s.b:s.t;y2=dn?e.t:e.b;
           const d=Math.max(14,Math.abs(y2-y1)/2)*(dn?1:-1);k1=x1;k2=y1+d;k3=x2;k4=y2-d;
@@ -4613,7 +4642,7 @@ function bbMmQs(root){   // 마인드맵형: 요약(오른쪽 괄호선)·관계
       }
     });
     m.appendChild(svg);
-    let mx=0;labs.forEach(e=>{try{const b=e.getBBox();mx=Math.max(mx,b.x+b.width)}catch(x){}});
+    let mx=0;labs.forEach(e=>{try{const b=e.getBBox();mx=Math.max(mx,b.x+b.width)}catch(x){}});svg.querySelectorAll('path').forEach(e=>{try{const b=e.getBBox();mx=Math.max(mx,b.x+b.width)}catch(x){}});
     const need=mx+8-m.clientWidth;if(need>0)m.style.paddingRight=Math.ceil(need+2)+'px';   // 요약 글이 맵 오른쪽 밖으로 나가면 스크롤되게 여백 확보
   });
 }
