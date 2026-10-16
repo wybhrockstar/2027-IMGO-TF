@@ -1939,17 +1939,35 @@ function parseExamEntry(raw){
   if(m && m[1].trim()) return {base:m[1].trim(), rounds:[m[2]]};
   return {base:name, rounds:['']};
 }
+// 스터디 일정 제목 → [{base, n}] (예: "엑시트 1~2" → 엑시트 1, 2 / "튼실튼실 1, 임고하이웨이 신규 1" / "암요 파이널 1 A형")
+function examParseScheduleSubject(subject){
+  const out = [];
+  const subj = String(subject||'').replace(/\([^)]*\)/g,'');
+  let prevBase = null;
+  subj.split(',').forEach(part=>{
+    const e = part.replace(/^[\s★☆]+/,'').trim();
+    let base, a, b;
+    let m = e.match(/^(.+?)\s*(\d+)(?:\s*[~～-]\s*(\d+))?\s*회?(?:\s*[A-Za-z]\s*형)?$/);
+    if(m){ base = m[1].trim(); a = parseInt(m[2]); b = m[3] ? parseInt(m[3]) : a; prevBase = base; }
+    else {
+      // "엑시트 1, 2" 처럼 쉼표 뒤에 숫자만 오는 경우 → 앞 이름의 회차로 이어붙임
+      const c = e.match(/^(\d+)(?:\s*[~～-]\s*(\d+))?\s*회?$/);
+      if(!c || !prevBase) return;
+      base = prevBase; a = parseInt(c[1]); b = c[2] ? parseInt(c[2]) : a;
+    }
+    if(b < a || b - a > 30) b = a;
+    for(let n=a; n<=b; n++) out.push({base, n});
+  });
+  return out;
+}
 function examScheduleKeys(){
   const keys = new Set();
   const sched = (DATA && DATA.schedule) || {};
   Object.keys(sched).forEach(t=>{
     (sched[t]||[]).forEach(w=>(w.items||[]).forEach(it=>{
       if(!it.date || it.date==='-') return;
-      const subj = String(it.subject||'').replace(/\([^)]*\)/g,'');
-      subj.split(',').forEach(part=>{
-        const e = part.replace(/^[\s★☆]+/,'').trim();
-        const m = e.match(/^(.+?)\s*(\d+)\s*회?(?:\s*[A-Za-z]\s*형)?$/);
-        if(m) keys.add(m[1].replace(/\s+/g,'')+'|'+parseInt(m[2]));
+      examParseScheduleSubject(it.subject).forEach(x=>{
+        keys.add(x.base.replace(/\s+/g,'')+'|'+x.n);
       });
     }));
   });
