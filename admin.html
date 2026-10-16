@@ -139,10 +139,10 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 
   <div class="tabs">
     <button class="tab on" onclick="switchTab('schedule', this)">📅 스터디 일정</button>
-    <button class="tab" onclick="switchTab('studywrong', this)">❌ 스터디 오답</button>
     <button class="tab" onclick="switchTab('timelog', this)">⏱ 스터디 기록</button>
-    <button class="tab" onclick="switchTab('lectures', this)">📚 강의 목록</button>
+    <button class="tab" onclick="switchTab('studywrong', this)">❌ 스터디 오답</button>
     <button class="tab" onclick="switchTab('exams', this)">🎯 모의고사</button>
+    <button class="tab" onclick="switchTab('lectures', this)">📚 강의 목록</button>
     <button class="tab" onclick="switchTab('notice', this)">📌 공지사항</button>
     <button class="tab" onclick="switchTab('raw', this)">🛠 전체 JSON</button>
   </div>
@@ -441,13 +441,13 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div class="ai-title">🎯 모의고사 목록 관리</div>
       <div class="ai-desc">
         형식: <code style="font-family:monospace;background:var(--bg4);padding:1px 5px;border-radius:3px;font-size:11px">[횟수] [현황] 이름 회차 (논술有) (일정)</code><br>
-        현황: <b>결제</b> / <b>결제예정</b> / <b>완료</b> → 모두 <b style="color:var(--teal)">완료</b>로 통일 &nbsp;|&nbsp; <b>예정</b> (일정 공지됨) &nbsp;|&nbsp; <b>미정</b> (회차·일정 미확정) — 일정 표기는 자동 제거됩니다.
+        현황: <b style="color:var(--teal)">풀이</b> (풀이 대상) &nbsp;|&nbsp; <b style="color:var(--text3)">제외</b> (풀이 제외) — 기존 표기(<b>결제</b>/<b>결제예정</b>/<b>완료</b> → 풀이, <b>예정</b>/<b>미정</b> → 제외)도 자동 변환됩니다. 일정 표기는 자동 제거됩니다.
       </div>
       <div class="example-box">
         <span>예시</span><br>
-        [3] [결제] 엑시트 1~3회 (6/15, 8/10, 9/14)<br>
-        [1] [결제] 초임공 1회 (논술有) (5~6월)<br>
-        [3?] [미정] 시그니처 1~3?회 (미정)
+        [3] [풀이] 엑시트 1~3회 (6/15, 8/10, 9/14)<br>
+        [1] [풀이] 초임공 1회 (논술有) (5~6월)<br>
+        [3?] [제외] 시그니처 1~3?회 (미정)
       </div>
       <div class="fgroup" style="margin-bottom:8px">
         <label>업데이트 날짜 (예: 2026.06.01.)</label>
@@ -475,6 +475,7 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
     <div class="ai-box">
       <div class="ai-title">📋 현재 모의고사 목록</div>
       <div id="exam-current-list"></div>
+      <div id="exam-match-list" style="margin-top:14px"></div>
       <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
         <div class="ai-status" id="exam-push-status" style="margin-top:0"></div>
@@ -1046,17 +1047,16 @@ function renderStudyWrongList(){
   let filtered = rows.filter(r=>
     (!fAuthor || r.author===fAuthor) && (!fTerm || String(r.term)===fTerm)
   );
-  if(!fAuthor && !fTerm){
-    // 전체 선택 시: 텀순 → 모고탭 과목순서 → 회차순
-    filtered.sort((a,b)=>{
-      if(a.term !== b.term) return a.term - b.term;
-      const ai = SW_SUBJECT_META.indexOf(a.subject), bi = SW_SUBJECT_META.indexOf(b.subject);
-      if(ai !== bi) return (ai===-1?999:ai) - (bi===-1?999:bi);
-      return (a.roundSortKey||0) - (b.roundSortKey||0);
-    });
-  } else {
-    filtered.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
-  }
+  // 시간순: 맨 위가 최신, 맨 아래가 오래된 것
+  // 같은 날짜면 태현이 위, 재언이 아래 → 그다음 id에 든 생성 시각으로 비교
+  const swTs = r=>{ const m=String(r.id||'').match(/^sw_(\d+)_/); return m?Number(m[1]):0; };
+  const swAuthorRank = r=> r.author==='태현' ? 0 : r.author==='재언' ? 1 : 2;
+  filtered.sort((a,b)=>{
+    const c = (b.createdAt||'').localeCompare(a.createdAt||'');
+    if(c !== 0) return c;
+    const ar = swAuthorRank(a) - swAuthorRank(b);
+    return ar !== 0 ? ar : swTs(b) - swTs(a);
+  });
   if(!filtered.length){
     el.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px">등록된 스터디 오답이 없습니다.</div>';
     return;
@@ -1810,8 +1810,41 @@ function applyRaw(){
 }
 
 // ── RENDER ALL ──
+// ── 현재 텀 감지 (오늘 날짜 기준, index.html과 동일 로직) ──
+function parseTermPeriod(str){
+  if(!str) return null;
+  const parts = str.split('~').map(x=>x.trim());
+  if(parts.length!==2) return null;
+  const startM = parts[0].match(/(\d{4})\.(\d{1,2})\.(\d{1,2})/);
+  if(!startM) return null;
+  const year = parseInt(startM[1]);
+  return { start: new Date(year, parseInt(startM[2])-1, parseInt(startM[3])) };
+}
+function detectCurrentTerm(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const terms = [1,2,3]
+    .map(t=>({ t, period: parseTermPeriod((DATA.termPeriods||{})[t]) }))
+    .filter(x=>x.period);
+  if(!terms.length) return 1;
+  terms.sort((a,b)=>a.period.start-b.period.start);
+  let result = terms[0].t;
+  terms.forEach(({t, period})=>{ if(today >= period.start) result = t; });
+  return result;
+}
+let defaultTermApplied = false;
+function applyDefaultTerm(){
+  if(defaultTermApplied || !DATA) return;
+  defaultTermApplied = true;
+  const t = String(detectCurrentTerm());
+  ['sc-study-term','sc-term','sc-view-term','tl2-term','sw-term'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = t;
+  });
+}
+
 function renderAll(){
   if(!DATA) return;
+  applyDefaultTerm();
   buildSubjectSelects();
   renderCurrentSchedule();
   renderTimelogPanel();
@@ -1916,8 +1949,9 @@ function parseExamLine(line){
   const sm = rest.match(/^\[([^\]]+)\]/);
   if(!sm) return null;
   let rawStatus = sm[1].trim();
-  // 결제/결제예정 → 완료 통일
-  const status = (rawStatus === '결제' || rawStatus === '결제예정') ? '완료' : rawStatus;
+  // 풀이/제외로 통일 (기존 표기도 변환: 결제·결제예정·완료 → 풀이, 예정·미정 → 제외, 현황 헤더행은 유지)
+  const STATUS_ALIAS = {'풀이':'풀이','결제':'풀이','결제예정':'풀이','완료':'풀이','제외':'제외','예정':'제외','미정':'제외'};
+  const status = STATUS_ALIAS[rawStatus] || rawStatus;
   rest = rest.slice(sm[0].length).trim();
   // 논술有 감지
   const essay = /논술有/.test(rest);
@@ -1957,8 +1991,61 @@ function applyExams(){
   setTimeout(()=>setStatus('exam-apply-status','',''), 4000);
 }
 
+// ── 모의고사 ↔ 스터디 일정 매칭 점검 (index가 완료 여부를 계산할 때 쓰는 규칙과 동일) ──
+function parseExamEntry(raw){
+  const name = String(raw).trim();
+  let m = name.match(/^(.*?)(\d+)~(\d+)\?*회$/);
+  if(m){ const rounds=[]; for(let i=+m[2];i<=+m[3];i++) rounds.push(i+'회'); return {base:m[1].trim(), rounds}; }
+  m = name.match(/^(.*?)([\d,]+)회$/);
+  if(m && m[2].includes(',')) return {base:m[1].trim(), rounds:m[2].split(',').map(n=>n.trim()+'회')};
+  m = name.match(/^(.+?)\s*(\d+회)$/);
+  if(m && m[1].trim()) return {base:m[1].trim(), rounds:[m[2]]};
+  return {base:name, rounds:['']};
+}
+function examScheduleKeys(){
+  const keys = new Set();
+  const sched = (DATA && DATA.schedule) || {};
+  Object.keys(sched).forEach(t=>{
+    (sched[t]||[]).forEach(w=>(w.items||[]).forEach(it=>{
+      if(!it.date || it.date==='-') return;
+      const subj = String(it.subject||'').replace(/\([^)]*\)/g,'');
+      subj.split(',').forEach(part=>{
+        const e = part.replace(/^[\s★☆]+/,'').trim();
+        const m = e.match(/^(.+?)\s*(\d+)\s*회?(?:\s*[A-Za-z]\s*형)?$/);
+        if(m) keys.add(m[1].replace(/\s+/g,'')+'|'+parseInt(m[2]));
+      });
+    }));
+  });
+  return keys;
+}
+function renderExamMatch(){
+  const el = document.getElementById('exam-match-list');
+  if(!el || !DATA) return;
+  const ALIAS = {'풀이':1,'결제':1,'결제예정':1,'완료':1};
+  const exams = (DATA.exams||[]).filter(e=>ALIAS[e.status]);
+  if(!exams.length){ el.innerHTML=''; return; }
+  const keys = examScheduleKeys();
+  const problems = [];
+  exams.forEach(e=>{
+    const pe = parseExamEntry(e.name);
+    const nums = pe.rounds.filter(r=>/회$/.test(r)).map(r=>parseInt(r));
+    const missing = nums.filter(n=>!keys.has(pe.base.replace(/\s+/g,'')+'|'+n));
+    if(!nums.length) problems.push({e, text:'회차를 읽지 못했어요 (이름 끝을 "1~3회" 또는 "1,2회" 형식으로)'});
+    else if(missing.length) problems.push({e, text: missing.join(', ')+'회를 일정에서 못 찾았어요'});
+  });
+  let h = '<div style="font-size:12px;font-weight:600;margin-bottom:6px">🔗 일정 매칭 점검 <span style="font-weight:400;color:var(--text3)">(풀이 모의고사 기준)</span></div>';
+  if(!problems.length){
+    h += '<div style="font-size:12px;color:var(--teal);padding:6px 2px">✓ 풀이 모의고사 '+exams.length+'개가 모두 스터디 일정과 연결됩니다.</div>';
+  } else {
+    h += '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">일정에 아직 안 넣은 회차이거나 이름이 달라서일 수 있어요. 일정에 없는 회차는 완료로 세지 않습니다.</div>';
+    h += problems.map(p=>'<div class="cur-item" style="margin-bottom:4px"><div class="cur-item-text"><span style="font-family:monospace;font-size:11px;color:var(--amber)">['+p.e.count+']</span> <span style="font-size:13px">'+escHtml(p.e.name)+'</span> <span style="font-size:11px;color:var(--amber)">· '+p.text+'</span></div></div>').join('');
+  }
+  el.innerHTML = h;
+}
+
 function renderCurrentExams(){
   if(!DATA) return;
+  renderExamMatch();
   const exams = DATA.exams||[];
   const listEl = document.getElementById('exam-current-list');
   if(!listEl) return;
@@ -1976,16 +2063,16 @@ function renderCurrentExams(){
     ta.value = exams.map(e=>`[${e.count}] [${e.status}] ${e.name}${e.essay?' (논술有)':''}`).join('\n');
   }
 
-  const STATUS_BG  = {완료:'rgba(94,207,176,.1)',예정:'rgba(200,240,96,.08)',미정:'rgba(136,136,136,.08)'};
-  const STATUS_COL = {완료:'var(--teal)',예정:'var(--accent)',미정:'var(--text3)'};
-  const COUNT_COL  = {완료:'var(--teal)',예정:'var(--accent)',미정:'var(--text3)'};
+  const STATUS_BG  = {풀이:'rgba(94,207,176,.1)',제외:'rgba(136,136,136,.08)'};
+  const STATUS_COL = {풀이:'var(--teal)',제외:'var(--text3)'};
+  const COUNT_COL  = {풀이:'var(--teal)',제외:'var(--text3)'};
 
   listEl.innerHTML = exams.map((e,i)=>`
     <div class="cur-item" style="margin-bottom:5px">
       <div class="cur-item-text">
         <span style="font-family:monospace;font-size:11px;color:${COUNT_COL[e.status]||'var(--text3)'};min-width:30px;display:inline-block">[${e.count}]</span>
         <span style="font-size:11px;padding:1px 7px;border-radius:8px;background:${STATUS_BG[e.status]||''};color:${STATUS_COL[e.status]||'var(--text3)'};">${e.status}</span>
-        <span style="margin-left:6px;font-size:13px">${e.name}</span>${e.essay?' <span style="font-size:10px;color:var(--amber);background:rgba(255,179,71,.15);border:1px solid rgba(255,179,71,.3);padding:1px 6px;border-radius:8px">논술有</span>':''}
+        <span style="margin-left:6px;font-size:13px">${e.name}</span>${e.essay?' <span style="font-size:10px;color:var(--text3);background:rgba(136,136,136,.12);border:1px solid rgba(136,136,136,.2);padding:1px 6px;border-radius:8px">논술有</span>':''}
       </div>
       <button class="del-btn" onclick="delExam(${i})">×</button>
     </div>`).join('');
@@ -2018,6 +2105,7 @@ function switchTab(name, btn){
   document.getElementById('panel-'+name).classList.add('on');
   btn.classList.add('on');
   if(name==='timelog') renderTimelogPanel();
+  if(name==='exams') renderExamMatch();
 }
 
 // ── INIT ──

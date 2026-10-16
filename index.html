@@ -191,15 +191,20 @@ body.light .nc-stitle{color:var(--text3)}
 .badge-complete{background:rgba(94,207,176,.15);color:var(--teal);border:1px solid rgba(94,207,176,.3)}
 .badge-plan{background:rgba(200,240,96,.12);color:var(--accent);border:1px solid rgba(200,240,96,.25)}
 .badge-unknown{background:rgba(136,136,136,.12);color:var(--text3);border:1px solid rgba(136,136,136,.2)}
+.badge-warn{background:rgba(255,179,71,.15);color:var(--amber);border:1px solid rgba(255,179,71,.3)}
+.badge-excl{background:rgba(255,95,95,.15);color:var(--red);border:1px solid rgba(255,95,95,.3)}
+.exam-prog{display:inline-block;min-width:68px;box-sizing:border-box;text-align:center}
 .exam-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;min-width:28px;text-align:right;padding-top:2px}
 .exam-cnt.cnt-complete{color:var(--teal)}
 .exam-cnt.cnt-plan{color:var(--accent)}
 .exam-cnt.cnt-unknown{color:var(--text3)}
+.exam-cnt.cnt-warn{color:var(--amber)}
+.exam-cnt.cnt-excl{color:var(--red)}
 .exam-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:5px;transition:.12s}
 .exam-row:hover{border-color:var(--border2)}
 .exam-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);min-width:28px;text-align:right;padding-top:2px}
 .exam-name{font-size:13px;color:var(--text);flex:1;line-height:1.5}
-.exam-essay{font-size:10px;color:var(--amber);background:rgba(255,179,71,.15);border:1px solid rgba(255,179,71,.3);padding:1px 6px;border-radius:8px;white-space:nowrap;margin-left:4px;vertical-align:middle}
+.exam-essay{font-size:10px;color:var(--text3);background:rgba(136,136,136,.12);border:1px solid rgba(136,136,136,.2);padding:1px 6px;border-radius:8px;white-space:nowrap;margin-left:4px;vertical-align:middle}
 
 /* ── 뽀개기 ── */
 .bb-top{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
@@ -580,8 +585,8 @@ body.bblen .bb-b:not(.open){display:inline-block;width:4.5em;overflow:hidden;whi
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
       <span style="font-size:11px;color:var(--text3)">현황:</span>
       <span class="exam-badge badge-complete">완료</span>
-      <span class="exam-badge badge-plan">예정</span>
-      <span class="exam-badge badge-unknown">미정</span>
+      <span class="exam-badge badge-warn">진행</span>
+      <span class="exam-badge badge-excl">제외</span>
     </div>
 
     <div id="examList"></div>
@@ -1019,7 +1024,7 @@ function buildStats(t){
   document.getElementById('statsRow').innerHTML=`
     <div class="sc"><div class="sc-label">기간</div><div class="sc-val" style="font-size:11px;padding-top:5px;color:var(--text2);line-height:1.4">${period}</div><div class="sc-sub">&nbsp;</div></div>
     <div class="sc"><div class="sc-label">전체 회차</div><div class="sc-val">${total}</div><div class="sc-sub">회</div></div>
-    <div class="sc"><div class="sc-label">기록 완료</div><div class="sc-val" style="color:var(--accent)">${done}</div><div class="sc-sub">/ ${total}</div></div>
+    <div class="sc"><div class="sc-label">기록 완료</div><div class="sc-val">${done}</div><div class="sc-sub">/ ${total}</div></div>
     <div class="sc"><div class="sc-label">총 스터디 시간</div><div class="sc-val">${h}<span style="font-size:13px;color:var(--text3)">h</span>${m}<span style="font-size:13px;color:var(--text3)">m</span></div><div class="sc-sub">기록 기준</div></div>`;
 }
 
@@ -1190,7 +1195,7 @@ const PP_DATA=[
 let ppLastDay=new Date().toDateString();
 function checkDayChange(){
   const k=new Date().toDateString();
-  if(k!==ppLastDay){ ppLastDay=k; showTerm(currentTerm); }
+  if(k!==ppLastDay){ ppLastDay=k; showTerm(currentTerm); renderExams(); }
 }
 setInterval(checkDayChange,30000);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkDayChange(); });
@@ -1328,8 +1333,33 @@ function renderNoticeView(){
 
 
 // ==================== EXAMS ====================
-const STATUS_CLASS = {'완료':'badge-complete','예정':'badge-plan','미정':'badge-unknown'};
-const COUNT_CLASS  = {'완료':'cnt-complete','예정':'cnt-plan','미정':'cnt-unknown'};
+// 상태 별칭 (예전 표기도 풀이/제외로 해석)
+const EXAM_STATUS_ALIAS = {'풀이':'풀이','결제':'풀이','결제예정':'풀이','완료':'풀이','제외':'제외','예정':'제외','미정':'제외'};
+
+// 스터디 일정 → 모의고사 회차별 날짜 맵 { '이름|회차번호': [Date,...] }
+function examNormBase(b){ return String(b||'').replace(/\s+/g,''); }
+function buildExamDateMap(){
+  const map = {};
+  Object.keys(S.schedule||{}).forEach(t=>{
+    (S.schedule[t]||[]).forEach(w=>(w.items||[]).forEach(it=>{
+      if(!it.date || it.date==='-') return;
+      const p = it.date.split('/');
+      const mo = parseInt(p[0]), da = parseInt(p[1]);
+      if(isNaN(mo)||isNaN(da)) return;
+      const d = new Date(mo>=6?2026:2027, mo-1, da);
+      // 괄호 안 설명 제거 → 쉼표로 나눠 "이름 회차 [A/B형]" 항목 추출
+      const subj = String(it.subject||'').replace(/\([^)]*\)/g,'');
+      subj.split(',').forEach(part=>{
+        const e = part.replace(/^[\s★☆]+/,'').trim();
+        const m = e.match(/^(.+?)\s*(\d+)\s*회?(?:\s*[A-Za-z]\s*형)?$/);
+        if(!m) return;
+        const key = examNormBase(m[1])+'|'+parseInt(m[2]);
+        (map[key]=map[key]||[]).push(d);
+      });
+    }));
+  });
+  return map;
+}
 
 function renderExams(){
   const exams = S.exams||[];
@@ -1343,11 +1373,37 @@ function renderExams(){
     listEl.innerHTML='<div style="color:var(--text3);font-size:13px;padding:12px 0">등록된 모의고사가 없습니다.</div>';
     return;
   }
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dateMap = buildExamDateMap();
   listEl.innerHTML = exams.map(e=>{
-    const sc = STATUS_CLASS[e.status]||'badge-unknown';
-    const cc = COUNT_CLASS[e.status]||'cnt-unknown';
     const essay = e.essay ? '<span class="exam-essay">논술有</span>' : '';
-    return `<div class="exam-row"><span class="exam-cnt ${cc}">[${e.count}]</span><span class="exam-badge ${sc}" style="align-self:center;flex-shrink:0">${e.status}</span><span class="exam-name">${e.name}${essay}</span></div>`;
+    const st = EXAM_STATUS_ALIAS[e.status];
+    // 헤더행(현황) 등 알 수 없는 상태는 회색으로 그대로 표시
+    if(!st){
+      return `<div class="exam-row"><span class="exam-cnt cnt-unknown">[${e.count}]</span><span class="exam-badge badge-unknown" style="align-self:center;flex-shrink:0">${e.status}</span><span class="exam-name">${e.name}${essay}</span></div>`;
+    }
+    const pe = parseExamEntry(e.name);
+    const nums = pe.rounds.map(r=>parseInt(r)).filter(n=>!isNaN(n) && /회/.test(pe.rounds[0]||'회'));
+    let total = parseInt(e.count);
+    if(isNaN(total)) total = nums.length;
+    let sc, cc, mid;
+    if(st==='제외'){
+      sc='badge-excl'; cc='cnt-excl';
+      mid = `<span class="exam-badge badge-excl exam-prog" style="align-self:center;flex-shrink:0">${total}회분</span>`;
+    } else {
+      // 모든 날짜가 오늘 이전이어야 그 회차를 완료로 본다 (오늘 시험이면 아직 진행)
+      let done = 0;
+      nums.forEach(n=>{
+        const ds = dateMap[examNormBase(pe.base)+'|'+n];
+        if(ds && ds.length && ds.every(d=>d<today)) done++;
+      });
+      if(done>total) done=total;
+      const all = total>0 && done>=total;
+      sc = all ? 'badge-complete' : 'badge-warn';
+      cc = all ? 'cnt-complete' : 'cnt-warn';
+      mid = `<span class="exam-badge ${sc} exam-prog" style="align-self:center;flex-shrink:0">${done}/${total} ${all?'완료':'진행'}</span>`;
+    }
+    return `<div class="exam-row"><span class="exam-cnt ${cc}">[${e.count}]</span><span class="exam-badge ${sc}" style="align-self:center;flex-shrink:0">${st}</span>${mid}<span class="exam-name">${e.name}${essay}</span></div>`;
   }).join('');
 }
 // ==================== PAGE NAV ====================
