@@ -138,8 +138,8 @@ body.light .cd{color:var(--text3)}
 .apply-btn-sm:active{transform:scale(.97)}
 .lec-list{display:grid;grid-template-columns:1fr;gap:5px}
 @media(min-width:560px){.lec-list{grid-template-columns:repeat(2,1fr)}}
-.li{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--rs);transition:.12s}
-.li:hover{border-color:var(--border3);background:var(--bg5)}
+.li{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);transition:.12s}
+.li:hover{border-color:var(--border2);background:var(--bg3)}
 .li.old{background:var(--bg3);border-color:var(--border)}
 .li.old:hover{border-color:var(--border2)}
 .li.old .lnum{color:var(--amber)}
@@ -170,7 +170,7 @@ body.light .nc-stitle{color:var(--text3)}
 .nr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
 .nr:last-child{border-bottom:none;padding-bottom:0}
 .nl{color:var(--text2)}.nv{font-weight:500}.nv.a{color:var(--accent)}
-.fine-row{display:flex;align-items:center;gap:10px;padding:9px 13px;background:var(--bg4);border-radius:var(--rs);margin-bottom:5px}
+.fine-row{display:flex;align-items:center;gap:10px;padding:9px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:5px}
 .fine-icon{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px}
 .fine-name{font-size:13px;flex:1}.fine-amt{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500}
 .link-card{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r);text-decoration:none;transition:.15s;margin-bottom:7px}
@@ -972,8 +972,8 @@ const DEFAULT = {
       {day:'일',time:'12:00~13:30 모의고사'}
     ],
     fines:[
-      {name:'미루기',amount:5000},
-      {name:'파토 / 노쇼',amount:10000}
+      {name:'미루기',amount:30000},
+      {name:'파토 / 노쇼',amount:50000}
     ],
     unable:[
       {count:3,name:'백구 전년도 1~3회'},
@@ -4523,7 +4523,6 @@ window.addEventListener('pagehide',uiSave);
 // ==================== SETTINGS (⚙️) ====================
 // 업데이트 기록: 새 수정을 할 때마다 맨 위에 한 줄씩 추가 (화면에는 최근 5개만 표시)
 const APP_LOG=[
-  ['10/16','모의고사 현황 연동 및 UI 업데이트'],
   ['10/15','★·메모 디자인 통합, 마인드맵 관계·요약·탭 추가, 편집 모드 개선, Xmind 다운로드 추가 및 다시 올리기 연동'],
   ['10/14','통합된 설정 버튼 추가, 홈 화면 뽀개기 추가, 사용자 지정 기능 추가, 마지막 보던 화면 복원']
 ];

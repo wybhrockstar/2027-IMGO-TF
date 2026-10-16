@@ -477,6 +477,22 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
   <!-- NOTICE -->
   <div class="panel" id="panel-notice">
     <div class="ai-box">
+      <div class="ai-title">✍️ 직접 입력</div>
+      <div class="ai-desc">AI 없이 스터디 시간표와 벌금을 바로 수정합니다.</div>
+      <div class="preview-title">스터디 시간표</div>
+      <div id="nt-sched-edit"></div>
+      <button class="apply-btn" onclick="ntAddSched()" style="padding:5px 14px;font-size:12px">+ 행 추가</button>
+      <div class="divider"></div>
+      <div class="preview-title">스터디 벌금</div>
+      <div id="nt-fine-edit"></div>
+      <button class="apply-btn" onclick="ntAddFine()" style="padding:5px 14px;font-size:12px">+ 행 추가</button>
+      <div class="divider"></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="apply-btn" onclick="applyNoticeManual()">✓ 공지 업데이트</button>
+        <div class="ai-status" id="nt-manual-status"></div>
+      </div>
+    </div>
+    <div class="ai-box">
       <div class="ai-title">🤖 AI 공지 파싱</div>
       <div class="ai-desc">공지사항 내용을 자연어로 입력하면 AI가 파싱합니다.</div>
       <div class="example-box">
@@ -1730,10 +1746,44 @@ function applyNotice(){
   ['schedule','fines','links','unable'].forEach(k=>{
     if(parsedNoticeBuffer[k]&&parsedNoticeBuffer[k].length) DATA.notice[k]=parsedNoticeBuffer[k];
   });
+  DATA.notice=DATA.notice||{};
   updateRawEditor();
+  renderNoticeEdit();
   setStatus('nt-apply-status','✓ 적용됨. GitHub 저장 버튼으로 반영하세요.','ok');
   document.getElementById('nt-preview-wrap').style.display='none';
   setTimeout(()=>setStatus('nt-apply-status','',''), 4000);
+}
+
+function ntEsc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function ntSchedRow(r){
+  r=r||{};
+  return `<div class="nt-row" style="display:flex;gap:8px;margin-bottom:6px;align-items:center"><input class="fi" data-f="day" placeholder="월/수/금/일" value="${ntEsc(r.day)}" style="flex:0 0 32%"><input class="fi" data-f="time" placeholder="10:00~12:00 교육과정" value="${ntEsc(r.time)}"><button class="del-btn" onclick="this.parentNode.remove()" aria-label="행 삭제">✕</button></div>`;
+}
+function ntFineRow(r){
+  r=r||{};
+  return `<div class="nt-row" style="display:flex;gap:8px;margin-bottom:6px;align-items:center"><input class="fi" data-f="name" placeholder="미루기" value="${ntEsc(r.name)}"><input class="fi fi-mono" data-f="amount" inputmode="numeric" placeholder="30000" value="${ntEsc(r.amount)}" style="flex:0 0 32%"><button class="del-btn" onclick="this.parentNode.remove()" aria-label="행 삭제">✕</button></div>`;
+}
+function renderNoticeEdit(){
+  const n=(DATA&&DATA.notice)||{};
+  const s=document.getElementById('nt-sched-edit'), f=document.getElementById('nt-fine-edit');
+  if(s) s.innerHTML=(n.schedule||[]).map(ntSchedRow).join('');
+  if(f) f.innerHTML=(n.fines||[]).map(ntFineRow).join('');
+}
+function ntAddSched(){ document.getElementById('nt-sched-edit').insertAdjacentHTML('beforeend', ntSchedRow()); }
+function ntAddFine(){ document.getElementById('nt-fine-edit').insertAdjacentHTML('beforeend', ntFineRow()); }
+function applyNoticeManual(){
+  if(!DATA){ setStatus('nt-manual-status','데이터를 먼저 불러오세요.','err'); return; }
+  const val=(r,k)=>r.querySelector('[data-f="'+k+'"]').value.trim();
+  const schedule=[...document.querySelectorAll('#nt-sched-edit .nt-row')]
+    .map(r=>({day:val(r,'day'), time:val(r,'time')})).filter(x=>x.day||x.time);
+  const fines=[...document.querySelectorAll('#nt-fine-edit .nt-row')]
+    .map(r=>({name:val(r,'name'), amount:parseInt(val(r,'amount').replace(/[^\d]/g,''))||0})).filter(x=>x.name);
+  DATA.notice=DATA.notice||{};
+  DATA.notice.schedule=schedule;
+  DATA.notice.fines=fines;
+  updateRawEditor();
+  setStatus('nt-manual-status','✓ 적용됨. GitHub 저장 버튼으로 반영하세요.','ok');
+  setTimeout(()=>setStatus('nt-manual-status','',''), 4000);
 }
 
 // ── RAW EDITOR ──
@@ -1787,6 +1837,7 @@ function renderAll(){
   renderCurrentSchedule();
   renderCurrentLectures();
   renderTermPeriodInputs();
+  renderNoticeEdit();
   renderSubjOrderList();
   renderCurrentExams();
   buildSwSubjectSelect();
