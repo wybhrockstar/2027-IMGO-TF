@@ -193,16 +193,16 @@ body.light .nc-stitle{color:var(--text3)}
 .badge-unknown{background:rgba(136,136,136,.12);color:var(--text3);border:1px solid rgba(136,136,136,.2)}
 .badge-warn{background:rgba(255,179,71,.15);color:var(--amber);border:1px solid rgba(255,179,71,.3)}
 .badge-excl{background:rgba(255,95,95,.15);color:var(--red);border:1px solid rgba(255,95,95,.3)}
-.exam-prog{display:inline-block;min-width:68px;box-sizing:border-box;text-align:center}
-.exam-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;min-width:28px;text-align:right;padding-top:2px}
+.exam-prog{display:inline-block;min-width:40px;box-sizing:border-box;text-align:center}
+.exam-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;min-width:24px;text-align:right;padding-top:2px}
 .exam-cnt.cnt-complete{color:var(--teal)}
 .exam-cnt.cnt-plan{color:var(--accent)}
 .exam-cnt.cnt-unknown{color:var(--text3)}
 .exam-cnt.cnt-warn{color:var(--amber)}
 .exam-cnt.cnt-excl{color:var(--red)}
-.exam-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:5px;transition:.12s}
+.exam-row{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:5px;transition:.12s}
 .exam-row:hover{border-color:var(--border2)}
-.exam-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);min-width:28px;text-align:right;padding-top:2px}
+.exam-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);min-width:24px;text-align:right;padding-top:2px}
 .exam-name{font-size:13px;color:var(--text);flex:1;line-height:1.5}
 .exam-essay{font-size:10px;color:var(--text3);background:rgba(136,136,136,.12);border:1px solid rgba(136,136,136,.2);padding:1px 6px;border-radius:8px;white-space:nowrap;margin-left:4px;vertical-align:middle}
 
@@ -492,6 +492,10 @@ body.bblen .bb-b:not(.open){display:inline-block;width:4.5em;overflow:hidden;whi
 .bb-doc.mmdoc::-webkit-scrollbar-corner{background:var(--bg2)}
 .mmc.ml2>.mmb:first-child:not(:only-child):not(.mst)::after{width:22px;box-sizing:border-box;border-top:2px solid var(--ml);border-top-left-radius:12px;top:calc(50% + var(--dy,0px))}
 .mmc.ml2>.mmb:last-child:not(:only-child):not(.mst)::after{width:22px;box-sizing:border-box;border-bottom:2px solid var(--ml);border-bottom-left-radius:12px;bottom:calc(50% - var(--dy,0px))}
+.exam-sec-label{font-size:12px;color:var(--text3);margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+.exam-sec-label:first-child{margin-top:0}
+.exam-sec-label b{font-weight:600;color:var(--text2)}
+.exam-sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
 </style>
 </head>
 <body>
@@ -588,6 +592,8 @@ body.bblen .bb-b:not(.open){display:inline-block;width:4.5em;overflow:hidden;whi
       <span class="exam-badge badge-warn">진행</span>
       <span class="exam-badge badge-excl">제외</span>
     </div>
+
+    <div id="examSummary"></div>
 
     <div id="examList"></div>
   </div>
@@ -1337,6 +1343,27 @@ function renderNoticeView(){
 const EXAM_STATUS_ALIAS = {'풀이':'풀이','결제':'풀이','결제예정':'풀이','완료':'풀이','제외':'제외','예정':'제외','미정':'제외'};
 
 // 스터디 일정 → 모의고사 회차별 날짜 맵 { '이름|회차번호': [Date,...] }
+// 스터디 일정 제목 → [{base, n}] (예: "엑시트 1~2" → 엑시트 1, 2 / "튼실튼실 1, 임고하이웨이 신규 1" / "암요 파이널 1 A형")
+function examParseScheduleSubject(subject){
+  const out = [];
+  const subj = String(subject||'').replace(/\([^)]*\)/g,'');
+  let prevBase = null;
+  subj.split(',').forEach(part=>{
+    const e = part.replace(/^[\s★☆]+/,'').trim();
+    let base, a, b;
+    let m = e.match(/^(.+?)\s*(\d+)(?:\s*[~～-]\s*(\d+))?\s*회?(?:\s*[A-Za-z]\s*형)?$/);
+    if(m){ base = m[1].trim(); a = parseInt(m[2]); b = m[3] ? parseInt(m[3]) : a; prevBase = base; }
+    else {
+      // "엑시트 1, 2" 처럼 쉼표 뒤에 숫자만 오는 경우 → 앞 이름의 회차로 이어붙임
+      const c = e.match(/^(\d+)(?:\s*[~～-]\s*(\d+))?\s*회?$/);
+      if(!c || !prevBase) return;
+      base = prevBase; a = parseInt(c[1]); b = c[2] ? parseInt(c[2]) : a;
+    }
+    if(b < a || b - a > 30) b = a;
+    for(let n=a; n<=b; n++) out.push({base, n});
+  });
+  return out;
+}
 function examNormBase(b){ return String(b||'').replace(/\s+/g,''); }
 function buildExamDateMap(){
   const map = {};
@@ -1347,13 +1374,8 @@ function buildExamDateMap(){
       const mo = parseInt(p[0]), da = parseInt(p[1]);
       if(isNaN(mo)||isNaN(da)) return;
       const d = new Date(mo>=6?2026:2027, mo-1, da);
-      // 괄호 안 설명 제거 → 쉼표로 나눠 "이름 회차 [A/B형]" 항목 추출
-      const subj = String(it.subject||'').replace(/\([^)]*\)/g,'');
-      subj.split(',').forEach(part=>{
-        const e = part.replace(/^[\s★☆]+/,'').trim();
-        const m = e.match(/^(.+?)\s*(\d+)\s*회?(?:\s*[A-Za-z]\s*형)?$/);
-        if(!m) return;
-        const key = examNormBase(m[1])+'|'+parseInt(m[2]);
+      examParseScheduleSubject(it.subject).forEach(x=>{
+        const key = examNormBase(x.base)+'|'+x.n;
         (map[key]=map[key]||[]).push(d);
       });
     }));
@@ -1368,43 +1390,75 @@ function renderExams(){
   if(label) label.textContent = updated ? '모의고사 현황 ('+updated+')' : '모의고사 현황';
 
   const listEl = document.getElementById('examList');
+  const sumEl = document.getElementById('examSummary');
   if(!listEl) return;
   if(!exams.length){
+    if(sumEl) sumEl.innerHTML='';
     listEl.innerHTML='<div style="color:var(--text3);font-size:13px;padding:12px 0">등록된 모의고사가 없습니다.</div>';
     return;
   }
   const today = new Date(); today.setHours(0,0,0,0);
   const dateMap = buildExamDateMap();
-  listEl.innerHTML = exams.map(e=>{
+  const topRows = [], exclRows = [];
+  let sumStudy = 0, sumDone = 0, sumExcl = 0;
+  exams.forEach(e=>{
     const essay = e.essay ? '<span class="exam-essay">논술有</span>' : '';
     const st = EXAM_STATUS_ALIAS[e.status];
-    // 헤더행(현황) 등 알 수 없는 상태는 회색으로 그대로 표시
+    // 헤더행(현황) 등 알 수 없는 상태는 회색으로 그대로 표시 (집계 제외, 상단 그룹)
     if(!st){
-      return `<div class="exam-row"><span class="exam-cnt cnt-unknown">[${e.count}]</span><span class="exam-badge badge-unknown" style="align-self:center;flex-shrink:0">${e.status}</span><span class="exam-name">${e.name}${essay}</span></div>`;
+      topRows.push(`<div class="exam-row"><span class="exam-cnt cnt-unknown">[${e.count}]</span><span class="exam-badge badge-unknown" style="align-self:center;flex-shrink:0">${e.status}</span><span class="exam-name">${e.name}${essay}</span></div>`);
+      return;
     }
     const pe = parseExamEntry(e.name);
     const nums = pe.rounds.map(r=>parseInt(r)).filter(n=>!isNaN(n) && /회/.test(pe.rounds[0]||'회'));
     let total = parseInt(e.count);
     if(isNaN(total)) total = nums.length;
-    let sc, cc, mid;
     if(st==='제외'){
-      sc='badge-excl'; cc='cnt-excl';
-      mid = `<span class="exam-badge badge-excl exam-prog" style="align-self:center;flex-shrink:0">${total}회분</span>`;
-    } else {
-      // 모든 날짜가 오늘 이전이어야 그 회차를 완료로 본다 (오늘 시험이면 아직 진행)
-      let done = 0;
-      nums.forEach(n=>{
-        const ds = dateMap[examNormBase(pe.base)+'|'+n];
-        if(ds && ds.length && ds.every(d=>d<today)) done++;
-      });
-      if(done>total) done=total;
-      const all = total>0 && done>=total;
-      sc = all ? 'badge-complete' : 'badge-warn';
-      cc = all ? 'cnt-complete' : 'cnt-warn';
-      mid = `<span class="exam-badge ${sc} exam-prog" style="align-self:center;flex-shrink:0">${done}/${total} ${all?'완료':'진행'}</span>`;
+      sumExcl += total;
+      exclRows.push(`<div class="exam-row"><span class="exam-cnt cnt-excl">[${e.count}]</span><span class="exam-badge badge-excl exam-prog" style="align-self:center;flex-shrink:0">제외</span><span class="exam-name">${e.name}${essay}</span></div>`);
+      return;
     }
-    return `<div class="exam-row"><span class="exam-cnt ${cc}">[${e.count}]</span><span class="exam-badge ${sc}" style="align-self:center;flex-shrink:0">${st}</span>${mid}<span class="exam-name">${e.name}${essay}</span></div>`;
-  }).join('');
+    // 모든 날짜가 오늘 이전이어야 그 회차를 완료로 본다 (오늘 시험이면 아직 진행)
+    let done = 0;
+    nums.forEach(n=>{
+      const ds = dateMap[examNormBase(pe.base)+'|'+n];
+      if(ds && ds.length && ds.every(d=>d<today)) done++;
+    });
+    if(done>total) done=total;
+    sumStudy += total; sumDone += done;
+    const all = total>0 && done>=total;
+    const sc = all ? 'badge-complete' : 'badge-warn';
+    const cc = all ? 'cnt-complete' : 'cnt-warn';
+    topRows.push(`<div class="exam-row"><span class="exam-cnt ${cc}">[${e.count}]</span><span class="exam-badge ${sc} exam-prog" style="align-self:center;flex-shrink:0">${done}/${total}</span><span class="exam-name">${e.name}${essay}</span></div>`);
+  });
+
+  // 요약 (전체 / 풀이 중 완료 / 진행 / 제외)
+  const sumProg = sumStudy - sumDone;
+  const sumAll = sumStudy + sumExcl;
+  if(sumEl){
+    sumEl.innerHTML = sumAll ? `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 12px;margin-bottom:8px;font-size:13px;color:var(--text2)">
+        <span>전체 <b style="font-weight:600;color:var(--text)">${sumAll}회분</b></span>
+        <span>풀이 <b style="font-weight:600;color:var(--text)">${sumStudy}회분</b> 중 <b style="font-weight:600;color:var(--teal)">${sumDone}회분 완료</b></span>
+      </div>
+      <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px">
+        <div style="flex:${sumDone};background:var(--teal)"></div>
+        <div style="flex:${sumProg};background:var(--amber)"></div>
+        <div style="flex:${sumExcl};background:var(--red)"></div>
+      </div>
+      <div style="display:flex;margin-top:8px;font-size:12px;gap:2px">
+        <div style="flex:${sumDone};color:var(--teal);white-space:nowrap">${sumDone?'완료 '+sumDone:''}</div>
+        <div style="flex:${sumProg};color:var(--amber);white-space:nowrap">${sumProg?'진행 '+sumProg:''}</div>
+        <div style="flex:${sumExcl};color:var(--red);white-space:nowrap">${sumExcl?'제외 '+sumExcl:''}</div>
+      </div>
+    </div>` : '';
+  }
+
+  // 목록: 풀이·진행 / 제외 구분 (각 그룹 안에서는 시트 순서 유지)
+  let html = '';
+  if(topRows.length) html += `<div class="exam-sec-label"><b>풀이 · 진행</b> ${sumStudy}회분</div>` + topRows.join('');
+  if(exclRows.length) html += `<div class="exam-sec-label"><b>제외</b> ${sumExcl}회분</div>` + exclRows.join('');
+  listEl.innerHTML = html;
 }
 // ==================== PAGE NAV ====================
 function goPage(name,btn){
