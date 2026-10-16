@@ -3745,11 +3745,13 @@
     "fines": [
       {
         "name": "미루기",
-        "amount": 5000
+        "amount": 5000,
+        "color": "amber"
       },
       {
         "name": "파토 / 노쇼",
-        "amount": 10000
+        "amount": 10000,
+        "color": "red"
       }
     ],
     "unable": [
