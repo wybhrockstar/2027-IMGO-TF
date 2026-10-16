@@ -172,7 +172,8 @@ body.light .nc-stitle{color:var(--text3)}
 .nl{color:var(--text2)}.nv{font-weight:500}.nv.a{color:var(--accent)}
 .fine-row{display:flex;align-items:center;gap:10px;padding:9px 13px;background:var(--bg4);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:5px}
 .fine-icon{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px}
-.fine-name{font-size:13px;flex:1}.fine-amt{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500}
+.link-row{text-decoration:none;color:var(--text);transition:.12s}.link-row:hover{border-color:var(--border2)}
+.fine-name{font-size:13px;flex:1;min-width:0;overflow-wrap:anywhere}.fine-amt{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500}
 .link-card{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r);text-decoration:none;transition:.15s;margin-bottom:7px}
 .link-card:hover{border-color:var(--accent)}
 .link-title{font-size:13px;color:var(--text)}.link-url{font-size:11px;color:var(--text3);margin-top:1px;font-family:'JetBrains Mono',monospace}
@@ -802,6 +803,7 @@ body:not(.light) .badge-idle{background:rgba(150,150,150,.14);color:#a2a2a2;bord
 
     <div class="nc"><div class="nc-stitle">스터디 시간표</div><div id="nt-sched-view"></div></div>
   <div class="nc"><div class="nc-stitle">스터디 벌금</div><div id="nt-fine-view"></div></div>
+  <div class="nc" id="nt-link-card" style="display:none"><div class="nc-stitle">자료 링크</div><div id="nt-link-view"></div></div>
 
 </div>
 
@@ -1344,6 +1346,17 @@ function renderNoticeView(){
     fh+=`<div class="fine-row"><div class="fine-icon" style="background:${isRed?'rgba(255,95,95,.15)':'rgba(255,179,71,.15)'}">💸</div><div class="fine-name">${f.name}</div><div class="fine-amt" style="color:${col}">${f.amount.toLocaleString()}원</div></div>`;
   });
   document.getElementById('nt-fine-view').innerHTML=fh;
+  // links
+  const ne=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const links=(S.notice.links||[]).filter(l=>l&&/^https?:\/\//i.test(l.url||''));
+  const lc=document.getElementById('nt-link-card');
+  if(lc){
+    lc.style.display=links.length?'':'none';
+    document.getElementById('nt-link-view').innerHTML=links.map(l=>{
+      let name=l.title; if(!name){ try{ name=new URL(l.url).hostname }catch(e){ name=l.url } }
+      return `<a class="fine-row link-row" href="${ne(l.url)}" target="_blank" rel="noopener noreferrer"><div class="fine-icon" style="background:rgba(110,181,255,.15)">🔗</div><div class="fine-name">${ne(name)}</div><div style="color:var(--text3);font-size:13px">↗</div></a>`;
+    }).join('');
+  }
 }
 
 

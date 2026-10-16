@@ -487,6 +487,10 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div id="nt-fine-edit"></div>
       <button class="apply-btn" onclick="ntAddFine()" style="padding:5px 14px;font-size:12px">+ 행 추가</button>
       <div class="divider"></div>
+      <div class="preview-title">자료 링크</div>
+      <div id="nt-link-edit"></div>
+      <button class="apply-btn" onclick="ntAddLink()" style="padding:5px 14px;font-size:12px">+ 링크 추가</button>
+      <div class="divider"></div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="apply-btn" onclick="applyNoticeManual()">✓ 공지 업데이트</button>
         <div class="ai-status" id="nt-manual-status"></div>
@@ -1764,13 +1768,20 @@ function ntFineRow(r){
   const red = r.color ? r.color==='red' : (parseInt(r.amount)||0)>=50000;
   return `<div class="nt-row" style="display:flex;gap:8px;margin-bottom:6px;align-items:center"><input class="fi" data-f="name" placeholder="미루기" value="${ntEsc(r.name)}"><input class="fi fi-mono" data-f="amount" inputmode="numeric" placeholder="30000" value="${ntEsc(r.amount)}" style="flex:0 0 26%"><select class="fi" data-f="color" onchange="this.style.color=this.value==='red'?'var(--red)':'var(--amber)'" style="flex:0 0 76px;color:${red?'var(--red)':'var(--amber)'}"><option value="amber"${red?'':' selected'}>주황</option><option value="red"${red?' selected':''}>빨강</option></select><button class="del-btn" onclick="this.parentNode.remove()" aria-label="행 삭제">✕</button></div>`;
 }
+function ntLinkRow(r){
+  r=r||{};
+  return `<div class="nt-row" style="display:flex;gap:8px;margin-bottom:6px;align-items:center"><input class="fi" data-f="title" placeholder="2026 자료" value="${ntEsc(r.title)}" style="flex:0 0 32%"><input class="fi fi-mono" data-f="url" placeholder="https://drive.google.com/..." value="${ntEsc(r.url)}"><button class="del-btn" onclick="this.parentNode.remove()" aria-label="행 삭제">✕</button></div>`;
+}
 function renderNoticeEdit(){
   const n=(DATA&&DATA.notice)||{};
   const s=document.getElementById('nt-sched-edit'), f=document.getElementById('nt-fine-edit');
   if(s) s.innerHTML=(n.schedule||[]).map(ntSchedRow).join('');
   if(f) f.innerHTML=(n.fines||[]).map(ntFineRow).join('');
+  const l=document.getElementById('nt-link-edit');
+  if(l) l.innerHTML=(n.links||[]).map(ntLinkRow).join('');
 }
 function ntAddSched(){ document.getElementById('nt-sched-edit').insertAdjacentHTML('beforeend', ntSchedRow()); }
+function ntAddLink(){ document.getElementById('nt-link-edit').insertAdjacentHTML('beforeend', ntLinkRow()); }
 function ntAddFine(){ document.getElementById('nt-fine-edit').insertAdjacentHTML('beforeend', ntFineRow()); }
 function applyNoticeManual(){
   if(!DATA){ setStatus('nt-manual-status','데이터를 먼저 불러오세요.','err'); return; }
@@ -1779,9 +1790,13 @@ function applyNoticeManual(){
     .map(r=>({day:val(r,'day'), time:val(r,'time')})).filter(x=>x.day||x.time);
   const fines=[...document.querySelectorAll('#nt-fine-edit .nt-row')]
     .map(r=>({name:val(r,'name'), amount:parseInt(val(r,'amount').replace(/[^\d]/g,''))||0, color:val(r,'color')})).filter(x=>x.name);
+  const links=[...document.querySelectorAll('#nt-link-edit .nt-row')]
+    .map(r=>{ let u=val(r,'url'); if(u && !/^[a-z][a-z0-9+.-]*:/i.test(u)) u='https://'+u; return {title:val(r,'title'), url:u}; })
+    .filter(x=>x.url);
   DATA.notice=DATA.notice||{};
   DATA.notice.schedule=schedule;
   DATA.notice.fines=fines;
+  DATA.notice.links=links;
   updateRawEditor();
   setStatus('nt-manual-status','✓ 적용됨. GitHub 저장 버튼으로 반영하세요.','ok');
   setTimeout(()=>setStatus('nt-manual-status','',''), 4000);
