@@ -2997,7 +2997,7 @@ function bbClean(src,out){
     if(t==='TD'||t==='TH'){el=document.createElement('td');
       ['colspan','rowspan'].forEach(a=>{const v=parseInt(n.getAttribute(a));if(v>1&&v<20)el.setAttribute(a,v)});
       if(/background/.test(n.getAttribute('style')||'')&&!n.querySelector('.blank'))el.className='bb-th';
-    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='I'&&n.classList.contains('d'))el.className='d';if(t==='MARK'&&n.classList.contains('px'))el.className='px';if(t==='DIV'){const c=[...n.classList].filter(x=>x==='contentbox'||/^(mm[0-9a-z]?|mf[0-5]|ml[12]|mk[12]|ms[12]|mmq[csrpg])$/.test(x)).join(' ');if(c)el.className=c;if(/^\d{2,3}$/.test(n.dataset.w||''))el.dataset.w=n.dataset.w;if(t==='DIV'&&n.classList.contains('mm')&&n.dataset.tab)el.dataset.tab=n.dataset.tab.slice(0,60);if(t==='DIV'&&n.classList.contains('mmqg')){const u=n.dataset.u||'';if(u.length<1200000&&/^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(u))el.dataset.u=u;['gw','gh'].forEach(k=>{if(/^\d{1,4}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}if(t==='DIV'){['x','t','a','b','s','r','p','g','gp'].forEach(k=>{if(/^[A-Za-z0-9_-]{1,48}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}}}
+    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='I'&&n.classList.contains('d'))el.className='d';if(t==='MARK'&&n.classList.contains('px'))el.className='px';if(t==='DIV'){const c=[...n.classList].filter(x=>x==='contentbox'||/^(mm[0-9a-z]?|mf[0-5]|ml[12]|mk[12]|ms[12]|mmq[csrpg])$/.test(x)).join(' ');if(c)el.className=c;if(/^\d{2,3}$/.test(n.dataset.w||''))el.dataset.w=n.dataset.w;if(t==='DIV'&&n.classList.contains('mm')&&n.dataset.tab)el.dataset.tab=n.dataset.tab.slice(0,60);if(t==='DIV'&&n.classList.contains('mmqg')){const u=n.dataset.u||'';if(u.length<1200000&&/^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(u))el.dataset.u=u;['gw','gh'].forEach(k=>{if(/^\d{1,4}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}if(t==='DIV'){['x','t','a','b','s','r','p','g','gp','gw','gh'].forEach(k=>{if(/^[A-Za-z0-9_-]{1,48}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}}}
     if(el){bbClean(n,el);out.appendChild(el)}else bbClean(n,out);
   });
 }
@@ -3810,7 +3810,7 @@ function bbMmImg(root){   // 노드 그림(.mmn[data-g])을 노드 안 <img clas
     const p=L?'b':(/^[trlb]$/.test(n.dataset.gp)?n.dataset.gp:'t'),k=n.dataset.g+p;let im=[...n.children].find(c=>c.classList.contains('mmg'));
     if(im&&im.dataset.k===k)return;if(im)im.remove();
     im=document.createElement('img');im.className='mmg mg'+p;im.dataset.k=k;im.src=g.dataset.u;im.alt='';im.draggable=false;
-    if(+g.dataset.gw&&+g.dataset.gh){im.width=+g.dataset.gw;im.height=+g.dataset.gh}
+    {const w=+n.dataset.gw||Math.min(+g.dataset.gw||250,250),h=+n.dataset.gh||Math.round(w*(+g.dataset.gh||1)/(+g.dataset.gw||1));if(w>0&&h>0){im.width=w;im.height=h}}
     const memo=[...n.children].find(c=>c.classList.contains('mmcl')||c.classList.contains('bb-pen'));
     if(p==='t'||p==='l')n.insertBefore(im,n.firstChild);else if(memo)n.insertBefore(im,memo);else n.appendChild(im);
   });
@@ -3818,7 +3818,7 @@ function bbMmImg(root){   // 노드 그림(.mmn[data-g])을 노드 안 <img clas
 function bbMmNode(n,d,o,pv){
   const lf=!n.c.length,m=n.m||{},bx=m.f!=null||n.e,o2=Object.assign({},o,{leaf:o.leaf&&lf&&!bx}),k=d===0?0:lf?3:d===1?1:(o.xm&&!bx?3:2);   // Xmind 문서: 상자 없는 노드는 하위가 있어도 상자 없이
   const cx=(m.f!=null&&k>0?' mf'+m.f:'')+(m.k===2?' mk2':m.k?' mk1':'')+(m.s?' ms'+m.s:'');
-  return `<div class="mmb"><div class="mmn mm${k}${n.e?' mme':''}${cx}"${m.w?` data-w="${m.w}"`:''}${m.x?` data-x="${m.x}"`:''}${m.g&&bbXmImg[m.g]?` data-g="${m.g}" data-gp="${/^[trlb]$/.test(m.a)?m.a:'t'}"`:''}${pv?` data-i="${n.i}"`:''}>${bbMmTxt(n.t,o2)}</div>${lf?'':`<div class="mmc ml${m.l||2}">${n.c.map(c=>bbMmNode(c,d+1,o,pv)).join('')}</div>`}${bbMmExtra(n)}</div>`;
+  return `<div class="mmb"><div class="mmn mm${k}${n.e?' mme':''}${cx}"${m.w?` data-w="${m.w}"`:''}${m.x?` data-x="${m.x}"`:''}${m.g&&bbXmImg[m.g]?` data-g="${m.g}" data-gp="${/^[trlb]$/.test(m.a)?m.a:'t'}"${m.p&&m.q?` data-gw="${m.p}" data-gh="${m.q}"`:''}`:''}${pv?` data-i="${n.i}"`:''}>${bbMmTxt(n.t,o2)}</div>${lf?'':`<div class="mmc ml${m.l||2}">${n.c.map(c=>bbMmNode(c,d+1,o,pv)).join('')}</div>`}${bbMmExtra(n)}</div>`;
 }
 function bbMmRun(){
   const inp=document.getElementById('bbMmIn'),pv=document.getElementById('bbMmPv'),st=document.getElementById('bbMmSt');if(!inp)return;
@@ -3880,7 +3880,9 @@ function bbXmMeta(t){
   const pf=String(p['fo:font-family']||''),af=(t.attributedTitle||[]).map(x=>x['fo:font-family']).filter(Boolean).join(' ');
   const kd=s=>/elice|neolli|\bdx\b|엘리스|디엑스/i.test(s)?2:/cocoa|코코아|ownglyph|온글잎/i.test(s)?1:0;   // 상자 전체 글꼴 우선, 없으면 일부 글자 글꼴. DX·온글잎 외(미지정·Droid Serif 등)는 기본 온글잎
   const kk=kd(pf)||kd(af);if(kk)o.push('k'+kk);
-  {const gk=t.image&&t.image.src?bbXmKey(t.image.src):'';if(gk&&bbXmImg[gk])o.push('g'+gk,'a'+({right:'r',left:'l',top:'t',bottom:'b'}[t.image.align]||'t'))}   // 노드 그림: g=그림 키, a=글씨 기준 그림 위치(align 없으면 위)
+  {const gk=t.image&&t.image.src?bbXmKey(t.image.src):'';if(gk&&bbXmImg[gk]){const gi=bbXmImg[gk];let W=+t.image.width,H=+t.image.height;   // XMind가 표시 크기를 저장했으면 그대로, 없으면 XMind처럼 가로 최대 250으로 맞춤
+    if(!(W>0))W=Math.min(gi.w,250);if(!(H>0))H=W*gi.h/gi.w;if(W>800){H=H*800/W;W=800}
+    o.push('g'+gk,'a'+({right:'r',left:'l',top:'t',bottom:'b'}[t.image.align]||'t'),'p'+Math.max(1,Math.round(W)),'q'+Math.max(1,Math.round(H)))}}   // 노드 그림: g=그림 키, a=글씨 기준 그림 위치(align 없으면 위)
   if(/^[A-Za-z0-9_-]{1,48}$/.test(t.id||''))o.push('x'+t.id);   // Xmind 노드 id (다시 내려받기용 대응표)
   return o.length?'⟦'+o.join(' ')+'⟧':'';
 }
@@ -3920,13 +3922,11 @@ async function bbXmLoadImgs(z,sheets){   // content.json에서 쓰인 그림만 
     const p=String(im.src).replace(/^xap:/,''),f=z.file(p),mt=MT[(p.split('.').pop()||'').toLowerCase()];if(!f||!mt)continue;
     try{
       const buf=await f.async('arraybuffer'),bl=new Blob([buf],{type:mt}),bm=await createImageBitmap(bl);
-      let W=+im.width||bm.width,H=+im.height||Math.round(W*bm.height/bm.width);
-      if(W>400){H=Math.round(H*400/W);W=400}
       let u;
       if(buf.byteLength<=150000)u=await rd(bl);
-      else{const cv=document.createElement('canvas');cv.width=Math.min(bm.width,W*2);cv.height=Math.max(1,Math.round(cv.width*bm.height/bm.width));cv.getContext('2d').drawImage(bm,0,0,cv.width,cv.height);u=cv.toDataURL('image/webp',.85)}
+      else{const cv=document.createElement('canvas');cv.width=Math.min(bm.width,1000);cv.height=Math.max(1,Math.round(cv.width*bm.height/bm.width));cv.getContext('2d').drawImage(bm,0,0,cv.width,cv.height);u=cv.toDataURL('image/webp',.85)}
       if(u.length>900000)continue;
-      bbXmImg[k]={u,w:Math.max(1,W),h:Math.max(1,H)};
+      bbXmImg[k]={u,w:bm.width,h:bm.height};   // 원래 크기. 표시 크기는 노드마다 따로(같은 그림도 노드별로 크기가 다를 수 있음)
     }catch(e){}
   }
 }
