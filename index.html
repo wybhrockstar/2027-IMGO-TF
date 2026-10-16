@@ -2690,8 +2690,9 @@ function belowGoal(value, goal){
   if(value===null || value===undefined || goal===null || goal===undefined) return false;
   return value < goal - 1e-9;
 }
-function openGoalModal(){
-  if(!me) return;   // 목표는 "나"의 것만 수정 (⚙️ 설정에서 연다)
+async function openGoalModal(){
+  if(!me) return;
+  if(!examLoaded && !(await setEnsureExam())){alert('모의고사 목표를 불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.');return}   // 빈 값으로 열어 덮어쓰는 것 방지   // 목표는 "나"의 것만 수정 (⚙️ 설정에서 연다)
   const g = personGoals(me);
   document.getElementById('goalModalTitle').textContent = me+' 목표 설정';
   // 과목명/형(테마색) + 만점(기본 글자색) + 목표 입력란 + '점'(회색)
@@ -4662,7 +4663,17 @@ function setMe(p){
   closeMeModal();
   if(document.getElementById('setModalBg').style.display!=='none')renderSettings();
 }
-function openSettings(){document.getElementById('setModalBg').style.display='flex';renderSettings()}
+let setGoalFail=false;
+async function setEnsureExam(){   // 앱을 새로 불러오면 examData가 비어 있으므로(모의고사·오답 탭을 열 때만 로드) 설정에서도 직접 받아온다
+  if(examLoaded)return true;
+  setGoalFail=false;
+  const f=await fetchExamDataSafe();
+  if(f&&!examLoaded){examData=f;examLoaded=true}
+  setGoalFail=!examLoaded;
+  if(document.getElementById('setModalBg').style.display!=='none')renderSettings();
+  return examLoaded;
+}
+function openSettings(){document.getElementById('setModalBg').style.display='flex';renderSettings();if(!examLoaded)setEnsureExam()}
 function closeSettings(){document.getElementById('setModalBg').style.display='none'}
 function setBbSetOf(w){
   if(w===bbPerson)return bbSet;
@@ -4719,7 +4730,7 @@ function renderSettings(){
     const b=setBbSetOf(me),g=personGoals(me),f=v=>v===null||v===undefined?'-':v;
     h+=sec(me+' 목표')+hint('목표는 "나"의 것만 고칠 수 있어요.');
     h+=`<div class="set-card"><div><b>뽀개기 목표</b><span>${b.min}~${b.max}% · ${b.term}텀</span></div><button class="set-btn" onclick="openBbGoal()">수정</button></div>
-      <div class="set-card"><div><b>모의고사 목표</b><span>총점 ${f(g.total)} · A ${f(g.A)} · B ${f(g.B)}</span></div><button class="set-btn" onclick="openGoalModal()">수정</button></div>`;
+      <div class="set-card"><div><b>모의고사 목표</b><span>${examLoaded?`총점 ${f(g.total)} · A ${f(g.A)} · B ${f(g.B)}`:setGoalFail?'불러오지 못했어요 · 수정을 누르면 다시 시도해요':'불러오는 중…'}</span></div><button class="set-btn" onclick="openGoalModal()">수정</button></div>`;
   }
   // 3. 동기화
   h+=sec('동기화')+`<div class="set-info">마지막 동기화: <b>${sy.t||'아직 없음'}</b><br>서버에 못 보낸 변경: <b style="color:${sy.pend?'var(--amber)':'var(--text)'}">${sy.pend}개</b>${bbSyErr?'<br><span style="color:var(--red)">⚠ 최근 동기화에 실패했어요. 연결되면 자동으로 다시 시도해요.</span>':''}</div>`;
@@ -5052,9 +5063,11 @@ function bbMmFix(root){
   try{bbMmQs(root)}catch(e){}
 }
 function bbMmRun2(){if(document.getElementById('bbDoc')||document.querySelector('.mm')){bbMmCl(document);bbMmImg(document);bbMmUi();bbMmFocus();bbMmImp();if(document.querySelector('.mm')){bbMmFonts();bbMmFix(document)}const d=document.getElementById('bbDoc');if(d&&d.classList.contains('mmdoc'))bbHS(d)}else bbHS(null)}
-(function(){let q=0;const run=()=>{q=0;bbMmRun2()};
+(function(){let q=0;const mo=new MutationObserver(()=>go()),on=()=>mo.observe(document.body,{childList:true,subtree:true});
+  // 다시 그리는 동안 생기는 DOM 변경(요약·관계 줄 지웠다 다시 그리기 등)은 관찰하지 않는다. 안 그러면 매 프레임 무한 반복돼 화면이 버벅이고 옵션 버튼이 먹통이 된다
+  const run=()=>{q=0;mo.disconnect();try{bbMmRun2()}finally{on()}};
   const go=()=>{if(!q)q=requestAnimationFrame(run)};
-  new MutationObserver(go).observe(document.body,{childList:true,subtree:true});addEventListener('resize',go);})();
+  on();addEventListener('resize',go);})();
 
 function bbStarRemap(id,map,now){   // 빈칸 수정 저장 시 중요 표시도 새 번호로 옮김 (바뀐 빈칸의 별은 삭제)
   const so=bbStar[id];if(!so)return;const sn={};
