@@ -3045,10 +3045,18 @@ function bbTabsOf(d){
   const c=bbTabsOf.c=bbTabsOf.c||{},o=c[d.id];if(o&&o.h===h)return o.t;
   const b=bbBox(d),t=[];
   b.querySelectorAll('.bb-tab').forEach((w,i)=>{const ks=[...w.querySelectorAll('.bb-b')].map(e=>e.dataset.k),id=bbTid(w,i);
-    t.push({id,name:w.dataset.name||('탭 '+(i+1)),day:/^[0-6]$/.test(id)?+id:null,keys:new Set(ks),n:ks.length})});
+    t.push({id,name:w.dataset.name||('탭 '+(i+1)),src:w.dataset.src||'',day:/^[0-6]$/.test(id)?+id:null,keys:new Set(ks),n:ks.length})});
   c[d.id]={h,t};return t;
 }
 const bbTabOfDay=(d,day)=>day==null?null:bbTabsOf(d).find(t=>t.day===day)||null;
+// 병합 전 원문 제목의 쪽수. 서버의 기존 html을 다시 쓰지 않고, 화면 표기만 원래 문서 단위로 보완한다.
+const BB_TAB_PART={
+  dmuwlnp3d:'3~5P',dmuwlp0su:'6~8P',dmuwlu4lu:'9~11P',dmuwlzwos:'12~15P',dmuwm1y9r:'17~19P',
+  dmuwlmoh3:'3~5P',dmuwlqc9i:'6~8P',dmuwlv53j:'9~11P',dmuwlxxco:'12~15P',dmuwm37d2:'17~19P',
+  dmuwm9ihp:'3~7P',dmuwmasax:'8~11P',dmuwm80ec:'3~7P',dmuwmbl2p:'8~11P'
+};
+const bbTabPart=t=>BB_TAB_PART[t&&t.src]||'';
+const bbTabName=t=>t?(t.name+(bbTabPart(t)?' ('+bbTabPart(t)+')':'')):'';
 // 탭별 풀이 횟수: 그 탭 빈칸을 하나라도 판정한 풀이 1회 = 1회 (판정 없는 풀이는 모든 탭에 1회). 통합(tab=null)은 문서 전체 풀이 수
 function bbRnT(id,tab){
   if(!tab)return bbRn(id);
@@ -3057,6 +3065,18 @@ function bbRnT(id,tab){
   return n;
 }
 function bbTabGo(t){if(!bbS||bbS.tab===t)return;bbS.tab=t;bbS.tgt=null;bbRender();scrollTo(0,0)}
+// 일반 문서 탭도 마인드맵의 맵 선택과 같은 반응형 캡슐/드롭다운을 쓴다.
+function bbDocTabBar(TB){
+  const c=document.getElementById('bbDocTabCap');if(!c)return;
+  const pick=v=>bbTabGo(v);
+  if(!c.dataset.h){c.dataset.h='1';c.onclick=e=>{const a=e.target.closest('[data-tab]');if(a)pick(a.dataset.tab)};c.onchange=e=>{if(e.target.classList.contains('bb-msel'))pick(e.target.value)}}
+  const active=bbS&&bbS.tab||'all',sig=active+'|'+TB.map(t=>t.id+'|'+bbTabName(t)).join('\u0001');
+  if(c.dataset.sig!==sig){c.dataset.sig=sig;
+    c.innerHTML=`<span class="bb-mt">`+TB.map(t=>`<button class="bb-btn${active===t.id?' pri':''}" data-tab="${t.id}">${bbEsc(bbTabName(t))}</button>`).join('')+`<button class="bb-btn${active==='all'?' pri':''}" data-tab="all">통합</button></span>`
+      +`<select class="bb-msel" aria-label="요일 탭 선택">`+TB.map(t=>`<option value="${t.id}"${active===t.id?' selected':''}>${bbEsc(bbTabName(t))}</option>`).join('')+`<option value="all"${active==='all'?' selected':''}>통합</option></select>`;
+  }
+  c.style.display='flex';bbBarFit();
+}
 function bbAgg(id,t,keys){
   const r=bbEff()[id]||{};let a=0,c=0,w=0,l=0;
   for(const k in r){if(keys&&!keys.has(k))continue;if(!bbPenOk(id,k))continue;const T=r[k].T||{};
@@ -3080,8 +3100,10 @@ function bbWho(p){bbSave();bbPush();bbPerson=p;bbLoadP();bbSave();bbRender();bbS
 function bbCard(d,extra,done,day){
   const tb=bbTabOfDay(d,day),s=bbAgg(d.id,bbSet.term,tb?tb.keys:undefined),sj=bbSj(d.subj);
   const ds=bbDays(d.day),dl=ds.length===7?'매일':ds.map(i=>BB_DAYS[i]).join('·');
-  const lb=(d.subj?bbLab(d.subj,sj?sj.color:'var(--text3)'):'')+(d.loc?bbLab(d.loc+(ds.length?'·'+dl:''),'var(--text2)'):'');
-  return `<div class="bb-card" ${done===2?'style="border-color:var(--amber);opacity:.85"':done?'style="border-color:var(--accent);background:var(--accent3)"':''} onclick="bbOpen('${d.id}',null,${tb?"'"+tb.id+"'":'null'})"><div style="display:flex;align-items:center"><div style="flex:1"><div class="bb-ct">${done===2?'<span class="bb-ck" style="background:var(--amber);width:auto;padding:0 6px;border-radius:9px">PASS</span>':done?'<span class="bb-ck">✓</span>':''}${lb}${bbEsc(d.title)}${tb?bbLab(tb.name,'var(--blue)'):''}</div><div class="bb-cs">학습 ${s.l}/${tb?tb.n:d.n} · 풀이 ${bbRnT(d.id,tb)}회 · ${bbSet.term}텀 정답률 <b style="color:${bbCol(s.rate)}">${s.rate===null?'-':s.rate+'%'}</b>${s.w?' · 약점 '+s.w:''}</div></div>${extra||''}</div></div>`;
+  // WEEKLY는 선택 요일 하나만 라벨에 남기고, 원래 쪽수는 제목 뒤 괄호로 표시한다.
+  const isWeekly=day!==undefined&&day!==null,locDay=isWeekly?BB_DAYS[day]:dl;
+  const lb=(d.subj?bbLab(d.subj,sj?sj.color:'var(--text3)'):'')+(d.loc?bbLab(d.loc+(locDay?'·'+locDay:''),'var(--text2)'):''),part=isWeekly&&tb?bbTabPart(tb):'';
+  return `<div class="bb-card" ${done===2?'style="border-color:var(--amber);opacity:.85"':done?'style="border-color:var(--accent);background:var(--accent3)"':''} onclick="bbOpen('${d.id}',null,${tb?"'"+tb.id+"'":'null'})"><div style="display:flex;align-items:center"><div style="flex:1"><div class="bb-ct">${done===2?'<span class="bb-ck" style="background:var(--amber);width:auto;padding:0 6px;border-radius:9px">PASS</span>':done?'<span class="bb-ck">✓</span>':''}${lb}${bbEsc(d.title)}${part?' ('+bbEsc(part)+')':''}</div><div class="bb-cs">학습 ${s.l}/${tb?tb.n:d.n} · 풀이 ${bbRnT(d.id,tb)}회 · ${bbSet.term}텀 정답률 <b style="color:${bbCol(s.rate)}">${s.rate===null?'-':s.rate+'%'}</b>${s.w?' · 약점 '+s.w:''}</div></div>${extra||''}</div></div>`;
 }
 const bbGrp=d=>/역량/.test(d.title)?0:d.subj==='총론·창체'?1:/모형/.test(d.title)?2:3;   // 역량 / 총론·창체 / 모형 / 교육과정
 const bbWkSort=(a,b)=>{const ca=a.loc==='공통',cb=b.loc==='공통';if(ca!==cb)return ca?-1:1;
@@ -3199,8 +3221,7 @@ function bbRenderDoc(el){bbInOff();const hb=document.getElementById('bbMmHBar');
   const fsBar=`<span style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;flex-wrap:wrap"><button class="bb-btn" style="width:36px;padding:5px 0" onclick="bbFsStep(-1)">−</button><b id="bbFsPct" style="min-width:44px;text-align:center">${Math.round(bbFs*100)}%</b><button class="bb-btn" style="width:36px;padding:5px 0" onclick="bbFsStep(1)">+</button><button class="bb-btn" style="padding:5px 11px" onclick="bbFsSet(1)">기본</button><input id="bbFsR" type="range" min="60" max="180" step="5" value="${Math.round(bbFs*100)}" oninput="bbFsSet(this.value/100)" style="padding:0;border:none;background:none;flex:1;min-width:100px"></span>`;
   const hasMm=!!box.querySelector('.mm');
   S.allOpen=false;
-  const tabBar=TB.length?`<div class="bb-dt" id="bbDt">${TB.map(t=>`<button class="bb-btn${curTab&&curTab.id===t.id?' pri':''}" onclick="bbTabGo('${t.id}')">${bbEsc(t.name)}</button>`).join('')}<button class="bb-btn${curTab?'':' pri'}" onclick="bbTabGo('all')">통합</button></div>`:'';
-  el.innerHTML=`<div class="bb-tbar" id="bbBar"><div class="bb-cap bb-g1"><button class="bb-btn" onclick="bbLeave()">← 목록</button><b title="${bbEsc(d.title)}">${bbEsc(d.title)}</b>${d.xm?`<button class="bb-btn bb-ic" title="다운로드" aria-label="다운로드" onclick="bbXmExport('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>`:''}${S.mode==='study'?`<button class="bb-btn ${S.edit?'pri':''}" onclick="bbEditTog()">편집</button>`:''}<button class="bb-btn" onclick="bbOpenAdd('${d.id}')">수정</button><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div><div class="bb-row2" id="bbRow2"><div class="bb-cap bb-modes">${mc('study','학습')}${mc('test','테스트')}${mc('rate','정답률')}</div>${hasMm?`<div class="bb-cap bb-maps" id="bbMapCap"></div>`:''}<div class="bb-cap bb-g3"><button id="bbAllB" class="bb-btn" onclick="bbAllTog()">전체 열기</button><button id="bbOptB" class="bb-btn ${S.opt?'pri':''}" onclick="bbOptTog()">${S.opt?'옵션 ∧':'옵션 ∨'}</button></div></div>${tabBar}</div>
+  el.innerHTML=`<div class="bb-tbar" id="bbBar"><div class="bb-cap bb-g1"><button class="bb-btn" onclick="bbLeave()">← 목록</button><b title="${bbEsc(d.title)}">${bbEsc(d.title)}</b>${d.xm?`<button class="bb-btn bb-ic" title="다운로드" aria-label="다운로드" onclick="bbXmExport('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>`:''}${S.mode==='study'?`<button class="bb-btn ${S.edit?'pri':''}" onclick="bbEditTog()">편집</button>`:''}<button class="bb-btn" onclick="bbOpenAdd('${d.id}')">수정</button><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div><div class="bb-row2" id="bbRow2"><div class="bb-cap bb-modes">${mc('study','학습')}${mc('test','테스트')}${mc('rate','정답률')}</div>${TB.length?`<div class="bb-cap bb-maps" id="bbDocTabCap"></div>`:''}${hasMm?`<div class="bb-cap bb-maps" id="bbMapCap"></div>`:''}<div class="bb-cap bb-g3"><button id="bbAllB" class="bb-btn" onclick="bbAllTog()">전체 열기</button><button id="bbOptB" class="bb-btn ${S.opt?'pri':''}" onclick="bbOptTog()">${S.opt?'옵션 ∧':'옵션 ∨'}</button></div></div></div>
   ${S.mode==='study'&&S.edit?`<div class="bb-top" style="margin:0 0 8px"><button id="${/class="mm"/.test(d.html||'')?'bbMeB':'bbTyB'}" class="bb-btn" onclick="bbInTog('text')">✎ 글자 및 빈칸 편집</button><button id="bbImpB" class="bb-btn" onclick="bbInTog('imp')">✎ 중요 내용 편집</button><button id="bbMmoB" class="bb-btn" onclick="bbInTog('memo')">✎ 메모 편집</button></div><div id="bbInEdBox"></div>`:''}
   <div class="bb-opt" id="bbOptP" style="display:${S.opt?'flex':'none'}">
     <div class="bb-orow"><span class="bb-ol">범위</span>${fc('all','전체')}${fc('weak','약점')}${fc('new','안 푼 것')}</div>
@@ -3210,6 +3231,7 @@ function bbRenderDoc(el){bbInOff();const hb=document.getElementById('bbMmHBar');
   <div class="bb-cs" style="margin-bottom:8px">${desc}</div>
   <div class="bb-dw" id="bbDW"><div class="bb-doc ${S.mode}" id="bbDoc" onclick="bbClick(event)"></div><div class="bb-dh" id="bbDH" title="드래그해서 카드 폭 조절 · 더블클릭하면 최대 폭"></div></div>${S.mode==='test'?`<div style="height:70px"></div><div class="bb-fbar"><button class="bb-btn" onclick="bbUndo()">↩ 판정 취소</button><button class="bb-btn" onclick="bbJReset()">판정 초기화</button><button class="bb-done" onclick="bbFinish()">✓ 완료</button></div>`:''}`;
   document.getElementById('bbDoc').appendChild(box);
+  if(TB.length)bbDocTabBar(TB);
   bbDwInit();
   bbBarFit();requestAnimationFrame(bbBarFit);
 }
