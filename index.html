@@ -122,6 +122,8 @@ body.light .cd{color:var(--text3)}
 .stab{padding:5px 13px;font-size:12px;border-radius:20px;border:1px solid var(--border2);color:var(--text3);background:none;transition:.12s}
 .stab:hover{border-color:var(--blue);color:var(--blue)}
 .stab.on{background:rgba(110,181,255,.1);border-color:var(--blue);color:var(--blue)}
+#swSubjectTabs .stab,#swTermTabs .stab{padding:6px 16px;font-weight:500}   /* 오답 탭 칩을 뽀개기 탭(.ttab) 크기로 통일 */
+#swSubjectTabs,#swTermTabs{gap:6px}
 .apply-btn{padding:8px 18px;font-size:13px;font-weight:600;border-radius:20px;border:1px solid var(--accent);color:var(--bg);background:var(--accent);transition:.15s;cursor:pointer}
 .apply-btn:hover{opacity:.85}
 .apply-btn:active{transform:scale(.97)}
@@ -573,11 +575,11 @@ body:not(.light) .badge-idle{background:rgba(150,150,150,.14);color:#a2a2a2;bord
 
 <!-- ======= PAGE: STUDY WRONG ANSWERS ======= -->
 <div class="page main" id="page-studywrong">
-  <div class="ttab-wrap" id="swAuthorToggle" style="display:flex;gap:8px;margin-bottom:18px;align-items:center"></div>
+  <div class="ttab-wrap" id="swAuthorToggle" style="display:flex;gap:8px;margin-bottom:12px;align-items:center"></div>
 
   <div class="subj-tabs" id="swSubjectTabs" style="margin-bottom:12px;flex-wrap:wrap"></div>
 
-  <div class="subj-tabs" id="swTermTabs" style="margin-bottom:16px"></div>
+  <div class="subj-tabs" id="swTermTabs" style="margin-bottom:12px"></div>
 
   <div id="swWrongList"></div>
 
@@ -614,7 +616,7 @@ body:not(.light) .badge-idle{background:rgba(150,150,150,.14);color:#a2a2a2;bord
 <!-- ======= PAGE: EXAMS ======= -->
 <div class="page main" id="page-exams">
 
-  <div class="ttab-wrap" id="examPersonTabs" style="display:flex;gap:8px;margin-bottom:18px">
+  <div class="ttab-wrap" id="examPersonTabs" style="display:flex;gap:8px;margin-bottom:12px">
     <button class="ttab on" onclick="showExamPerson('status',this)">현황</button>
     <button class="ttab" onclick="showExamPerson('재언',this)">재언</button>
     <button class="ttab" onclick="showExamPerson('태현',this)">태현</button>
