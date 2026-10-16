@@ -215,10 +215,10 @@ body.light .nc-stitle{color:var(--text3)}
 .bb-btn{padding:6px 14px;font-size:12px;border-radius:20px;border:1px solid var(--border2);background:none;color:var(--text2);transition:.15s}
 .bb-btn:hover{border-color:var(--accent);color:var(--accent)}
 .bb-btn.pri{background:var(--accent2);border-color:var(--accent);color:var(--accent)}
-.bb-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:.15s}
+.bb-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;margin-bottom:6px;cursor:pointer;transition:.15s}
 .bb-card:hover{border-color:var(--accent)}
-.bb-ct{font-weight:500}
-.bb-cs{font-size:11px;color:var(--text3);margin-top:3px}
+.bb-ct{font-weight:500;font-size:13px;line-height:1.35}
+.bb-cs{font-size:11px;color:var(--text3);margin-top:1px}
 .bb-doc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px;font-size:calc(14px*var(--bbfs,1));line-height:2.1;overflow:auto}
 .bb-doc table{border-collapse:collapse;width:100%;margin:8px 0}
 .bb-doc td{border:1px solid var(--border2);padding:6px 8px;vertical-align:top}
@@ -230,7 +230,7 @@ body.light .nc-stitle{color:var(--text3)}
 .bb-b{background:var(--accent2);color:transparent;border-radius:4px;cursor:pointer;padding:1px 3px;transition:.1s;user-select:none;-webkit-user-select:none}
 .bb-b.open{color:var(--text);background:var(--accent3);outline:1px solid var(--accent)}
 @media(hover:hover){.bb-doc.study .bb-b:hover{color:var(--text);background:var(--accent3);outline:1px solid var(--accent)}}
-.bb-b.ok{outline:2px solid var(--accent)}
+.bb-b.ok{outline:2px solid var(--teal);background:color-mix(in srgb,var(--teal) var(--tintng,14%),transparent)}   /* 정답 = 청록(--teal), 오답(.ng)의 빨강과 같은 방식 */
 /* ── 뽀개기 문제 카드 전용 눈 편한 팔레트: 카드(.bb-doc) 안에서만 변수를 덮어써서 다른 화면의 색은 그대로 ── */
 .bb-doc{--bg3:#201e1c;--text:#d9d9d9;--text2:#bdbdbd;--text3:#979797;--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);--border3:#6e6e6e;--accent:#a8c76a;--accent2:rgba(168,199,106,.30);--accent3:rgba(168,199,106,.17);--tint:36%;--tintng:26%;--red:#e07a6f;--purple:#9d8fc4;--blue:#7aa3c9;--teal:#6fb7a0;--amber:#d9a85a;--pink:#d98c9c;--star:#f2994a;--mmbd:#808080;--mm0bg:#121212;--mm0tx:#e6e6e6;color:var(--text)}
 body.light .bb-doc{--bg3:#fbfbf8;--text:#2b2b2b;--text2:#555;--text3:#888;--border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);--border3:#b9b9b0;--accent:#6f9a2e;--accent2:rgba(111,154,46,.16);--accent3:rgba(111,154,46,.10);--tint:22%;--tintng:14%;--red:#c4533f;--purple:#6b4fc4;--blue:#1a6fc4;--teal:#1a8a6a;--amber:#c87800;--pink:#c4204a;--star:#e8751a;--mmbd:#a9a9a0;--mm0bg:#34362f;--mm0tx:#f1f1ea}
@@ -328,7 +328,7 @@ body.bbnoline .bb-b.open:not(.ok):not(.ng),body.bbnoline .bb-doc.study .bb-b:hov
 .bb-bar i{display:block;height:100%}
 .bb-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:12px}
 .bb-row b{width:64px;flex-shrink:0}
-.bb-card .apply-btn-sm{margin-left:8px}
+.bb-card .apply-btn-sm{margin-left:8px;padding:4px 11px}
 /* ── 설정 모달 공통 ── */
 .set-sec{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;margin:22px 0 8px}
 .set-sec.first{margin-top:0}
