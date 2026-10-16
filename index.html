@@ -270,7 +270,16 @@ body.bbsolve #page-bbogae.main{max-width:none;padding:10px 20px 80px}
 .bb-row2.two .bb-maps{order:3;flex:0 0 auto;margin-right:auto}
 .bb-row2.two .bb-modes{order:1}
 .bb-maps{display:none}
+.bb-mt{display:contents}
+.bb-msel{display:none;appearance:none;-webkit-appearance:none;width:88px;max-width:88px;padding:5px 24px 5px 11px;font-size:12px;font-family:inherit;border-radius:20px;border:1px solid var(--accent);background:var(--accent2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23999' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px center;color:var(--accent);text-overflow:ellipsis;white-space:nowrap}
+.bb-msel option{background:var(--bg2);color:var(--text)}
 @media(max-width:767px){
+  .bb-mt{display:none}
+  .bb-msel{display:inline-block}
+  .bb-row2{gap:6px}
+  .bb-row2 .bb-cap{padding:3px 4px;gap:3px}
+  .bb-row2 .bb-btn,.bb-row2 .ttab{padding:5px 8px}
+  .bb-msel{width:64px;max-width:64px;padding:5px 18px 5px 8px;background-position:right 7px center}
   .bb-g1{flex:1 1 100%}
   .bb-g1 b{flex:1;max-width:none}
   .bb-row2{flex:1 1 100%}
@@ -4888,15 +4897,18 @@ function bbMmTabBar(doc,ms,split){   // 맵 탭 캡슐(상단바 안): 맵 1·�
   const old=document.getElementById('bbMmTabs');if(old)old.remove();
   const c=document.getElementById('bbMapCap');if(!c)return;
   if(ms.length<2){c.style.display='none';c.innerHTML='';c.dataset.sig='';bbBarFit();return}
+  const pick=v=>{
+    if(v==='all'){if(bbMm.tm==='all')return;bbMm.tm='all';bbMm.path=null;bbMmSave();bbOptClr();bbMmRun2();return}
+    const i=+v;if(bbMm.tm!=='all'&&i===bbMm.tab)return;
+    if(bbMm.tm==='all'){bbMm.tm='split';bbMm.path=null;bbMmSave();bbOptClr()}
+    bbMm.tab=i;if(bbMm.path&&bbMm.path[0]!==i){bbMm.path=null;bbOptClr()}bbMmRun2()};
   if(!c.dataset.h){c.dataset.h='1';
-    c.onclick=e=>{const a=e.target.closest('[data-tab]');if(!a)return;
-      if(a.dataset.tab==='all'){if(bbMm.tm==='all')return;bbMm.tm='all';bbMm.path=null;bbMmSave();bbOptClr();bbMmRun2();return}
-      const i=+a.dataset.tab;if(bbMm.tm!=='all'&&i===bbMm.tab)return;
-      if(bbMm.tm==='all'){bbMm.tm='split';bbMm.path=null;bbMmSave();bbOptClr()}
-      bbMm.tab=i;if(bbMm.path&&bbMm.path[0]!==i){bbMm.path=null;bbOptClr()}bbMmRun2()}}
-  const all=bbMm.tm==='all',sig=(all?'a':bbMm.tab)+'|'+ms.map(m=>m.dataset.tab||'').join('\u0001');
+    c.onclick=e=>{const a=e.target.closest('[data-tab]');if(a)pick(a.dataset.tab)};
+    c.onchange=e=>{if(e.target.classList.contains('bb-msel'))pick(e.target.value)}}
+  const all=bbMm.tm==='all',sig=(all?'a':bbMm.tab)+'|'+ms.map(m=>m.dataset.tab||'').join('\u0001'),nm=(m,i)=>bbEsc(m.dataset.tab||'맵 '+(i+1));
   if(c.dataset.sig!==sig){c.dataset.sig=sig;
-    c.innerHTML=ms.map((m,i)=>`<button class="bb-btn${!all&&i===bbMm.tab?' pri':''}" data-tab="${i}">${bbEsc(m.dataset.tab||'맵 '+(i+1))}</button>`).join('')+`<button class="bb-btn${all?' pri':''}" data-tab="all">통합</button>`}
+    c.innerHTML=`<span class="bb-mt">`+ms.map((m,i)=>`<button class="bb-btn${!all&&i===bbMm.tab?' pri':''}" data-tab="${i}">${nm(m,i)}</button>`).join('')+`<button class="bb-btn${all?' pri':''}" data-tab="all">통합</button></span>`
+      +`<select class="bb-msel" aria-label="맵 선택">`+ms.map((m,i)=>`<option value="${i}"${!all&&i===bbMm.tab?' selected':''}>${nm(m,i)}</option>`).join('')+`<option value="all"${all?' selected':''}>통합</option></select>`}
   c.style.display='flex';bbBarFit();
 }
 function bbMmUi(){
