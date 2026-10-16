@@ -3815,9 +3815,9 @@
       "essay": true
     },
     {
-      "count": "1",
+      "count": "2",
       "status": "완료",
-      "name": "백구 파이널 1회",
+      "name": "백구 파이널 1~2회",
       "essay": true
     },
     {
@@ -3843,6 +3843,12 @@
       "status": "완료",
       "name": "위더스 실전 1~2회",
       "essay": true
+    },
+    {
+      "count": "1",
+      "status": "완료",
+      "name": "임고슈타인 1회",
+      "essay": false
     },
     {
       "count": "2",
@@ -3899,9 +3905,9 @@
       "essay": false
     },
     {
-      "count": "2",
+      "count": "3",
       "status": "완료",
-      "name": "쿠키넷 파이널 1~2회",
+      "name": "쿠키넷 파이널 1~3회",
       "essay": false
     },
     {
@@ -3923,9 +3929,9 @@
       "essay": false
     },
     {
-      "count": "2",
+      "count": "1",
       "status": "예정",
-      "name": "백구 파이널 2~3회",
+      "name": "백구 파이널 3회",
       "essay": true
     },
     {
@@ -3933,12 +3939,6 @@
       "status": "예정",
       "name": "위더스 실전 3회",
       "essay": true
-    },
-    {
-      "count": "1",
-      "status": "예정",
-      "name": "쿠키넷 파이널 3회",
-      "essay": false
     }
   ],
   "examsUpdated": "2026.10.10.",
