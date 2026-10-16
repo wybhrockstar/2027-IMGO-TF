@@ -496,12 +496,15 @@ body.bblen .bb-b:not(.open){display:inline-block;width:4.5em;overflow:hidden;whi
 .exam-sec-label:first-child{margin-top:0}
 .exam-sec-label b{font-weight:600;color:var(--text2)}
 .exam-sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
-:root{--exam-red:#f26363}
-body.light{--exam-red:#d33328}
+:root{--exam-red:var(--red)}
+body.light{--exam-red:var(--red)}
 .badge-excl{background:color-mix(in srgb,var(--exam-red) 15%,transparent);color:var(--exam-red);border:1px solid color-mix(in srgb,var(--exam-red) 32%,transparent)}
 .exam-cnt.cnt-excl{color:var(--exam-red)}
 body:not(.light) .badge-unknown,body:not(.light) .exam-essay{color:#b8b8b8;background:rgba(170,170,170,.16);border-color:rgba(170,170,170,.34)}
 body:not(.light) .exam-cnt.cnt-unknown{color:#b8b8b8}
+body:not(.light) .exam-essay{color:#e6e6e6;background:rgba(225,225,225,.14);border-color:rgba(225,225,225,.38)}
+.badge-idle{background:rgba(136,136,136,.12);color:#777;border:1px solid rgba(136,136,136,.2)}
+body:not(.light) .badge-idle{background:rgba(150,150,150,.14);color:#a2a2a2;border-color:rgba(150,150,150,.3)}
 </style>
 </head>
 <body>
@@ -1391,9 +1394,10 @@ function buildExamDateMap(){
 
 function renderExams(){
   const exams = S.exams||[];
-  const updated = S.examsUpdated||'';
+  const nowD = new Date();
+  const todayStr = nowD.getFullYear()+'.'+String(nowD.getMonth()+1).padStart(2,'0')+'.'+String(nowD.getDate()).padStart(2,'0')+'.';
   const label = document.getElementById('exam-updated-label');
-  if(label) label.textContent = updated ? '모의고사 현황 ('+updated+')' : '모의고사 현황';
+  if(label) label.textContent = '모의고사 현황 ('+todayStr+')';
 
   const listEl = document.getElementById('examList');
   const sumEl = document.getElementById('examSummary');
@@ -1434,7 +1438,7 @@ function renderExams(){
     sumStudy += total; sumDone += done;
     const all = total>0 && done>=total;
     const notStarted = !all && done===0;
-    const sc = all ? 'badge-complete' : (notStarted ? 'badge-unknown' : 'badge-warn');
+    const sc = all ? 'badge-complete' : (notStarted ? 'badge-idle' : 'badge-warn');
     const cc = all ? 'cnt-complete' : (notStarted ? 'cnt-unknown' : 'cnt-warn');
     topRows.push(`<div class="exam-row"><span class="exam-cnt ${cc}">[${e.count}]</span><span class="exam-badge ${sc} exam-prog" style="align-self:center;flex-shrink:0">${done}/${total}</span><span class="exam-name">${e.name}${essay}</span></div>`);
   });
@@ -1463,7 +1467,7 @@ function renderExams(){
 
   // 목록: 풀이·진행 / 제외 구분 (각 그룹 안에서는 시트 순서 유지)
   let html = '';
-  if(topRows.length) html += `<div class="exam-sec-label"><b>풀이 · 진행</b> ${sumStudy}회분</div>` + topRows.join('');
+  if(topRows.length) html += `<div class="exam-sec-label"><b>풀이</b> ${sumStudy}회분</div>` + topRows.join('');
   if(exclRows.length) html += `<div class="exam-sec-label"><b>제외</b> ${sumExcl}회분</div>` + exclRows.join('');
   listEl.innerHTML = html;
 }
