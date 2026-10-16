@@ -3815,9 +3815,9 @@
       "essay": true
     },
     {
-      "count": "2",
+      "count": "3",
       "status": "완료",
-      "name": "백구 파이널 1~2회",
+      "name": "백구 파이널 1~3회",
       "essay": true
     },
     {
@@ -3931,17 +3931,11 @@
     {
       "count": "1",
       "status": "예정",
-      "name": "백구 파이널 3회",
-      "essay": true
-    },
-    {
-      "count": "1",
-      "status": "예정",
       "name": "위더스 실전 3회",
       "essay": true
     }
   ],
-  "examsUpdated": "2026.10.10.",
+  "examsUpdated": "2026.10.19.",
   "studyWrongAnswers": [
     {
       "id": "sw_1786884615226_xpnxq",
