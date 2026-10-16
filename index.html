@@ -3204,6 +3204,22 @@ function bbBarFit(){   // 학습·맵·옵션 줄: 한 줄에 다 들어가면 �
   const gap=parseFloat(getComputedStyle(r).columnGap)||0;
   let w=gap*Math.max(0,kids.length-1);kids.forEach(k=>{w+=k.offsetWidth});
   if(w>r.clientWidth+1)r.classList.add('two');
+  // 모바일 맵 드롭다운: 한 줄을 넘지 않는 범위에서 선택된 이름만큼(최대) 늘린다
+  const sel=r.querySelector('.bb-msel');if(!sel)return;
+  sel.style.width='';sel.style.maxWidth='';
+  if(getComputedStyle(sel).display==='none')return;
+  const cap=sel.parentElement,cs=getComputedStyle(sel),tx=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:'';
+  const cv=bbBarFit.cv||(bbBarFit.cv=document.createElement('canvas').getContext('2d'));
+  cv.font=cs.fontStyle+' '+cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily;
+  const zm=parseFloat(getComputedStyle(document.body).zoom)||1;
+  const nat=Math.ceil(cv.measureText(tx).width)+parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight)+2;
+  const base=sel.offsetWidth,capRest=cap.offsetWidth-base;
+  const kids2=[...r.children].filter(k=>getComputedStyle(k).display!=='none'&&k!==cap);
+  let used=0;
+  if(!r.classList.contains('two')){used=gap*kids2.length;kids2.forEach(k=>{used+=k.offsetWidth})}
+  const avail=Math.floor(r.clientWidth-used-capRest-1);
+  const wd=Math.max(base,Math.min(nat,avail));
+  sel.style.maxWidth='none';sel.style.width=wd+'px';
 }
 addEventListener('resize',()=>{cancelAnimationFrame(bbBarFit.q);bbBarFit.q=requestAnimationFrame(bbBarFit)});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>bbBarFit());
@@ -4622,6 +4638,7 @@ window.addEventListener('pagehide',uiSave);
 // ==================== SETTINGS (⚙️) ====================
 // 업데이트 기록: 새 수정을 할 때마다 맨 위에 한 줄씩 추가 (화면에는 최근 5개만 표시)
 const APP_LOG=[
+  ['10/16','모의고사 및 뽀개기 탭 UI 개선, admin 페이지 개선'],
   ['10/15','★·메모 디자인 통합, 마인드맵 관계·요약·탭 추가, 편집 모드 개선, Xmind 다운로드 추가 및 다시 올리기 연동'],
   ['10/14','통합된 설정 버튼 추가, 홈 화면 뽀개기 추가, 사용자 지정 기능 추가, 마지막 보던 화면 복원']
 ];
@@ -4738,7 +4755,7 @@ function bbMmFonts(){
   if(bbMmFonts.d)return;bbMmFonts.d=1;
   [['EliceNeolli','fonts/neolli.woff2'],['OwnglyphCocoa','fonts/cocoa.woff2']].forEach(([n,u])=>{try{new FontFace(n,'url('+u+')').load().then(f=>{document.fonts.add(f);bbMmFix(document)}).catch(()=>{})}catch(e){}});
 }
-const bbMm=(()=>{const g=k=>{try{return localStorage.getItem(k)}catch(e){return null}};return{mode:g('bbMmMode')||(innerWidth<700?'list':'map'),z:+g('bbMmZ')||1,lf:+g('bbMmLF')||15,len:g('bbLen')==='1',line:g('bbLine')==='1',star:g('bbStar')!=='0',pick:false,path:null,tm:g('bbMmTM')==='all'?'all':'split',tab:0,td:null,cl:g('bbMmCL')!=='0',img:g('bbMmImg')!=='0',imp:(v=>v==='my'?'my':(v==='1'||v==='imp')?'imp':'all')(g('bbMmImp'))}})();
+const bbMm=(()=>{const g=k=>{try{return localStorage.getItem(k)}catch(e){return null}};return{mode:g('bbMmMode')||(innerWidth<700?'list':'map'),z:+g('bbMmZ')||1,lf:+g('bbMmLF')||15,len:g('bbLen')==='1',line:g('bbLine')==='1',star:g('bbStar')!=='0',pick:false,path:null,tm:g('bbMmTM')==='split'?'split':'all',tab:0,td:null,cl:g('bbMmCL')!=='0',img:g('bbMmImg')!=='0',imp:(v=>v==='my'?'my':(v==='1'||v==='imp')?'imp':'all')(g('bbMmImp'))}})();
 function bbMmSave(){try{localStorage.setItem('bbMmMode',bbMm.mode);localStorage.setItem('bbMmZ',bbMm.z);localStorage.setItem('bbMmLF',bbMm.lf);localStorage.setItem('bbLen',bbMm.len?'1':'0');localStorage.setItem('bbLine',bbMm.line?'1':'0');localStorage.setItem('bbStar',bbMm.star?'1':'0');localStorage.setItem('bbMmTM',bbMm.tm);localStorage.setItem('bbMmCL',bbMm.cl?'1':'0');localStorage.setItem('bbMmImg',bbMm.img?'1':'0');localStorage.setItem('bbMmImp',bbMm.imp)}catch(e){}}
 function bbMmBar(doc,ms){const o=document.getElementById('bbMmHBar');if(o)o.remove();if(doc)doc.classList.toggle('mmdoc',!!ms.length)}
 function bbMmNum(m,on){   // 목록 모드: 상자에만 층위별 번호(I. 1. 가. 1) 가) (1) (가) •). 같은 부모 아래 상자끼리 순번, 번호 칸 폭은 그 묶음의 가장 긴 번호에 맞춤
@@ -4919,7 +4936,7 @@ function bbMmUi(){
   ms.forEach(m=>{m.classList.toggle('lst',bbMm.mode==='list');m.style.zoom=bbMm.mode==='map'&&bbMm.z!==1?bbMm.z:'';m.style.setProperty('--lf',bbMm.lf+'px')});
   ms.forEach(m=>bbMmNum(m,bbMm.mode==='list'));
   ms.forEach(m=>bbMmQx(m,bbMm.mode==='list'));
-  if(bbMm.td!==bbView){bbMm.td=bbView;bbMm.tab=0}   // 문서가 바뀌면 첫 탭부터
+  if(bbMm.td!==bbView){bbMm.td=bbView;bbMm.tab=0;bbMm.tm='all'}   // 문서가 바뀌면 첫 탭부터
   if(bbMm.tab>=ms.length)bbMm.tab=0;
   const split=ms.length>1&&bbMm.tm==='split';   // 탭: 구분(한 탭씩, 기본) / 통합(모든 탭을 이어서)
   ms.forEach((m,i)=>m.classList.toggle('tabx',split&&i!==bbMm.tab));
