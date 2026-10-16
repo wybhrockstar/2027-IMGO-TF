@@ -256,12 +256,25 @@ body.bbnostar .bb-b.star::before{display:none}
 /* 풀이 화면: 헤더·탭 숨김, 제목줄, 옵션 패널, 하단 고정 바 */
 body.bbsolve .hdr,body.bbsolve .nav{display:none}
 body.bbsolve #page-bbogae.main{max-width:none;padding:10px 20px 80px}
-.bb-tt{display:flex;align-items:center;gap:6px;margin-bottom:10px}
-.bb-tt b{flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bb-tt .bb-btn{flex-shrink:0}
-.bb-r1{display:flex;justify-content:space-between;align-items:center;gap:6px 8px;flex-wrap:wrap;margin-bottom:8px}
-.bb-r1>div{display:flex;gap:5px;align-items:center}
-.bb-r1 .ttab,.bb-r1 .bb-btn{padding:5px 11px;white-space:nowrap}
+.bb-tbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-bottom:8px}
+.bb-cap{display:flex;align-items:center;gap:5px;flex:0 0 auto;padding:4px 6px;border-radius:22px;background:var(--bg3);border:1px solid var(--border)}
+.bb-cap .bb-btn,.bb-cap .ttab{padding:5px 11px;white-space:nowrap;flex-shrink:0}
+.bb-cap .bb-ic{padding:5px 9px;display:inline-flex;align-items:center;justify-content:center}
+.bb-cap .bb-ic svg{width:14px;height:14px;display:block}
+.bb-g1{flex:0 1 auto;min-width:0;max-width:100%}
+.bb-g1 b{min-width:0;max-width:340px;font-size:13px;padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bb-row2{display:flex;flex-wrap:nowrap;align-items:center;gap:8px 10px;flex:1 1 auto;min-width:0}
+.bb-g3{margin-left:auto}
+.bb-row2.two{flex-wrap:wrap}
+.bb-row2.two .bb-g3{order:2}
+.bb-row2.two .bb-maps{order:3;flex:0 0 auto;margin-right:auto}
+.bb-row2.two .bb-modes{order:1}
+.bb-maps{display:none}
+@media(max-width:767px){
+  .bb-g1{flex:1 1 100%}
+  .bb-g1 b{flex:1;max-width:none}
+  .bb-row2{flex:1 1 100%}
+}
 .bb-opt{flex-direction:column;gap:8px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg3);padding:9px 10px;margin-bottom:8px}
 .bb-orow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .bb-orow>.bb-orow{flex:1;min-width:0}
@@ -449,7 +462,7 @@ mark::before{content:"★ "}
 .bb-b:not(.open) mark{color:transparent}
 .mmn.mk2 mark{font-weight:inherit}
 .mmcl,.mmqx,.mm .bb-pen,.mm .mmn>.bb-pen{font-family:'OwnglyphCocoa','EliceNeolli',sans-serif}   /* 메모·설명선·요약·관계 글씨는 온글잎체로 통일 */
-body.bbined .bb-dw,body.bbined #bbMmTabs{display:none!important}
+body.bbined .bb-dw,body.bbined #bbMmTabs,body.bbined #bbMapCap{display:none!important}
 /* 마인드맵 안의 중요 표시는 온글잎체에 맞춰 '굵은 글씨'와 같은 굵기(굵기 400 + 가는 외곽선), DX체는 그대로 */
 .mm mark.px,mark.px{color:var(--star,#f2994a)}
 .mm mark,.mm .ip,.bb-doc .mm .bb-b.star.open,#bbPv2 .mm .blank.star{font-weight:400;-webkit-text-stroke:.25px currentColor}
@@ -3145,8 +3158,8 @@ function bbRenderDoc(el){bbInOff();const hb=document.getElementById('bbMmHBar');
     :`${fn} 푸는 중 · ${rt} · 약점 ${st.w}개 · 풀이 ${bbRn(d.id)}회`;
   const fsBar=`<span style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;flex-wrap:wrap"><button class="bb-btn" style="width:36px;padding:5px 0" onclick="bbFsStep(-1)">−</button><b id="bbFsPct" style="min-width:44px;text-align:center">${Math.round(bbFs*100)}%</b><button class="bb-btn" style="width:36px;padding:5px 0" onclick="bbFsStep(1)">+</button><button class="bb-btn" style="padding:5px 11px" onclick="bbFsSet(1)">기본</button><input id="bbFsR" type="range" min="60" max="180" step="5" value="${Math.round(bbFs*100)}" oninput="bbFsSet(this.value/100)" style="padding:0;border:none;background:none;flex:1;min-width:100px"></span>`;
   const hasMm=!!box.querySelector('.mm');
-  el.innerHTML=`<div class="bb-tt"><button class="bb-btn" onclick="bbLeave()">← 목록</button><b>${bbEsc(d.title)}</b>${d.xm?`<button class="bb-btn" onclick="bbXmExport('${d.id}')">다운로드</button>`:''}<button class="bb-btn" onclick="bbOpenAdd('${d.id}')">수정</button><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div>
-  <div class="bb-r1"><div>${mc('study','학습')}${mc('test','테스트')}${mc('rate','정답률')}</div><div>${S.mode==='study'?`<button class="bb-btn ${S.edit?'pri':''}" onclick="bbEditTog()">편집하기</button>`:''}<button class="bb-btn" onclick="bbAll(1)">전체 열기</button><button class="bb-btn" onclick="bbAll(0)">전체 가리기</button><button class="bb-btn bb-theme" title="라이트/다크 전환" aria-label="라이트/다크 전환" onclick="toggleTheme()">${document.body.classList.contains('light')?'🌞':'🌙'}</button><button id="bbOptB" class="bb-btn ${S.opt?'pri':''}" onclick="bbOptTog()">${S.opt?'옵션 ∧':'옵션 ∨'}</button></div></div>
+  S.allOpen=false;
+  el.innerHTML=`<div class="bb-tbar" id="bbBar"><div class="bb-cap bb-g1"><button class="bb-btn" onclick="bbLeave()">← 목록</button><b title="${bbEsc(d.title)}">${bbEsc(d.title)}</b>${d.xm?`<button class="bb-btn bb-ic" title="다운로드" aria-label="다운로드" onclick="bbXmExport('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>`:''}${S.mode==='study'?`<button class="bb-btn ${S.edit?'pri':''}" onclick="bbEditTog()">편집</button>`:''}<button class="bb-btn" onclick="bbOpenAdd('${d.id}')">수정</button><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div><div class="bb-row2" id="bbRow2"><div class="bb-cap bb-modes">${mc('study','학습')}${mc('test','테스트')}${mc('rate','정답률')}</div>${hasMm?`<div class="bb-cap bb-maps" id="bbMapCap"></div>`:''}<div class="bb-cap bb-g3"><button id="bbAllB" class="bb-btn" onclick="bbAllTog()">전체 열기</button><button id="bbOptB" class="bb-btn ${S.opt?'pri':''}" onclick="bbOptTog()">${S.opt?'옵션 ∧':'옵션 ∨'}</button></div></div></div>
   ${S.mode==='study'&&S.edit?`<div class="bb-top" style="margin:0 0 8px"><button id="${/class="mm"/.test(d.html||'')?'bbMeB':'bbTyB'}" class="bb-btn" onclick="bbInTog('text')">✎ 글자 및 빈칸 편집</button><button id="bbImpB" class="bb-btn" onclick="bbInTog('imp')">✎ 중요 내용 편집</button><button id="bbMmoB" class="bb-btn" onclick="bbInTog('memo')">✎ 메모 편집</button></div><div id="bbInEdBox"></div>`:''}
   <div class="bb-opt" id="bbOptP" style="display:${S.opt?'flex':'none'}">
     <div class="bb-orow"><span class="bb-ol">범위</span>${fc('all','전체')}${fc('weak','약점')}${fc('new','안 푼 것')}</div>
@@ -3157,6 +3170,7 @@ function bbRenderDoc(el){bbInOff();const hb=document.getElementById('bbMmHBar');
   <div class="bb-dw" id="bbDW"><div class="bb-doc ${S.mode}" id="bbDoc" onclick="bbClick(event)"></div><div class="bb-dh" id="bbDH" title="드래그해서 카드 폭 조절 · 더블클릭하면 최대 폭"></div></div>${S.mode==='test'?`<div style="height:70px"></div><div class="bb-fbar"><button class="bb-btn" onclick="bbUndo()">↩ 판정 취소</button><button class="bb-btn" onclick="bbJReset()">판정 초기화</button><button class="bb-done" onclick="bbFinish()">✓ 완료</button></div>`:''}`;
   document.getElementById('bbDoc').appendChild(box);
   bbDwInit();
+  bbBarFit();requestAnimationFrame(bbBarFit);
 }
 function bbDwInit(){   // 카드 우측 끝을 좌우로 끌어 폭 조절(기본은 최대 폭, 더블클릭하면 최대 폭으로 복귀)
   const w=document.getElementById('bbDW'),h=document.getElementById('bbDH');if(!w||!h)return;
@@ -3173,6 +3187,17 @@ function bbDwInit(){   // 카드 우측 끝을 좌우로 끌어 폭 조절(기�
 function bbLeave(){const hb=document.getElementById('bbMmHBar');if(hb)hb.classList.remove('on');if(bbS&&Object.keys(bbS.judged).length&&!confirm('완료하기를 누르지 않으면 이번 판정은 기록되지 않아요. 나갈까요?'))return;bbView=null;bbRender()}
 function bbEditTog(){if(bbS){bbS.edit=!bbS.edit;bbRender()}}
 function bbAll(v){document.querySelectorAll('#bbDoc .bb-b').forEach(e=>e.classList.toggle('open',!!v));bbPopX()}
+function bbAllTog(){if(!bbS)return;bbS.allOpen=!bbS.allOpen;bbAll(bbS.allOpen?1:0);const b=document.getElementById('bbAllB');if(b)b.textContent=bbS.allOpen?'전체 가리기':'전체 열기';bbBarFit()}
+function bbBarFit(){   // 학습·맵·옵션 줄: 한 줄에 다 들어가면 그대로, 모자라면 [모드 … 옵션] 아래에 맵 캡슐을 내린다
+  const r=document.getElementById('bbRow2');if(!r)return;
+  r.classList.remove('two');
+  const kids=[...r.children].filter(k=>getComputedStyle(k).display!=='none');
+  const gap=parseFloat(getComputedStyle(r).columnGap)||0;
+  let w=gap*Math.max(0,kids.length-1);kids.forEach(k=>{w+=k.offsetWidth});
+  if(w>r.clientWidth+1)r.classList.add('two');
+}
+addEventListener('resize',()=>{cancelAnimationFrame(bbBarFit.q);bbBarFit.q=requestAnimationFrame(bbBarFit)});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>bbBarFit());
 function bbPopX(){const p=document.getElementById('bbPop');if(p)p.remove()}
 function bbClick(ev){
   const b=ev.target.closest('.bb-b');bbPopX();if(!b||bbS.mode==='rate')return;
@@ -4859,16 +4884,20 @@ function bbMmCl(root){   // 저장된 설명선 데이터(.mmq.mmqc)를 노드 �
     const e=document.createElement('div');e.className='mmcl'+(q.dataset.s?' sx':'');e.textContent=q.textContent;n.appendChild(e);
   });
 }
-function bbMmTabBar(doc,ms,split){
-  const w=doc.closest('.bb-dw')||doc;let b=document.getElementById('bbMmTabs');
-  if(!split){if(b)b.remove();return}
-  if(!b){b=document.createElement('div');b.id='bbMmTabs';b.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px';
-    b.onclick=e=>{const a=e.target.closest('[data-tab]');if(!a)return;const i=+a.dataset.tab;if(i===bbMm.tab)return;
+function bbMmTabBar(doc,ms,split){   // 맵 탭 캡슐(상단바 안): 맵 1·맵 2 … + 통합. 맵이 1개뿐이면 숨김
+  const old=document.getElementById('bbMmTabs');if(old)old.remove();
+  const c=document.getElementById('bbMapCap');if(!c)return;
+  if(ms.length<2){c.style.display='none';c.innerHTML='';c.dataset.sig='';bbBarFit();return}
+  if(!c.dataset.h){c.dataset.h='1';
+    c.onclick=e=>{const a=e.target.closest('[data-tab]');if(!a)return;
+      if(a.dataset.tab==='all'){if(bbMm.tm==='all')return;bbMm.tm='all';bbMm.path=null;bbMmSave();bbOptClr();bbMmRun2();return}
+      const i=+a.dataset.tab;if(bbMm.tm!=='all'&&i===bbMm.tab)return;
+      if(bbMm.tm==='all'){bbMm.tm='split';bbMm.path=null;bbMmSave();bbOptClr()}
       bbMm.tab=i;if(bbMm.path&&bbMm.path[0]!==i){bbMm.path=null;bbOptClr()}bbMmRun2()}}
-  if(b.parentNode!==w.parentNode||b.nextSibling!==w)w.parentNode.insertBefore(b,w);
-  const sig=bbMm.tab+'|'+ms.map(m=>m.dataset.tab||'').join('\u0001');
-  if(b.dataset.sig!==sig){b.dataset.sig=sig;
-    b.innerHTML=ms.map((m,i)=>`<button class="bb-btn${i===bbMm.tab?' pri':''}" style="padding:5px 12px" data-tab="${i}">${bbEsc(m.dataset.tab||'탭 '+(i+1))}</button>`).join('')}
+  const all=bbMm.tm==='all',sig=(all?'a':bbMm.tab)+'|'+ms.map(m=>m.dataset.tab||'').join('\u0001');
+  if(c.dataset.sig!==sig){c.dataset.sig=sig;
+    c.innerHTML=ms.map((m,i)=>`<button class="bb-btn${!all&&i===bbMm.tab?' pri':''}" data-tab="${i}">${bbEsc(m.dataset.tab||'맵 '+(i+1))}</button>`).join('')+`<button class="bb-btn${all?' pri':''}" data-tab="all">통합</button>`}
+  c.style.display='flex';bbBarFit();
 }
 function bbMmUi(){
   document.body.classList.toggle('bblen',bbMm.len);
@@ -4890,18 +4919,17 @@ function bbMmUi(){
   const L=bbMm.mode==='list',bt=(a,t,on)=>`<button class="bb-btn${on?' pri':''}" style="padding:5px 11px" data-a="${a}">${t}</button>`;
   const hd=[];
   if(ms.length)hd.push(bt('mode','형식: '+(L?'목록':'마인드맵')));
-  if(ms.length>1)hd.push(bt('tm','탭: '+(bbMm.tm==='all'?'통합':'구분'),bbMm.tm==='all'));
   hd.push(bt('len','빈칸 길이: '+(bbMm.len?'고정':'원래'),bbMm.len));
   hd.push(bt('line','빈칸 테두리: '+(bbMm.line?'보이기':'숨기기'),bbMm.line));
   if(doc.querySelector('.mmqc,.bb-pen:not(.bb-b)'))hd.push(bt('cl','메모: '+(bbMm.cl?'보이기':'숨기기'),bbMm.cl));
   if(doc.querySelector('.mmqg'))hd.push(bt('img','그림: '+(bbMm.img?'보이기':'숨기기'),bbMm.img));
   hd.push(bt('imp','내용 표시: '+(bbMm.imp==='my'?'내 중요만':bbMm.imp==='imp'?'중요만':'전체'),bbMm.imp!=='all'));
+  if(ms.length&&!L)hd.push(bbMm.path?bt('all','전체 보기'):bt('pick',bbMm.pick?'가지를 눌러 주세요…':'가지 선택',bbMm.pick));   // 가지 선택: 표시 줄 맨 끝
   d1.innerHTML=hd.join('');d1.dataset.b=1;
   if(ms.length){
     const v=L?bbMm.lf:Math.round(bbMm.z*100),pc=L?Math.round(bbMm.lf/15*100):v;
     const sb=(a,t)=>`<button class="bb-btn" style="width:36px;padding:5px 0" data-a="${a}">${t}</button>`;
-    d2.innerHTML=(L?'':(bbMm.path?bt('all','전체 보기'):bt('pick',bbMm.pick?'가지를 눌러 주세요…':'가지 선택',bbMm.pick)))
-      +`<span style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;flex-wrap:wrap">${sb('sm','−')}<b id="bbMmPct" style="min-width:44px;text-align:center">${pc}%</b>${sb('sp','+')}<button class="bb-btn" style="padding:5px 11px" data-a="sd">기본</button><input id="bbMmR" type="range" min="${L?10:40}" max="${L?30:200}" step="${L?1:5}" value="${v}" style="padding:0;border:none;background:none;flex:1;min-width:100px"></span>`;
+    d2.innerHTML=`<span style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;flex-wrap:wrap">${sb('sm','−')}<b id="bbMmPct" style="min-width:44px;text-align:center">${pc}%</b>${sb('sp','+')}<button class="bb-btn" style="padding:5px 11px" data-a="sd">기본</button><input id="bbMmR" type="range" min="${L?10:40}" max="${L?30:200}" step="${L?1:5}" value="${v}" style="padding:0;border:none;background:none;flex:1;min-width:100px"></span>`;
   }
   const ap=()=>{const L=bbMm.mode==='list';
     ms.forEach(m=>{m.style.zoom=!L&&bbMm.z!==1?bbMm.z:'';m.style.setProperty('--lf',bbMm.lf+'px')});
@@ -4920,7 +4948,8 @@ function bbMmUi(){
   d2.oninput=e=>{if(e.target.id!=='bbMmR')return;const x=+e.target.value;if(bbMm.mode==='list')bbMm.lf=x;else bbMm.z=x/100;ap()};
 }
 function bbMmH(doc){   // 마인드맵 카드 높이 = 보이는 화면 높이 - 카드가 시작하는 위치 - 여백. 옵션 패널을 열면 줄고 닫으면 늘어나며, 전체화면이면 화면 끝까지. 페이지 스크롤과는 무관(문서 기준 위치로 계산)
-  const v=Math.max(320,Math.floor(innerHeight-(doc.getBoundingClientRect().top+scrollY)-12))+'px';
+  const z=parseFloat(getComputedStyle(document.body).zoom)||1;   // 모바일은 body{zoom:.75}라 계산값을 zoom으로 나눠야 실제 화면 높이와 맞음
+  const v=Math.max(Math.round(320/z),Math.floor((innerHeight-(doc.getBoundingClientRect().top+scrollY)-12)/z))+'px';
   if(doc.style.getPropertyValue('--mmh')!==v)doc.style.setProperty('--mmh',v);
 }
 function bbHS(doc){
