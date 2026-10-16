@@ -258,6 +258,8 @@ body.bbnostar .bb-b.star::before{display:none}
 /* 풀이 화면: 헤더·탭 숨김, 제목줄, 옵션 패널, 하단 고정 바 */
 body.bbsolve .hdr,body.bbsolve .nav{display:none}
 body.bbsolve #page-bbogae.main{max-width:none;padding:10px 20px 80px}
+.bb-dt{display:flex;flex-wrap:wrap;gap:4px;flex:1 0 100%}
+.bb-dt .bb-btn{padding:4px 12px}
 .bb-tbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-bottom:8px}
 .bb-cap{display:flex;align-items:center;gap:5px;flex:0 0 auto;padding:4px 6px;border-radius:22px;background:var(--bg3);border:1px solid var(--border)}
 .bb-cap .bb-btn,.bb-cap .ttab{padding:5px 11px;white-space:nowrap;flex-shrink:0}
@@ -3022,7 +3024,7 @@ function bbClean(src,out){
     if(t==='TD'||t==='TH'){el=document.createElement('td');
       ['colspan','rowspan'].forEach(a=>{const v=parseInt(n.getAttribute(a));if(v>1&&v<20)el.setAttribute(a,v)});
       if(/background/.test(n.getAttribute('style')||'')&&!n.querySelector('.blank'))el.className='bb-th';
-    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='I'&&n.classList.contains('d'))el.className='d';if(t==='MARK'&&n.classList.contains('px'))el.className='px';if(t==='DIV'){const c=[...n.classList].filter(x=>x==='contentbox'||/^(mm[0-9a-z]?|mf[0-5]|ml[12]|mk[12]|ms[12]|mmq[csrpg])$/.test(x)).join(' ');if(c)el.className=c;if(/^\d{2,3}$/.test(n.dataset.w||''))el.dataset.w=n.dataset.w;if(t==='DIV'&&n.classList.contains('mm')&&n.dataset.tab)el.dataset.tab=n.dataset.tab.slice(0,60);if(t==='DIV'&&n.classList.contains('mmqg')){const u=n.dataset.u||'';if(u.length<1200000&&/^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(u))el.dataset.u=u;['gw','gh'].forEach(k=>{if(/^\d{1,4}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}if(t==='DIV'){['x','t','a','b','s','r','p','g','gp','gw','gh'].forEach(k=>{if(/^[A-Za-z0-9_-]{1,48}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}}}
+    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='I'&&n.classList.contains('d'))el.className='d';if(t==='MARK'&&n.classList.contains('px'))el.className='px';if(t==='DIV'){const c=[...n.classList].filter(x=>x==='contentbox'||x==='bb-tab'||/^(mm[0-9a-z]?|mf[0-5]|ml[12]|mk[12]|ms[12]|mmq[csrpg])$/.test(x)).join(' ');if(c)el.className=c;if(/^\d{2,3}$/.test(n.dataset.w||''))el.dataset.w=n.dataset.w;if(t==='DIV'&&n.classList.contains('mm')&&n.dataset.tab)el.dataset.tab=n.dataset.tab.slice(0,60);if(t==='DIV'&&n.classList.contains('mmqg')){const u=n.dataset.u||'';if(u.length<1200000&&/^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(u))el.dataset.u=u;['gw','gh'].forEach(k=>{if(/^\d{1,4}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}if(t==='DIV'&&n.classList.contains('bb-tab')){['tab','src','off','n'].forEach(k=>{if(/^[A-Za-z0-9_-]{1,48}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]});if(n.dataset.name)el.dataset.name=n.dataset.name.slice(0,30)}if(t==='DIV'){['x','t','a','b','s','r','p','g','gp','gw','gh'].forEach(k=>{if(/^[A-Za-z0-9_-]{1,48}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}}}
     if(el){bbClean(n,el);out.appendChild(el)}else bbClean(n,out);
   });
 }
@@ -3030,11 +3032,31 @@ function bbParse(raw){
   raw=raw.trim();let m={title:'',src:'',html:raw};
   if(raw.startsWith('IMGO_BBOGAE::')){try{m=JSON.parse(raw.slice(13))}catch(e){return null}}
   const d=new DOMParser().parseFromString('<body>'+m.html+'</body>','text/html'),box=document.createElement('div');bbClean(d.body,box);
-  box.querySelectorAll('p,div:not(.contentbox):not(.mmq)').forEach(e=>{if(!e.textContent.replace(/\u00a0/g,'').trim()&&!e.querySelector('table,br'))e.remove()});
+  box.querySelectorAll('p,div:not(.contentbox):not(.mmq):not(.bb-tab)').forEach(e=>{if(!e.textContent.replace(/\u00a0/g,'').trim()&&!e.querySelector('table,br'))e.remove()});
   const n=box.querySelectorAll('.blank').length;
   return n?{title:m.title||'',src:m.src||'',html:box.innerHTML,n}:null;
 }
 function bbBox(doc){const b=document.createElement('div');b.innerHTML=doc.html;let i=0;b.querySelectorAll('.blank').forEach(e=>{e.className='bb-b';e.dataset.k=(i++)+'_'+bbHash(e.textContent)});return b}
+
+// ── 문서 탭 (총론·창체 병합 문서 등): <div class="bb-tab" data-tab="요일숫자|t1" data-name="월"> 로 구간을 나눔. 탭 = 그 구간 빈칸 키 집합 ──
+const bbTid=(w,i)=>w.dataset.tab||('t'+i);
+function bbTabsOf(d){
+  const h=(d&&d.html)||'';if(h.indexOf('bb-tab')<0)return[];
+  const c=bbTabsOf.c=bbTabsOf.c||{},o=c[d.id];if(o&&o.h===h)return o.t;
+  const b=bbBox(d),t=[];
+  b.querySelectorAll('.bb-tab').forEach((w,i)=>{const ks=[...w.querySelectorAll('.bb-b')].map(e=>e.dataset.k),id=bbTid(w,i);
+    t.push({id,name:w.dataset.name||('탭 '+(i+1)),day:/^[0-6]$/.test(id)?+id:null,keys:new Set(ks),n:ks.length})});
+  c[d.id]={h,t};return t;
+}
+const bbTabOfDay=(d,day)=>day==null?null:bbTabsOf(d).find(t=>t.day===day)||null;
+// 탭별 풀이 횟수: 그 탭 빈칸을 하나라도 판정한 풀이 1회 = 1회 (판정 없는 풀이는 모든 탭에 1회). 통합(tab=null)은 문서 전체 풀이 수
+function bbRnT(id,tab){
+  if(!tab)return bbRn(id);
+  const d=bbDocs.find(x=>x.id===id),L=d?bbTabsOf(d):[];let n=L[0]===tab?((bbRuns[id]||{})[bbSet.term]||0):0;
+  bbSes.forEach(z=>{if(z.doc!==id||z.term!=bbSet.term)return;const ks=Object.keys(z.j||{});if(!ks.length||ks.some(k=>tab.keys.has(k)))n++});
+  return n;
+}
+function bbTabGo(t){if(!bbS||bbS.tab===t)return;bbS.tab=t;bbS.tgt=null;bbRender();scrollTo(0,0)}
 function bbAgg(id,t,keys){
   const r=bbEff()[id]||{};let a=0,c=0,w=0,l=0;
   for(const k in r){if(keys&&!keys.has(k))continue;if(!bbPenOk(id,k))continue;const T=r[k].T||{};
@@ -3055,11 +3077,11 @@ function bbRender(){
   :`<div class="bb-cs" style="margin-bottom:12px">${bbPerson} · 현재 ${bbSet.term}텀 · 목표 ${bbSet.min}~${bbSet.max}% <span id="bbSy" style="margin-left:6px;color:var(--text3)">${bbSyncLabel()}</span></div>`+(bbTab==='weekly'?bbWeekly():bbTab==='list'?bbList():bbAna()));
 }
 function bbWho(p){bbSave();bbPush();bbPerson=p;bbLoadP();bbSave();bbRender();bbSync()}
-function bbCard(d,extra,done){
-  const s=bbAgg(d.id,bbSet.term),sj=bbSj(d.subj);
+function bbCard(d,extra,done,day){
+  const tb=bbTabOfDay(d,day),s=bbAgg(d.id,bbSet.term,tb?tb.keys:undefined),sj=bbSj(d.subj);
   const ds=bbDays(d.day),dl=ds.length===7?'매일':ds.map(i=>BB_DAYS[i]).join('·');
   const lb=(d.subj?bbLab(d.subj,sj?sj.color:'var(--text3)'):'')+(d.loc?bbLab(d.loc+(ds.length?'·'+dl:''),'var(--text2)'):'');
-  return `<div class="bb-card" ${done===2?'style="border-color:var(--amber);opacity:.85"':done?'style="border-color:var(--accent);background:var(--accent3)"':''} onclick="bbOpen('${d.id}')"><div style="display:flex;align-items:center"><div style="flex:1"><div class="bb-ct">${done===2?'<span class="bb-ck" style="background:var(--amber);width:auto;padding:0 6px;border-radius:9px">PASS</span>':done?'<span class="bb-ck">✓</span>':''}${lb}${bbEsc(d.title)}</div><div class="bb-cs">학습 ${s.l}/${d.n} · 풀이 ${bbRn(d.id)}회 · ${bbSet.term}텀 정답률 <b style="color:${bbCol(s.rate)}">${s.rate===null?'-':s.rate+'%'}</b>${s.w?' · 약점 '+s.w:''}</div></div>${extra||''}</div></div>`;
+  return `<div class="bb-card" ${done===2?'style="border-color:var(--amber);opacity:.85"':done?'style="border-color:var(--accent);background:var(--accent3)"':''} onclick="bbOpen('${d.id}',null,${tb?"'"+tb.id+"'":'null'})"><div style="display:flex;align-items:center"><div style="flex:1"><div class="bb-ct">${done===2?'<span class="bb-ck" style="background:var(--amber);width:auto;padding:0 6px;border-radius:9px">PASS</span>':done?'<span class="bb-ck">✓</span>':''}${lb}${bbEsc(d.title)}${tb?bbLab(tb.name,'var(--blue)'):''}</div><div class="bb-cs">학습 ${s.l}/${tb?tb.n:d.n} · 풀이 ${bbRnT(d.id,tb)}회 · ${bbSet.term}텀 정답률 <b style="color:${bbCol(s.rate)}">${s.rate===null?'-':s.rate+'%'}</b>${s.w?' · 약점 '+s.w:''}</div></div>${extra||''}</div></div>`;
 }
 const bbGrp=d=>/역량/.test(d.title)?0:d.subj==='총론·창체'?1:/모형/.test(d.title)?2:3;   // 역량 / 총론·창체 / 모형 / 교육과정
 const bbWkSort=(a,b)=>{const ca=a.loc==='공통',cb=b.loc==='공통';if(ca!==cb)return ca?-1:1;
@@ -3089,7 +3111,7 @@ function bbHome(){
     if(v===2)return `<button class="apply-btn-sm bh-p" onclick="${oc}" title="눌러서 취소">PASS</button>`;
     return `<button class="apply-btn-sm bh-o" onclick="${oc}">완료</button>`};
   const cell=d=>{const v=dn[d.id];
-    return `<div class="bh-i ${v===2?'ps':v?'ok':''}" onclick="bbHomeOpen('${d.id}')"><div class="bh-t">${bbEsc(d.title)}</div>${btn(d,v)}</div>`};
+    return `<div class="bh-i ${v===2?'ps':v?'ok':''}" onclick="bbHomeOpen('${d.id}',${sel})"><div class="bh-t">${bbEsc(d.title)}</div>${btn(d,v)}</div>`};
   const tabs=BB_DAYS.map((x,i)=>`<button class="pp-day${i===td?' today':''}${i===sel?' sel':''}" onclick="bbHPick(${i})">${x}</button>`).join('');
   el.style.display='';
   el.innerHTML=`<div class="bh-hd"><div class="sec-title">${sel===td?'오늘 뽀개기':'뽀개기'} · ${dt.getMonth()+1}/${dt.getDate()}(${BB_DAYS[sel]})<em>${nd}/${L.length}</em></div><button class="set-btn" onclick="bbHomeAll()">WEEKLY ›</button></div>`
@@ -3098,7 +3120,7 @@ function bbHome(){
 }
 function bbHomeGo(){const t=document.querySelectorAll('.ntab')[1];if(t)goPage('bbogae',t)}
 function bbHomeAll(){bbTab='weekly';bbDay=null;bbView=null;bbS=null;bbHomeGo()}
-function bbHomeOpen(id){bbTab='weekly';bbHomeGo();bbOpen(id)}
+function bbHomeOpen(id,day){bbTab='weekly';bbHomeGo();const d=bbDocs.find(x=>x.id===id),tb=d?bbTabOfDay(d,day):null;bbOpen(id,null,tb?tb.id:null)}
 function bbWeekly(){
   const now=new Date(),td=(now.getDay()+6)%7;if(bbDay===null)bbDay=td;
   const dt=new Date(now);dt.setDate(now.getDate()-td+bbDay);const key=bbDK(dt),dn=bbDone[key]||{};
@@ -3106,11 +3128,11 @@ function bbWeekly(){
   const btn=d=>bbDnBtn(key,d.id,dn[d.id]);
   return `<div class="pp-tabs" style="margin-bottom:10px">${BB_DAYS.map((x,i)=>`<button class="pp-day ${i===bbDay?'sel':''} ${i===td?'today':''}" onclick="bbDay=${i};bbRender()">${x}</button>`).join('')}</div>
   <div class="bb-cs" style="margin-bottom:8px">${dt.getMonth()+1}/${dt.getDate()}(${BB_DAYS[bbDay]}) · ${nd}/${L.length} 완료</div>`
-  +(L.length?L.map(d=>bbCard(d,btn(d),dn[d.id])).join(''):'<div class="bb-cs" style="padding:24px 0;text-align:center">이 요일에 지정된 뽀개기가 없어요.<br>등록 시 구분(공통/재언/태현)과 요일을 고르면 여기에 떠요.</div>');
+  +(L.length?L.map(d=>bbCard(d,btn(d),dn[d.id],bbDay)).join(''):'<div class="bb-cs" style="padding:24px 0;text-align:center">이 요일에 지정된 뽀개기가 없어요.<br>등록 시 구분(공통/재언/태현)과 요일을 고르면 여기에 떠요.</div>');
 }
 // 완료 상태: 1=완료, 2=PASS (풀이 없이 넘김, 완료 카운트에는 포함 · 풀이 횟수에는 안 침)
 function bbSetDn(key,id,v){const m=(bbDone[key]=bbDone[key]||{});if(v)m[id]=v;else delete m[id];bbEnq('done',`done|${key}|${id}`,{date:key,docId:id,done:v});bbSave();bbRender()}
-function bbDn(key,id){const m=bbDone[key]||{};if(m[id]){bbSetDn(key,id,0);return}const solved=bbSes.some(s=>s.doc===id&&bbDK(new Date(s.ts))===key);bbSetDn(key,id,solved?1:2)}
+function bbDn(key,id){const m=bbDone[key]||{};if(m[id]){bbSetDn(key,id,0);return}const dd0=bbDocs.find(x=>x.id===id),tb0=dd0?bbTabOfDay(dd0,(new Date(key+'T00:00:00').getDay()+6)%7):null;const solved=bbSes.some(s=>{if(s.doc!==id||bbDK(new Date(s.ts))!==key)return false;if(!tb0)return true;const ks=Object.keys(s.j||{});return !ks.length||ks.some(k=>tb0.keys.has(k))});bbSetDn(key,id,solved?1:2)}
 function bbList(){
   const L=bbDocs.filter(bbVis).filter(d=>bbSub==='all'||(bbSub==='custom'?(d.loc&&d.loc!=='공통'):bbSub==='none'?!d.subj:d.subj===bbSub));
   const w=d=>{const s=bbAgg(d.id,bbSet.term);return s.rate===null?-1:100-s.rate},k=(a,b)=>a.title.localeCompare(b.title,'ko',{numeric:true});
@@ -3139,27 +3161,33 @@ function bbAna(){
 }
 
 // ── 문서 ──
-function bbOpen(id,k){
-  bbView=id;bbS={mode:'study',filter:'all',judged:{},undo:[],tgt:null,opt:false,passed:{}};bbRender();scrollTo(0,0);
+function bbOpen(id,k,tab){
+  const d0=bbDocs.find(x=>x.id===id),T0=d0?bbTabsOf(d0):[];let tb=tab&&T0.some(t=>t.id===tab)?tab:'all';if(k){const f=T0.find(t=>t.keys.has(k));if(f)tb=f.id}
+  bbView=id;bbS={mode:'study',filter:'all',judged:{},undo:[],tgt:null,opt:false,passed:{},tab:tb};bbRender();scrollTo(0,0);
   if(k)setTimeout(()=>{const e=document.querySelector('#bbDoc [data-k="'+k+'"]');if(e){e.classList.add('open','bb-flash');e.scrollIntoView({block:'center'})}},60);
 }
 function bbFinish(){
   const d=bbDocs.find(x=>x.id===bbView);if(!d)return;
   const now=bbNow(),ses={id:'s'+now.toString(36)+Math.random().toString(36).slice(2,5),doc:d.id,term:bbSet.term,ts:now,j:Object.assign({},bbS?bbS.judged:{})};
   bbSes.push(ses);bbEnq('ses','ses|'+ses.id,{sid:ses.id,docId:d.id,term:ses.term,at:now,ts:now,j:ses.j});
-  const dys=bbDays(d.day);if(dys.length&&d.loc){const td0=(new Date().getDay()+6)%7,dd=dys.includes(bbDay)?bbDay:dys.includes(td0)?td0:dys[0],k=bbWK(dd);(bbDone[k]=bbDone[k]||{})[d.id]=1;bbEnq('done',`done|${k}|${d.id}`,{date:k,docId:d.id,done:1})}
+  let tdone=false;const TB=bbTabsOf(d);
+  if(TB.length&&d.loc){const jk=Object.keys(ses.j);TB.filter(t=>t.day!==null&&(jk.length?jk.some(k=>t.keys.has(k)):bbS&&bbS.tab===t.id)).forEach(t=>{const k=bbWK(t.day);(bbDone[k]=bbDone[k]||{})[d.id]=1;bbEnq('done',`done|${k}|${d.id}`,{date:k,docId:d.id,done:1});tdone=true})}
+  const dys=tdone?[]:bbDays(d.day);if(dys.length&&d.loc){const td0=(new Date().getDay()+6)%7,dd=dys.includes(bbDay)?bbDay:dys.includes(td0)?td0:dys[0],k=bbWK(dd);(bbDone[k]=bbDone[k]||{})[d.id]=1;bbEnq('done',`done|${k}|${d.id}`,{date:k,docId:d.id,done:1})}
   bbSave();bbView=null;bbRender();scrollTo(0,0);
 }
 function bbRenderDoc(el){bbInOff();const hb=document.getElementById('bbMmHBar');if(hb)hb.classList.remove('on');
   const d=bbDocs.find(x=>x.id===bbView);if(!d){bbView=null;return bbRender()}
-  const box=bbBoxP(d),r=bbEff()[d.id]||{},S=bbS,rv=bbS.mode==='rate',ks=[...box.querySelectorAll('.bb-b')].map(e=>e.dataset.k),cu=k=>bbT(r[k],bbSet.term);
+  const box=bbBoxP(d),TB=bbTabsOf(d);if(bbS.tab==null||(bbS.tab!=='all'&&!TB.some(t=>t.id===bbS.tab)))bbS.tab='all';
+  const curTab=bbS.tab==='all'?null:TB.find(t=>t.id===bbS.tab)||null;
+  if(curTab)box.querySelectorAll('.bb-tab').forEach((w,i)=>{if(bbTid(w,i)!==curTab.id)w.remove()});
+  const r=bbEff()[d.id]||{},S=bbS,rv=bbS.mode==='rate',ks=[...box.querySelectorAll('.bb-b')].map(e=>e.dataset.k),cu=k=>bbT(r[k],bbSet.term);
   const sets={all:new Set(ks),weak:new Set(ks.filter(k=>bbWk(cu(k)))),new:new Set(ks.filter(k=>!cu(k).a))};
   if(!S.tgt)S.tgt=sets[S.filter];
   box.querySelectorAll('.bb-b').forEach(e=>{const k=e.dataset.k;if(!S.tgt.has(k))e.className='bb-plain';else if(S.judged[k])e.className='bb-b open '+(S.judged[k]==='O'?'ok':'ng');else if(S.passed&&S.passed[k])e.className='bb-b open pass'});
   bbIpPaint(box,d.id);
   {const sm=bbStar[d.id]||{};box.querySelectorAll('.bb-b').forEach(e=>{if(sm[e.dataset.k])e.classList.add('star')})}
   if(rv)box.querySelectorAll('.bb-b').forEach(e=>{const x=cu(e.dataset.k),p=x.a?Math.round(x.c*100/x.a):null,c=bbCol(p);e.classList.add('open');e.style.background='color-mix(in srgb,'+c+' var(--tint,22%),transparent)';e.style.outline='1px solid '+c;e.insertAdjacentHTML('afterend','<small style="color:'+c+';margin-left:4px;font-weight:700">'+(p===null?'-':p+'%')+'</small>')});
-  const js=Object.values(S.judged),jo=js.filter(x=>x==='O').length,st=bbAgg(d.id,bbSet.term);
+  const js=ks.map(k=>S.judged[k]).filter(Boolean),jo=js.filter(x=>x==='O').length,st=bbAgg(d.id,bbSet.term,curTab?curTab.keys:undefined);
   const mc=(v,t)=>`<button class="ttab ${S.mode===v?'on':''}" onclick="bbS.mode='${v}';bbRender()">${t}</button>`;
   const fc=(f,t)=>`<button class="ttab ${S.filter===f?'on':''}" onclick="bbS.filter='${f}';bbS.tgt=null;bbRender()">${t} ${sets[f].size}</button>`;
   const fn={all:'전체',weak:'약점만',new:'안 푼 것'}[S.filter];
@@ -3167,11 +3195,12 @@ function bbRenderDoc(el){bbInOff();const hb=document.getElementById('bbMmHBar');
   const cur=js.length?Math.round(jo*100/js.length):null;
   const desc=S.mode==='test'
     ?`${fn} 푸는 중 ${js.length}/${S.tgt.size} · 현재 정답률 <b style="color:${bbCol(cur)}">${cur===null?'-':cur+'%'}</b> · ${rt}`
-    :`${fn} 푸는 중 · ${rt} · 약점 ${st.w}개 · 풀이 ${bbRn(d.id)}회`;
+    :`${fn} 푸는 중 · ${rt} · 약점 ${st.w}개 · 풀이 ${bbRnT(d.id,curTab)}회`;
   const fsBar=`<span style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;flex-wrap:wrap"><button class="bb-btn" style="width:36px;padding:5px 0" onclick="bbFsStep(-1)">−</button><b id="bbFsPct" style="min-width:44px;text-align:center">${Math.round(bbFs*100)}%</b><button class="bb-btn" style="width:36px;padding:5px 0" onclick="bbFsStep(1)">+</button><button class="bb-btn" style="padding:5px 11px" onclick="bbFsSet(1)">기본</button><input id="bbFsR" type="range" min="60" max="180" step="5" value="${Math.round(bbFs*100)}" oninput="bbFsSet(this.value/100)" style="padding:0;border:none;background:none;flex:1;min-width:100px"></span>`;
   const hasMm=!!box.querySelector('.mm');
   S.allOpen=false;
-  el.innerHTML=`<div class="bb-tbar" id="bbBar"><div class="bb-cap bb-g1"><button class="bb-btn" onclick="bbLeave()">← 목록</button><b title="${bbEsc(d.title)}">${bbEsc(d.title)}</b>${d.xm?`<button class="bb-btn bb-ic" title="다운로드" aria-label="다운로드" onclick="bbXmExport('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>`:''}${S.mode==='study'?`<button class="bb-btn ${S.edit?'pri':''}" onclick="bbEditTog()">편집</button>`:''}<button class="bb-btn" onclick="bbOpenAdd('${d.id}')">수정</button><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div><div class="bb-row2" id="bbRow2"><div class="bb-cap bb-modes">${mc('study','학습')}${mc('test','테스트')}${mc('rate','정답률')}</div>${hasMm?`<div class="bb-cap bb-maps" id="bbMapCap"></div>`:''}<div class="bb-cap bb-g3"><button id="bbAllB" class="bb-btn" onclick="bbAllTog()">전체 열기</button><button id="bbOptB" class="bb-btn ${S.opt?'pri':''}" onclick="bbOptTog()">${S.opt?'옵션 ∧':'옵션 ∨'}</button></div></div></div>
+  const tabBar=TB.length?`<div class="bb-dt" id="bbDt">${TB.map(t=>`<button class="bb-btn${curTab&&curTab.id===t.id?' pri':''}" onclick="bbTabGo('${t.id}')">${bbEsc(t.name)}</button>`).join('')}<button class="bb-btn${curTab?'':' pri'}" onclick="bbTabGo('all')">통합</button></div>`:'';
+  el.innerHTML=`<div class="bb-tbar" id="bbBar"><div class="bb-cap bb-g1"><button class="bb-btn" onclick="bbLeave()">← 목록</button><b title="${bbEsc(d.title)}">${bbEsc(d.title)}</b>${d.xm?`<button class="bb-btn bb-ic" title="다운로드" aria-label="다운로드" onclick="bbXmExport('${d.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>`:''}${S.mode==='study'?`<button class="bb-btn ${S.edit?'pri':''}" onclick="bbEditTog()">편집</button>`:''}<button class="bb-btn" onclick="bbOpenAdd('${d.id}')">수정</button><button class="bb-btn" onclick="bbDel('${d.id}')">삭제</button></div><div class="bb-row2" id="bbRow2"><div class="bb-cap bb-modes">${mc('study','학습')}${mc('test','테스트')}${mc('rate','정답률')}</div>${hasMm?`<div class="bb-cap bb-maps" id="bbMapCap"></div>`:''}<div class="bb-cap bb-g3"><button id="bbAllB" class="bb-btn" onclick="bbAllTog()">전체 열기</button><button id="bbOptB" class="bb-btn ${S.opt?'pri':''}" onclick="bbOptTog()">${S.opt?'옵션 ∧':'옵션 ∨'}</button></div></div>${tabBar}</div>
   ${S.mode==='study'&&S.edit?`<div class="bb-top" style="margin:0 0 8px"><button id="${/class="mm"/.test(d.html||'')?'bbMeB':'bbTyB'}" class="bb-btn" onclick="bbInTog('text')">✎ 글자 및 빈칸 편집</button><button id="bbImpB" class="bb-btn" onclick="bbInTog('imp')">✎ 중요 내용 편집</button><button id="bbMmoB" class="bb-btn" onclick="bbInTog('memo')">✎ 메모 편집</button></div><div id="bbInEdBox"></div>`:''}
   <div class="bb-opt" id="bbOptP" style="display:${S.opt?'flex':'none'}">
     <div class="bb-orow"><span class="bb-ol">범위</span>${fc('all','전체')}${fc('weak','약점')}${fc('new','안 푼 것')}</div>
@@ -3260,7 +3289,7 @@ function bbFRender(){
 }
 let bbTypo=false;
 function bbOpenAdd(id){   // 수정 모달: 정보·과목·구분·기록·Xmind 다시 올리기만 (글자·중요·메모 편집은 학습 화면의 '편집하기'에서)
-  bbTypo=false;const e=id&&bbDocs.find(d=>d.id===id);bbTmp=null;bbXmSrc=null;bbCv={blocks:[],pend:'',html:null,hv:'',pasted:false};
+  bbTypo=false;bbRegTabs=[];const e=id&&bbDocs.find(d=>d.id===id);bbTmp=null;bbXmSrc=null;bbCv={blocks:[],pend:'',html:null,hv:'',pasted:false};
   bbF=e?{subj:e.subj||'',loc:e.loc||'',days:bbDays(e.day),edit:id}:{subj:'',loc:'',days:[],edit:null};
   bbModal(`<div class="sec-title">${e?'수정':'뽀개기 문서 등록'}</div>`+(e?'':`<div class="bb-top"><button id="bbM0" class="ttab on" onclick="bbMode(0)">북마크 붙여넣기</button><button id="bbM1" class="ttab" onclick="bbMode(1)">표·텍스트 변환</button><button id="bbM2" class="ttab" onclick="bbMode(2)">마인드맵</button></div>
   <input id="bbTi" placeholder="제목"><div id="bbFx"></div>
@@ -3277,15 +3306,15 @@ function bbOpenAdd(id){   // 수정 모달: 정보·과목·구분·기록·Xmin
   <textarea id="bbMmIn" style="height:110px" placeholder="마인드맵을 들여쓰기(탭/스페이스)로 계층을 나눠 붙여넣으세요&#10;기본이론&#10;  스포츠 교육 모델&#10;    특징 ×6 : ① 시즌 ② 팀 소속 ③ 공식 경기&#10;직접 빈칸은 [[글자]]" oninput="bbMmRun()"></textarea>
   <div id="bbMmPv" class="bb-doc study bbpv" onclick="bbMmClick(event)" style="max-height:40vh;overflow:auto;padding:8px;margin:0 0 6px"></div></div>
   <div id="bbMgBar" class="bb-top" style="display:none;margin:6px 0 0"><button class="bb-btn pri" onpointerdown="event.preventDefault()" onclick="bbMergeSel()">✂ 선택한 부분을 하나의 빈칸으로</button></div>`)
-  +(e?`<div id="bbEdInfo"><div style="font-size:13px;font-weight:700;color:var(--text);margin:0 0 6px">정보 수정</div><input id="bbTi" placeholder="제목" value="${bbEsc(e.title)}"><div id="bbFx"></div>`:'')
-  +(e?'':`<div class="bb-cs" style="margin:10px 0 4px">등록 위치</div><select id="bbAp" onchange="bbApSet(this.value)"><option value="">새 문서로 등록</option>${bbDocs.filter(bbVis).map(d=>`<option value="${d.id}">${bbEsc(d.title)} · 맨 아래에 추가</option>`).join('')}</select>`)
+  +(e?`<div id="bbEdInfo"><div style="font-size:13px;font-weight:700;color:var(--text);margin:0 0 6px">정보 수정</div><input id="bbTi" placeholder="제목" value="${bbEsc(e.title)}"><div id="bbFx"></div>${bbEdTabUi(e)}`:'')
+  +(e?'':`<div id="bbTabReg"></div><div class="bb-cs" style="margin:10px 0 4px">등록 위치</div><select id="bbAp" onchange="bbApSet(this.value)"><option value="">새 문서로 등록</option>${bbDocs.filter(bbVis).map(d=>`<option value="${d.id}">${bbEsc(d.title)} · 맨 아래에 추가</option>`).join('')}</select>`)
   +(e?`<div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div style="font-size:13px;font-weight:700;color:var(--text);margin:0 0 6px">기록 수정</div>
   <details id="bbRecDet"><summary style="cursor:pointer;font-size:12px;color:var(--text2);padding:4px 0">풀이 ${bbSes.filter(z=>z.doc===id).length}회 — 눌러서 펼치기 (풀이 1회 단위로 삭제하면 정답률·약점·풀이 횟수가 다시 계산돼요)</summary><div id="bbRecBox" style="margin-top:8px">${bbRecHTML(id)}</div></details></div>
   ${/class="mm"/.test(e.html||'')?`<div style="border-top:1px solid var(--border2);margin:16px 0 10px"></div><div style="font-size:13px;font-weight:700;color:var(--text);margin:0 0 4px">Xmind 다시 올리기</div>
   ${bbMmEditRules()}<div class="bb-top" style="margin:0 0 6px">${bbMmEditTop()}</div>${bbMmEditPv()}`:''}`:'')
   
   +`<div class="bb-top" style="margin:14px 0 0"><span class="bb-sp"></span><button class="bb-btn" onclick="bbClose()">${e?'닫기':'취소'}</button><button class="bb-btn pri" onclick="bbAdd()">${e?'저장':'저장'}</button></div>`);
-  bbFRender();document.getElementById('bbOv').classList.add('full');   // 폰·PC 모두 전체화면 편집기
+  bbFRender();bbRegTabsR();document.getElementById('bbOv').classList.add('full');   // 폰·PC 모두 전체화면 편집기
 }
 
 // ── 학습 화면 '편집하기': 맵 화면 안에서 바로 편집 (3버튼 바로 아래에 안내·도구·저장/닫기, 맵 자리에 편집용 맵) ──
@@ -3740,6 +3769,7 @@ function bbMode(m){
   ['bbP0','bbP1','bbP2'].forEach((id,i)=>{const e=document.getElementById(id);if(e)e.style.display=i===m?'':'none'});
   ['bbM0','bbM1','bbM2'].forEach((id,i)=>{const e=document.getElementById(id);if(e)e.classList.toggle('on',i===m)});
   ['bbPv','bbCvSt','bbMmSt'].forEach((id,i)=>{const e=document.getElementById(id);if(e)e.style.display=i===m?'':'none'});   // 인식 현황은 구분 아래 한 곳에, 선택한 탭 것만
+  {const tr=document.getElementById('bbTabReg');if(tr)tr.style.display=m===2?'none':''}
   bbTmp=null;if(m===2)bbMmRun();else if(m)bbCvRun();else if(document.getElementById('bbIn').value)bbPrev();
 }
 // ── 마인드맵 변환 (들여쓰기 목록 → 트리 디자인 + 빈칸) ──
@@ -4375,18 +4405,69 @@ document.addEventListener('selectionchange',()=>{
   bbHadSel=on;
   const bar=document.getElementById('bbMgBar');if(bar)bar.style.display=on?'':'none';
 });
+
+// ── 탭으로 나눠 등록: 붙여넣기 → 탭 이름·요일 → [탭에 담기] 반복 → 저장 시 하나의 문서(.bb-tab 래퍼)로 합침 ──
+let bbRegTabs=[];
+function bbRegRead(){const a=document.getElementById('bbTbNm'),b=document.getElementById('bbTbDy');let nm=a?a.value.trim():'',dy=b&&b.value!==''?+b.value:null;
+  if(dy===null&&nm){const i=BB_DAYS.indexOf(nm.charAt(0));if(i>=0&&nm.length<=3)dy=i}   // 이름이 '월'·'화요일' 같으면 요일 자동 지정
+  return{nm,dy}}
+function bbRegReset(){const g=i=>document.getElementById(i);
+  ['bbIn','bbCvIn'].forEach(i=>{if(g(i))g(i).value=''});bbTmp=null;bbCv={blocks:[],pend:'',html:null,hv:'',pasted:false};
+  const pv=g('bbPv2');if(pv){pv.innerHTML='';pv.style.display='none'}
+  const p=g('bbPv');if(p){p.style.color='';p.textContent='붙여넣으면 자동으로 분석해요.'}
+  if(g('bbCvPv'))g('bbCvPv').innerHTML='';
+  const c=g('bbCvSt');if(c){c.style.color='var(--text3)';c.textContent='붙여넣으면 미리보기가 나와요.'}}
+function bbRegTabAdd(save){
+  if(!bbTmp||!bbTmp.html){if(!save)alert('먼저 내용을 붙여넣어주세요');return false}
+  const q=bbRegRead(),nm=(q.nm||('탭 '+(bbRegTabs.length+1))).slice(0,20);
+  if(q.dy!==null&&bbRegTabs.some(t=>t.day===q.dy)){alert('이미 '+BB_DAYS[q.dy]+'요일 탭이 있어요. 요일을 바꾸거나 "요일 없음"으로 담아주세요');return false}
+  bbRegTabs.push({name:nm,day:q.dy,html:bbTmp.html,n:bbTmp.n,src:bbTmp.src||''});
+  bbRegReset();bbRegTabsR();return true}
+function bbRegTabDel(i){bbRegTabs.splice(i,1);bbRegTabsR(1)}
+function bbRegMv(i,d){const j=i+d;if(j<0||j>=bbRegTabs.length)return;[bbRegTabs[i],bbRegTabs[j]]=[bbRegTabs[j],bbRegTabs[i]];bbRegTabsR(1)}
+function bbRegTabsR(keep){
+  const e=document.getElementById('bbTabReg');if(!e)return;
+  const o=document.getElementById('bbTbNm'),o2=document.getElementById('bbTbDy'),v1=keep&&o?o.value:'',v2=keep&&o2?o2.value:'';
+  e.innerHTML=`<div class="bb-cs" style="margin:10px 0 4px">탭으로 나눠 등록 (선택) — 내용을 붙여넣고 탭 이름·요일을 정한 뒤 [＋ 탭에 담기]. 반복하면 한 문서 안에 탭이 생겨요 (이름이 '월'이면 요일 자동)</div>`
+  +bbRegTabs.map((t,i)=>`<div class="bb-row" style="gap:6px;margin:4px 0"><b style="flex:1;min-width:0">${bbEsc(t.name)}</b><span class="bb-cs">${t.day===null?'요일 없음':BB_DAYS[t.day]+'요일'} · 빈칸 ${t.n}개</span>${i>0?`<button class="bb-btn" onclick="bbRegMv(${i},-1)">↑</button>`:''}${i<bbRegTabs.length-1?`<button class="bb-btn" onclick="bbRegMv(${i},1)">↓</button>`:''}<button class="bb-btn" onclick="bbRegTabDel(${i})">✕</button></div>`).join('')
+  +`<div class="bb-row" style="gap:6px"><input id="bbTbNm" placeholder="탭 이름 (예: 월)" maxlength="20" style="flex:1;min-width:0" value="${bbEsc(v1)}"><select id="bbTbDy" style="width:auto"><option value="">요일 없음</option>${BB_DAYS.map((x,j)=>`<option value="${j}"${v2===String(j)?' selected':''}>${x}</option>`).join('')}</select><button class="bb-btn pri" onclick="bbRegTabAdd()">＋ 탭에 담기</button></div>`}
+function bbRegWrap(L,used){
+  used=new Set(used);let h='',n=0;const days=[];let k=0;
+  for(const t of L){let id;
+    if(t.day!==null){id=String(t.day);if(used.has(id)){alert(BB_DAYS[t.day]+'요일 탭이 이미 있어요');return null}days.push(t.day)}
+    else{do{id='t'+(++k)}while(used.has(id))}
+    used.add(id);h+=`<div class="bb-tab" data-tab="${id}" data-name="${bbEsc(t.name)}" data-n="${t.n}">${t.html}</div>`;n+=t.n}
+  return{html:h,n,days}}
+const bbEdTabUi=d=>{const T=bbTabsOf(d);if(!T.length)return'';
+  return `<div class="bb-cs" style="margin:10px 0 4px">탭 (이름·요일 수정 — 빈칸 기록에는 영향 없어요)</div>`+T.map((t,i)=>`<div class="bb-row" style="gap:6px;margin:4px 0"><input class="bbEtN" value="${bbEsc(t.name)}" maxlength="20" style="flex:1;min-width:0"><select class="bbEtD" style="width:auto"><option value="">요일 없음</option>${BB_DAYS.map((x,j)=>`<option value="${j}"${t.day===j?' selected':''}>${x}</option>`).join('')}</select><span class="bb-cs">${t.n}칸</span></div>`).join('')};
+function bbTabEdit(tg,f){
+  const T0=bbTabsOf(tg);if(!T0.length)return 0;
+  const ns=[...document.querySelectorAll('.bbEtN')],ds=[...document.querySelectorAll('.bbEtD')];if(ns.length!==T0.length)return 0;
+  const nd=ds.map(x=>x.value===''?null:+x.value),us=new Set();
+  for(const d of nd){if(d===null)continue;if(us.has(d)){alert('같은 요일을 두 탭에 지정할 수 없어요');return false}us.add(d)}
+  const b=document.createElement('div');b.innerHTML=tg.html;const days=new Set(bbDays(f.day));let ch=false;
+  [...b.querySelectorAll('.bb-tab')].forEach((w,i)=>{const t=T0[i];if(!t)return;const nm=(ns[i].value.trim()||t.name).slice(0,20),dy=nd[i];
+    if(nm!==t.name){w.dataset.name=nm;ch=true}
+    if(dy!==t.day){w.dataset.tab=dy!==null?String(dy):('t'+i+'x');if(dy!==null)days.add(dy);ch=true}});
+  if(!ch)return 0;
+  tg.html=b.innerHTML;f.day=bbDayStore([...days]);if(bbS)bbS.tab=null;return 1}
 async function bbAdd(){
   const ti=document.getElementById('bbTi').value.trim()||'제목 없음',f={title:ti,subj:bbF.subj,loc:bbF.loc,day:bbDayStore(bbF.days)};let tg=null,hh=0;
-  if(bbF.edit){tg=bbDocs.find(d=>d.id===bbF.edit);if(!((bbF.reup&&bbTmp&&bbTmp.html)?bbMmReplace(tg):bbEdBlanks(tg)))return;Object.assign(tg,f);if(bbF.reup&&bbTmp&&bbTmp.xm)tg.xm=bbTmp.xm;hh=0}
+  if(bbF.edit){tg=bbDocs.find(d=>d.id===bbF.edit);if(!((bbF.reup&&bbTmp&&bbTmp.html)?bbMmReplace(tg):bbEdBlanks(tg)))return;const tc=bbTabEdit(tg,f);if(tc===false)return;Object.assign(tg,f);if(bbF.reup&&bbTmp&&bbTmp.xm)tg.xm=bbTmp.xm;hh=tc?1:0}
   else{
+    if(bbRegTabs.length&&bbTmp&&bbTmp.html&&!bbRegTabAdd(true))return;   // 붙여넣고 안 담은 내용은 마지막 탭으로
+    const tgA=bbF.append&&bbDocs.find(d=>d.id===bbF.append),tbA=tgA?bbTabsOf(tgA):[];let wr=null,tl=bbRegTabs.slice();
+    if(!tl.length&&tbA.length&&bbTmp&&bbTmp.html){const q=bbRegRead();tl=[{name:(q.nm||('탭 '+(tbA.length+1))).slice(0,20),day:q.dy,html:bbTmp.html,n:bbTmp.n,src:bbTmp.src||''}]}   // 탭 문서 맨 아래에 추가 = 새 탭으로
+    if(tl.length){if(bbF.append&&!tbA.length){alert('이 문서는 탭 문서가 아니라 탭을 추가할 수 없어요. 새 문서로 등록하거나 탭 없이 추가해주세요');return}
+      wr=bbRegWrap(tl,tbA.map(t=>t.id));if(!wr)return;bbTmp={title:'',src:tl[0].src||'',html:wr.html,n:wr.n}}
     if(!bbTmp){alert('먼저 내용을 붙여넣어주세요');return}
     try{if(bbPerson){await bbPush(bbPerson);await bbPull(bbPerson)}else await bbPush()}catch(e){}   // 등록 직전 서버 목록 확인
     if(bbF.append){   // 기존 문서 맨 아래에 추가 (앞쪽 빈칸 번호가 안 바뀌어 기록 유지)
       tg=bbDocs.find(d=>d.id===bbF.append);if(!tg){alert('대상 문서를 찾을 수 없어요');return}
-      tg.html=(tg.html||'')+bbTmp.html;tg.n=(tg.n||0)+bbTmp.n;hh=1;bbXmPersonal(tg);
+      tg.html=(tg.html||'')+bbTmp.html;tg.n=(tg.n||0)+bbTmp.n;if(wr&&wr.days.length)tg.day=bbDayStore([...bbDays(tg.day),...wr.days]);hh=1;bbXmPersonal(tg);
       bbEnqDoc(tg,hh);bbSave();bbClose();bbRender();return;
     }
-    Object.assign(f,{src:bbTmp.src,html:bbTmp.html,n:bbTmp.n});if(bbTmp.xm)f.xm=bbTmp.xm;
+    Object.assign(f,{src:bbTmp.src,html:bbTmp.html,n:bbTmp.n});if(wr&&wr.days.length)f.day=bbDayStore([...bbDays(f.day),...wr.days]);if(bbTmp.xm)f.xm=bbTmp.xm;
     const ex=f.src&&bbDocs.find(d=>d.src===f.src);
     if(ex){if(!confirm('같은 글이 이미 있어요. 내용을 덮어쓸까요? (기록은 유지돼요)'))return;Object.assign(ex,f);tg=ex;hh=1}
     else{tg={id:'d'+Date.now().toString(36),...f};bbDocs.push(tg);hh=1}
