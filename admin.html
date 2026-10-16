@@ -79,6 +79,19 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 .spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 .drag-handle{cursor:grab;color:var(--text3);font-size:18px;padding:0 4px;user-select:none;line-height:1;flex-shrink:0}
 .drag-handle:active{cursor:grabbing}
+.cur-item.sc-row{display:grid;grid-template-columns:78px minmax(0,1.6fr) minmax(0,1fr) 56px 20px;gap:8px;align-items:center}
+.sc-row .sc-date{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent)}
+.sc-row .sc-subj{font-size:13px;color:var(--text);min-width:0;overflow-wrap:anywhere}
+.sc-row .fi{width:100%;box-sizing:border-box;padding:4px 7px;font-size:12px;background:var(--bg4)}
+.sc-row .sc-time-inp{font-family:monospace}
+@media(max-width:640px){
+.cur-item.sc-row{grid-template-columns:72px minmax(0,1fr) 56px 20px}
+.sc-row .sc-date{grid-column:1;grid-row:1}
+.sc-row .sc-subj{grid-column:2/4;grid-row:1}
+.sc-row .del-btn{grid-column:4;grid-row:1}
+.sc-row .sc-note-inp{grid-column:1/3;grid-row:2}
+.sc-row .sc-time-inp{grid-column:3;grid-row:2}
+}
 .cur-item.drag-over{border-color:var(--accent);background:var(--accent2)}
 .cur-item.dragging{opacity:.35}
 .cur-item.editing .edit-title-input{display:inline-block!important}
@@ -139,7 +152,6 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 
   <div class="tabs">
     <button class="tab on" onclick="switchTab('schedule', this)">📅 스터디 일정</button>
-    <button class="tab" onclick="switchTab('timelog', this)">⏱ 스터디 기록</button>
     <button class="tab" onclick="switchTab('studywrong', this)">❌ 스터디 오답</button>
     <button class="tab" onclick="switchTab('exams', this)">🎯 모의고사</button>
     <button class="tab" onclick="switchTab('lectures', this)">📚 강의 목록</button>
@@ -149,6 +161,27 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
 
   <!-- SCHEDULE -->
   <div class="panel on" id="panel-schedule">
+    <div class="ai-box">
+      <div class="ai-title">📅 스터디 일정 · 기록</div>
+      <div class="ai-desc">
+        제목을 <b>클릭</b>하면 내용 편집, × 로 삭제. <b>비고</b>와 <b>시간</b>은 바로 입력하면 저장됩니다. 날짜 기준 자동 정렬, 중복 날짜는 최신으로 유지됩니다.<br>
+        시간란: 숫자(예: <code style="font-family:monospace;background:var(--bg4);padding:1px 5px;border-radius:3px;font-size:11px">2:30</code>)를 입력하면 <span style="color:var(--teal)">[2:30]</span>으로, 텍스트(예: <code style="font-family:monospace;background:var(--bg4);padding:1px 5px;border-radius:3px;font-size:11px">PASS</code>)를 입력하면 <span style="color:var(--amber)">PASS</span>로 표시됩니다.
+      </div>
+      <div class="fgroup" style="margin-bottom:12px">
+        <label>텀 선택</label>
+        <select class="fi" id="sc-view-term" style="max-width:140px" onchange="renderCurrentSchedule()">
+          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option>
+        </select>
+      </div>
+      <div id="sc-current-list"></div>
+      <div style="margin-top:12px">
+        <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
+        <button class="apply-btn" onclick="syncGoogleCalendar()" style="border-color:var(--purple);color:var(--purple);background:rgba(184,165,255,.1);margin-left:6px">📅 Google Calendar 동기화</button>
+        <div class="ai-status" id="sc-push-status" style="margin-top:6px"></div>
+        <div class="ai-status" id="gcal-status" style="margin-top:6px"></div>
+      </div>
+    </div>
+
     <div class="ai-box">
       <div class="ai-title">📅 텀 기간 설정</div>
       <div class="ai-desc">각 텀의 기간을 직접 수정합니다. 수정 후 <b>저장</b>을 누르고, <b>☁️ GitHub에 저장</b>으로 반영하세요.</div>
@@ -246,24 +279,6 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
         </div>
       </div>
     </div>
-
-    <div class="ai-box">
-      <div class="ai-title">📋 현재 일정 목록</div>
-      <div class="ai-desc">제목을 <b>클릭</b>하면 내용 편집, × 로 삭제. 날짜 기준 자동 정렬, 중복 날짜는 최신으로 유지됩니다.</div>
-      <div class="fgroup" style="margin-bottom:12px">
-        <label>텀 선택</label>
-        <select class="fi" id="sc-view-term" style="max-width:140px" onchange="renderCurrentSchedule()">
-          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option>
-        </select>
-      </div>
-      <div id="sc-current-list"></div>
-      <div style="margin-top:12px">
-        <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
-        <button class="apply-btn" onclick="syncGoogleCalendar()" style="border-color:var(--purple);color:var(--purple);background:rgba(184,165,255,.1);margin-left:6px">📅 Google Calendar 동기화</button>
-        <div class="ai-status" id="sc-push-status" style="margin-top:6px"></div>
-        <div class="ai-status" id="gcal-status" style="margin-top:6px"></div>
-      </div>
-    </div>
   </div>
 
   <!-- STUDY WRONG ANSWERS -->
@@ -327,30 +342,6 @@ textarea.fi{min-height:120px;resize:vertical;line-height:1.7}
       <div style="margin-top:12px">
         <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
         <div class="ai-status" id="sw-push-status" style="margin-top:6px"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TIMELOG -->
-  <div class="panel" id="panel-timelog">
-    <div class="ai-box">
-      <div class="ai-title">⏱ 스터디 기록</div>
-      <div class="ai-desc">
-        각 일정의 <b>시간 기록</b>과 <b>비고</b>를 입력합니다.<br>
-        시간란: 숫자(예: <code style="font-family:monospace;background:var(--bg4);padding:1px 5px;border-radius:3px;font-size:11px">2:30</code>)를 입력하면 <span style="color:var(--teal)">[2:30]</span>으로, 텍스트(예: <code style="font-family:monospace;background:var(--bg4);padding:1px 5px;border-radius:3px;font-size:11px">PASS</code>)를 입력하면 <span style="color:var(--amber)">PASS</span>로 표시됩니다.
-      </div>
-      <div class="fgroup" style="margin-bottom:12px">
-        <label>텀 선택</label>
-        <select class="fi" id="tl2-term" style="max-width:140px" onchange="renderTimelogPanel()">
-          <option value="1">1텀</option><option value="2">2텀</option><option value="3">3텀</option>
-        </select>
-      </div>
-      <div id="tl2-list"></div>
-      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button class="apply-btn" onclick="pushToGithub()" style="border-color:var(--blue);color:var(--blue);background:rgba(110,181,255,.1)">☁️ GitHub에 저장</button>
-        <button class="apply-btn" onclick="syncGoogleCalendar()" style="border-color:var(--purple);color:var(--purple);background:rgba(184,165,255,.1)">📅 Google Calendar 동기화</button>
-        <div class="ai-status" id="tl2-push-status" style="margin-top:0"></div>
-        <div class="ai-status" id="tl2-gcal-status" style="margin-top:0"></div>
       </div>
     </div>
   </div>
@@ -596,16 +587,16 @@ async function pushToGithub(){
     const json = await res.json();
     cfg.sha = json.content.sha;
     localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
-    ['sc','tl2','lc','nt','raw','sw'].forEach(p=>setStatus(p+'-push-status','✓ GitHub 저장 완료!','ok'));
+    ['sc','lc','nt','raw','sw'].forEach(p=>setStatus(p+'-push-status','✓ GitHub 저장 완료!','ok'));
     setStatus('term-period-status','✓ GitHub 저장 완료!','ok');
     setStatus('so-status','✓ GitHub 저장 완료!','ok');
     setTimeout(()=>{
-      ['sc','tl2','lc','nt','raw','sw'].forEach(p=>setStatus(p+'-push-status',''));
+      ['sc','lc','nt','raw','sw'].forEach(p=>setStatus(p+'-push-status',''));
       setStatus('term-period-status','','');
       setStatus('so-status','','');
     }, 3000);
   } catch(e){
-    ['sc','tl2','lc','nt','raw','sw'].forEach(p=>setStatus(p+'-push-status','⚠ '+e.message,'err'));
+    ['sc','lc','nt','raw','sw'].forEach(p=>setStatus(p+'-push-status','⚠ '+e.message,'err'));
     setStatus('term-period-status','⚠ '+e.message,'err');
     setStatus('so-status','⚠ '+e.message,'err');
   }
@@ -669,17 +660,14 @@ function buildGoogleCalendarPayload(){
 async function syncGoogleCalendar(){
   if(!cfg.gcalUrl){
     setStatus('gcal-status','Google Calendar Sync URL을 설정에 입력하고 저장해주세요.','err');
-    setStatus('tl2-gcal-status','Google Calendar Sync URL을 설정에 입력하고 저장해주세요.','err');
     return;
   }
   const payload = buildGoogleCalendarPayload();
   if(!payload || !payload.events.length){
     setStatus('gcal-status','동기화할 일정이 없습니다.','err');
-    setStatus('tl2-gcal-status','동기화할 일정이 없습니다.','err');
     return;
   }
   setStatus('gcal-status',`Google Calendar 동기화 중... (${payload.events.length}개)`,'loading');
-  setStatus('tl2-gcal-status',`Google Calendar 동기화 중... (${payload.events.length}개)`,'loading');
   try{
     const res = await fetch(cfg.gcalUrl, {
       method:'POST',
@@ -692,10 +680,8 @@ async function syncGoogleCalendar(){
     if(!res.ok || result.ok===false) throw new Error(result.error || text || '동기화 실패');
     const msg = `✓ Google Calendar 동기화 완료 (${result.created||0}개 생성, ${result.updated||0}개 수정, ${result.deleted||0}개 삭제)`;
     setStatus('gcal-status',msg,'ok');
-    setStatus('tl2-gcal-status',msg,'ok');
     setTimeout(()=>{
       setStatus('gcal-status','','');
-      setStatus('tl2-gcal-status','','');
     }, 5000);
   }catch(e){
     try{
@@ -707,11 +693,9 @@ async function syncGoogleCalendar(){
       });
       const msg = `✓ Google Calendar 동기화 요청 전송됨 (${payload.events.length}개). 캘린더에서 반영 여부를 확인해주세요.`;
       setStatus('gcal-status',msg,'ok');
-      setStatus('tl2-gcal-status',msg,'ok');
     }catch(e2){
       const msg = '⚠ '+(e2.message || e.message || e2 || e);
       setStatus('gcal-status',msg,'err');
-      setStatus('tl2-gcal-status',msg,'err');
     }
   }
 }
@@ -1188,11 +1172,11 @@ function renderCurrentSchedule(){
   const term = document.getElementById('sc-view-term').value;
   const weeks = DATA.schedule[term]||[];
   const listEl = document.getElementById('sc-current-list');
+  if(!listEl) return;
+  const attr = v => escHtml(String(v||'')).replace(/"/g,'&quot;');
 
-  // 전체 아이템 플랫 목록으로 렌더 (날짜 정렬)
   const allItems = [];
   weeks.forEach((w, wi) => (w.items||[]).forEach((item, ii) => allItems.push({item, wi, ii})));
-  // 날짜 정렬
   allItems.sort((a, b) => dateToSortKey(a.item.date) - dateToSortKey(b.item.date));
 
   if(!allItems.length){
@@ -1201,36 +1185,66 @@ function renderCurrentSchedule(){
   }
   listEl.innerHTML = '';
 
+  // 주 단위 구분선용 D-day 계산
+  const ddayParts = ((DATA.dday)||'2026-11-14').split('-');
+  const ddayDate = new Date(parseInt(ddayParts[0]), parseInt(ddayParts[1])-1, parseInt(ddayParts[2]));
+  function getMondayOf(d){ const day=d.getDay(); const diff=day===0?-6:1-day; const m=new Date(d); m.setDate(d.getDate()+diff); m.setHours(0,0,0,0); return m; }
+  function getDdayStr(mon){ mon.setHours(0,0,0,0); const diff=Math.ceil((ddayDate-mon)/864e5); return diff>0?'D-'+diff:diff===0?'D-DAY':'D+'+Math.abs(diff); }
+  let lastMonKey = null;
+
   allItems.forEach(({item, wi, ii}) => {
+    const p = String(item.date).split('/');
+    const mo = parseInt(p[0]), da = parseInt(p[1]);
+    if(!isNaN(mo) && !isNaN(da)){
+      const yr = (mo>=6&&mo<=12)?2026:2027;
+      const dateObj = new Date(yr, mo-1, da);
+      dateObj.setHours(0,0,0,0);
+      const monday = getMondayOf(dateObj);
+      const monKey = monday.getTime();
+      if(monKey !== lastMonKey){
+        lastMonKey = monKey;
+        const dday = getDdayStr(new Date(monday));
+        const label = `${monday.getMonth()+1}/${monday.getDate()}`;
+        const divider = document.createElement('div');
+        divider.style.cssText = 'font-size:11px;color:var(--text3);font-family:"JetBrains Mono",monospace;letter-spacing:.05em;padding:10px 0 6px;border-top:1px solid var(--border);margin-top:4px;display:flex;gap:6px;align-items:center';
+        divider.innerHTML = `<span>— ${dday}</span><span style="color:var(--text4);font-size:10px">(${label}~)</span>`;
+        if(listEl.children.length === 0) divider.style.borderTop = 'none';
+        listEl.appendChild(divider);
+      }
+    }
+
     const div = document.createElement('div');
-    div.className = 'cur-item';
+    div.className = 'cur-item sc-row';
     div.innerHTML =
-      '<div class="cur-item-text">'
-      +`<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);min-width:72px;display:inline-block">${item.date}(${item.day})</span> `
-      +`<span class="sc-title-text" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px" title="클릭하여 내용 편집">${escHtml(item.subject)}</span>`
-      +(item.time?` <span style="color:var(--teal);font-family:monospace;font-size:11px">${item.time}</span>`:'')
-      +(item.note?` <span style="color:var(--amber);font-size:11px">${escHtml(item.note)}</span>`:'')
-      +`<input class="edit-title-input fi" style="display:none;font-size:12px;padding:2px 6px;margin-left:4px" value="${item.subject.replace(/"/g,'&quot;')}">`
-      +'</div>'
+      `<span class="sc-date">${escHtml(item.date)}${item.day?`(${escHtml(item.day)})`:''}</span>`
+      +`<div class="sc-subj"><span class="sc-title-text" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px" title="클릭하여 내용 편집">${escHtml(item.subject)}</span>`
+      +`<input class="edit-title-input fi" style="display:none;font-size:12px;padding:2px 6px" value="${attr(item.subject)}"></div>`
+      +`<input class="fi sc-note-inp" placeholder="비고" value="${attr(item.note)}">`
+      +`<input class="fi sc-time-inp" placeholder="시간" value="${attr(item.time)}">`
       +`<button class="del-btn" title="삭제">×</button>`;
 
-    // 클릭 → 편집
-    div.querySelector('.sc-title-text').addEventListener('click', function(){
+    const titleSpan = div.querySelector('.sc-title-text');
+    const titleInp = div.querySelector('.edit-title-input');
+    const noteInp = div.querySelector('.sc-note-inp');
+    const timeInp = div.querySelector('.sc-time-inp');
+
+    // 제목: 클릭 → 편집
+    titleSpan.addEventListener('click', function(){
       div.classList.add('editing');
-      const inp = div.querySelector('.edit-title-input');
-      inp.style.display = 'inline-block';
-      div.querySelector('.sc-title-text').style.display = 'none';
-      inp.focus(); inp.select();
+      titleInp.style.display = 'inline-block';
+      titleSpan.style.display = 'none';
+      titleInp.focus(); titleInp.select();
     });
-    div.querySelector('.edit-title-input').addEventListener('keydown', function(e){
+    titleInp.addEventListener('keydown', function(e){
       if(e.key==='Enter') this.blur();
       if(e.key==='Escape'){
+        this.value = item.subject;
         div.classList.remove('editing');
-        div.querySelector('.edit-title-input').style.display='none';
-        div.querySelector('.sc-title-text').style.display='';
+        titleInp.style.display='none';
+        titleSpan.style.display='';
       }
     });
-    div.querySelector('.edit-title-input').addEventListener('blur', function(){
+    titleInp.addEventListener('blur', function(){
       const newVal = this.value.trim();
       if(newVal && newVal !== item.subject){
         DATA.schedule[term][wi].items[ii].subject = newVal;
@@ -1238,6 +1252,20 @@ function renderCurrentSchedule(){
       }
       div.classList.remove('editing');
       renderCurrentSchedule();
+    });
+
+    // 비고 / 시간: 입력 후 포커스를 벗어나거나 Enter 치면 저장
+    function saveNoteTime(){
+      const newTime = timeInp.value.trim();
+      const newNote = noteInp.value.trim();
+      const target = DATA.schedule[term][wi].items[ii];
+      if(newTime) target.time = newTime; else delete target.time;
+      if(newNote) target.note = newNote; else delete target.note;
+      updateRawEditor();
+    }
+    [noteInp, timeInp].forEach(inp => {
+      inp.addEventListener('keydown', e => { if(e.key==='Enter') inp.blur(); });
+      inp.addEventListener('blur', saveNoteTime);
     });
 
     div.querySelector('.del-btn').addEventListener('click', function(){
@@ -1265,96 +1293,6 @@ function formatStudyTimeDisplay(v){
   if(!text) return '';
   if(isStudyTimeValue(text)) return `<span style="color:var(--teal);font-family:monospace;font-size:11px">[${escHtml(text)}]</span>`;
   return `<span style="color:var(--amber);font-size:11px">${escHtml(text)}</span>`;
-}
-function renderTimelogPanel(){
-  if(!DATA) return;
-  const term = parseInt(document.getElementById('tl2-term').value);
-  const weeks = DATA.schedule[term]||[];
-  const listEl = document.getElementById('tl2-list');
-  if(!listEl) return;
-
-  // Flatten and sort
-  const allItems = [];
-  weeks.forEach((w, wi) => (w.items||[]).forEach((item, ii) => {
-    if(item.date==='-') return;
-    allItems.push({item, wi, ii});
-  }));
-  allItems.sort((a,b) => dateToSortKey(a.item.date) - dateToSortKey(b.item.date));
-
-  if(!allItems.length){
-    listEl.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:8px">일정이 없습니다.</div>';
-    return;
-  }
-  listEl.innerHTML = '';
-
-  // D-day helper
-  const ddayParts = ((DATA.dday)||'2026-11-14').split('-');
-  const ddayDate = new Date(parseInt(ddayParts[0]), parseInt(ddayParts[1])-1, parseInt(ddayParts[2]));
-  function getMondayOf(d){ const day=d.getDay(); const diff=day===0?-6:1-day; const m=new Date(d); m.setDate(d.getDate()+diff); m.setHours(0,0,0,0); return m; }
-  function getDdayStr(mon){ mon.setHours(0,0,0,0); const diff=Math.ceil((ddayDate-mon)/864e5); return diff>0?'D-'+diff:diff===0?'D-DAY':'D+'+Math.abs(diff); }
-
-  let lastMonKey = null;
-
-  allItems.forEach(({item, wi, ii}) => {
-    const p = item.date.split('/');
-    const mo = parseInt(p[0]), da = parseInt(p[1]);
-    const yr = (mo>=6&&mo<=12)?2026:2027;
-    const dateObj = new Date(yr, mo-1, da);
-    dateObj.setHours(0,0,0,0);
-    const monday = getMondayOf(dateObj);
-    const monKey = monday.getTime();
-
-    if(monKey !== lastMonKey){
-      lastMonKey = monKey;
-      const dday = getDdayStr(new Date(monday));
-      const label = `${monday.getMonth()+1}/${monday.getDate()}`;
-      const divider = document.createElement('div');
-      divider.style.cssText = 'font-size:11px;color:var(--text3);font-family:"JetBrains Mono",monospace;letter-spacing:.05em;padding:10px 0 6px;border-top:1px solid var(--border);margin-top:4px;display:flex;gap:6px;align-items:center';
-      divider.innerHTML = `<span>— ${dday}</span><span style="color:var(--text4);font-size:10px">(${label}~)</span>`;
-      if(listEl.children.length === 0) divider.style.borderTop = 'none';
-      listEl.appendChild(divider);
-    }
-
-    const div = document.createElement('div');
-    div.className = 'cur-item';
-    div.style.cssText = 'display:grid;grid-template-columns:auto 1fr 1fr auto;gap:8px;align-items:center';
-
-    // Current values
-    const curTime = item.time || '';
-    const curNote = item.note || '';
-    // Time display: numeric -> teal [x:xx], text -> amber text, empty -> --
-    const timeDisplay = formatStudyTimeDisplay(curTime);
-
-    div.innerHTML =
-      `<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);min-width:72px">${item.date}(${item.day})</span>`
-      +`<span style="font-size:13px;color:var(--text)">${escHtml(item.subject)}</span>`
-      +`<input class="fi tl2-note-inp" placeholder="비고" value="${escHtml(curNote)}" style="width:100%;padding:4px 7px;font-size:12px;background:var(--bg4)">`
-      +`<input class="fi tl2-time-inp" placeholder="시간" value="${escHtml(curTime)}" style="width:52px;padding:4px 7px;font-size:12px;font-family:monospace;background:var(--bg4)">`;
-
-    // Save on blur/enter for note
-    const noteInp = div.querySelector('.tl2-note-inp');
-    const timeInp = div.querySelector('.tl2-time-inp');
-
-    function saveEntry(){
-      const newTime = timeInp.value.trim();
-      const newNote = noteInp.value.trim();
-      if(newTime) DATA.schedule[term][wi].items[ii].time = newTime;
-      else delete DATA.schedule[term][wi].items[ii].time;
-      if(newNote) DATA.schedule[term][wi].items[ii].note = newNote;
-      else delete DATA.schedule[term][wi].items[ii].note;
-      updateRawEditor();
-      // Live update subject span
-      const subjSpan = div.querySelector('span:nth-child(2)');
-      subjSpan.innerHTML = escHtml(item.subject);
-    }
-
-    [noteInp, timeInp].forEach(inp => {
-      inp.addEventListener('keydown', e => { if(e.key==='Enter') inp.blur(); });
-      inp.addEventListener('blur', saveEntry);
-    });
-
-    listEl.appendChild(div);
-  });
 }
 
 
@@ -1836,7 +1774,7 @@ function applyDefaultTerm(){
   if(defaultTermApplied || !DATA) return;
   defaultTermApplied = true;
   const t = String(detectCurrentTerm());
-  ['sc-study-term','sc-term','sc-view-term','tl2-term','sw-term'].forEach(id=>{
+  ['sc-study-term','sc-term','sc-view-term','sw-term'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.value = t;
   });
@@ -1847,7 +1785,6 @@ function renderAll(){
   applyDefaultTerm();
   buildSubjectSelects();
   renderCurrentSchedule();
-  renderTimelogPanel();
   renderCurrentLectures();
   renderTermPeriodInputs();
   renderSubjOrderList();
@@ -2104,7 +2041,6 @@ function switchTab(name, btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.getElementById('panel-'+name).classList.add('on');
   btn.classList.add('on');
-  if(name==='timelog') renderTimelogPanel();
   if(name==='exams') renderExamMatch();
 }
 
