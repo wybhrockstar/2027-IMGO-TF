@@ -436,7 +436,13 @@ body.light .mmcl.sx{color:#b4530c}   /* 설명선은 노드 가운데 정렬 */
 .mm{position:relative}
 svg.mmqs{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
 body.bbnocl .mmcl,body.bbnocl .bb-pen:not(.bb-b){display:none}
-.mmq{display:none}   /* 설명선·요약·관계 데이터 (3단계에서 화면 표시) */
+.mmq{display:none}
+.mmg{display:block;margin:0 auto 4px;max-width:none;pointer-events:none;user-select:none;-webkit-user-drag:none}   /* Xmind 노드 그림. t=위 · b=아래 · l=왼쪽 · r=오른쪽 (Xmind의 align 값 그대로) */
+.mmg.mgl,.mmg.mgr{display:inline-block;vertical-align:middle}
+.mmg.mgl{margin:0 8px 0 0}.mmg.mgr{margin:0 0 0 8px}
+.mmg.mgb{margin:4px auto 0}
+.mm.lst .mmg{display:block;margin:4px 0 0;max-width:100%;height:auto}   /* 목록형: 항상 노드 글 아래 */
+body.bbnoimg .mm .mmg{display:none}   /* 설명선·요약·관계 데이터 (3단계에서 화면 표시) */
 .mmqx{display:block;box-sizing:border-box;margin:3px 0 3px 4px;padding:1px 6px;font-size:.82em;font-weight:400;font-style:normal;text-align:left;white-space:pre-wrap;width:max-content;max-width:100%;border-top:1px dashed var(--border3);border-radius:4px;color:var(--text2);background:color-mix(in srgb,var(--text) 9%,transparent);font-family:'Noto Sans KR',sans-serif}   /* 요약·관계 글줄 (목록 모드에서만 만들어짐) */
 mark{background:none;color:#F22816;font-weight:700}   /* ★ 중요 구간 (Xmind 빨강). 글자 ★는 저장하지 않고 ::before로 그림 */
 mark::before{content:"★ "}
@@ -2991,7 +2997,7 @@ function bbClean(src,out){
     if(t==='TD'||t==='TH'){el=document.createElement('td');
       ['colspan','rowspan'].forEach(a=>{const v=parseInt(n.getAttribute(a));if(v>1&&v<20)el.setAttribute(a,v)});
       if(/background/.test(n.getAttribute('style')||'')&&!n.querySelector('.blank'))el.className='bb-th';
-    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='I'&&n.classList.contains('d'))el.className='d';if(t==='MARK'&&n.classList.contains('px'))el.className='px';if(t==='DIV'){const c=[...n.classList].filter(x=>x==='contentbox'||/^(mm[0-9a-z]?|mf[0-5]|ml[12]|mk[12]|ms[12]|mmq[csrp])$/.test(x)).join(' ');if(c)el.className=c;if(/^\d{2,3}$/.test(n.dataset.w||''))el.dataset.w=n.dataset.w;if(t==='DIV'&&n.classList.contains('mm')&&n.dataset.tab)el.dataset.tab=n.dataset.tab.slice(0,60);if(t==='DIV'){['x','t','a','b','s','r','p'].forEach(k=>{if(/^[A-Za-z0-9_-]{1,48}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}}}
+    }else if(BB_OK.has(t)){el=document.createElement(t.toLowerCase());if(t==='I'&&n.classList.contains('d'))el.className='d';if(t==='MARK'&&n.classList.contains('px'))el.className='px';if(t==='DIV'){const c=[...n.classList].filter(x=>x==='contentbox'||/^(mm[0-9a-z]?|mf[0-5]|ml[12]|mk[12]|ms[12]|mmq[csrpg])$/.test(x)).join(' ');if(c)el.className=c;if(/^\d{2,3}$/.test(n.dataset.w||''))el.dataset.w=n.dataset.w;if(t==='DIV'&&n.classList.contains('mm')&&n.dataset.tab)el.dataset.tab=n.dataset.tab.slice(0,60);if(t==='DIV'&&n.classList.contains('mmqg')){const u=n.dataset.u||'';if(u.length<1200000&&/^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(u))el.dataset.u=u;['gw','gh'].forEach(k=>{if(/^\d{1,4}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}if(t==='DIV'){['x','t','a','b','s','r','p','g','gp'].forEach(k=>{if(/^[A-Za-z0-9_-]{1,48}$/.test(n.dataset[k]||''))el.dataset[k]=n.dataset[k]})}}}
     if(el){bbClean(n,el);out.appendChild(el)}else bbClean(n,out);
   });
 }
@@ -3739,7 +3745,7 @@ function bbMmTreeL(lines){
       else{const k=v.match(/^(\S+)\s?([\s\S]*)$/);if(k){const pt=k[1].split(':'),id=pt[pt.length-1],kd=pt.length>1?pt[0]:'',cp=pt.length>2?pt[1]:'';if(ID.test(id)&&(!kd||kd==='s'||kd==='c')&&(!cp||/^-?\d+(_-?\d+){3}$/.test(cp)))(last.rl=last.rl||[]).push({to:id,t:k[2].trim(),k:kd,p:cp})}}
       return}
     const m=raw.match(/^([ \t]*)(?:[-*•▪○●■□]\s+)?(◯\s+)?(.*)$/);let t=m[3].trim();if(!t)return;
-    let mt=null;const mk=t.match(/^⟦([^⟧]*)⟧\s*/);if(mk){mt={};mk[1].split(/\s+/).forEach(x=>{if(x)mt[x[0]]=x[0]==='x'?x.slice(1):+x.slice(1)});t=t.slice(mk[0].length)}
+    let mt=null;const mk=t.match(/^⟦([^⟧]*)⟧\s*/);if(mk){mt={};mk[1].split(/\s+/).forEach(x=>{if(x)mt[x[0]]='xga'.includes(x[0])?x.slice(1):+x.slice(1)});t=t.slice(mk[0].length)}
     if(!t)return;t=t.replace(BB_DOT,'·');const ind=m[1].replace(/\t/g,'    ').length,n={t,i,e:!!m[2],c:[],m:mt};
     while(st.length>1&&st[st.length-1].ind>=ind)st.pop();
     st[st.length-1].n.c.push(n);st.push({ind,n});last=n;
@@ -3793,10 +3799,26 @@ function bbMmExtra(n){   // 설명선·요약·관계 데이터 (자식 목록 .
   const X=v=>bbEsc(v).replace(/⏎/g,'\n');
   return (n.cl?`<div class="mmq mmqc"${n.cs?' data-s="1"':''}>${X(n.cl)}</div>`:'')+(n.sm||[]).map(s=>`<div class="mmq mmqs" data-a="${s.a}" data-b="${s.b}">${X(s.t)}</div>`).join('')+(n.rl||[]).map(r=>`<div class="mmq mmqr" data-t="${r.to}"${r.k?` data-r="${r.k}"`:''}${r.p?` data-p="${r.p}"`:''}>${X(r.t)}</div>`).join('')+(n.pm||[]).map(p=>`<div class="mmq mmqp"${p.c?' data-s="1"':''}>${X(p.t)}</div>`).join('');
 }
+function bbMmGs(ns){   // 이 탭에서 쓴 그림을 한 번씩만 .mmqg(숨김 데이터)로 저장
+  const ks=new Set();(function f(a){a.forEach(n=>{if(n.m&&n.m.g&&bbXmImg[n.m.g])ks.add(n.m.g);f(n.c)})})(ns);
+  return [...ks].map(k=>{const g=bbXmImg[k];return `<div class="mmq mmqg" data-g="${k}" data-u="${g.u}" data-gw="${g.w}" data-gh="${g.h}"></div>`}).join('');
+}
+function bbMmImg(root){   // 노드 그림(.mmn[data-g])을 노드 안 <img class="mmg">로 넣음. 위치는 data-gp(t/b/l/r), 목록형은 항상 글 아래. 이미 맞게 있으면 건너뜀
+  const L=bbMm.mode==='list';
+  root.querySelectorAll('.mmn[data-g]').forEach(n=>{
+    const m=n.closest('.mm'),g=m&&[...m.children].find(c=>c.classList.contains('mmqg')&&c.dataset.g===n.dataset.g);if(!g||!g.dataset.u)return;
+    const p=L?'b':(/^[trlb]$/.test(n.dataset.gp)?n.dataset.gp:'t'),k=n.dataset.g+p;let im=[...n.children].find(c=>c.classList.contains('mmg'));
+    if(im&&im.dataset.k===k)return;if(im)im.remove();
+    im=document.createElement('img');im.className='mmg mg'+p;im.dataset.k=k;im.src=g.dataset.u;im.alt='';im.draggable=false;
+    if(+g.dataset.gw&&+g.dataset.gh){im.width=+g.dataset.gw;im.height=+g.dataset.gh}
+    const memo=[...n.children].find(c=>c.classList.contains('mmcl')||c.classList.contains('bb-pen'));
+    if(p==='t'||p==='l')n.insertBefore(im,n.firstChild);else if(memo)n.insertBefore(im,memo);else n.appendChild(im);
+  });
+}
 function bbMmNode(n,d,o,pv){
   const lf=!n.c.length,m=n.m||{},bx=m.f!=null||n.e,o2=Object.assign({},o,{leaf:o.leaf&&lf&&!bx}),k=d===0?0:lf?3:d===1?1:(o.xm&&!bx?3:2);   // Xmind 문서: 상자 없는 노드는 하위가 있어도 상자 없이
   const cx=(m.f!=null&&k>0?' mf'+m.f:'')+(m.k===2?' mk2':m.k?' mk1':'')+(m.s?' ms'+m.s:'');
-  return `<div class="mmb"><div class="mmn mm${k}${n.e?' mme':''}${cx}"${m.w?` data-w="${m.w}"`:''}${m.x?` data-x="${m.x}"`:''}${pv?` data-i="${n.i}"`:''}>${bbMmTxt(n.t,o2)}</div>${lf?'':`<div class="mmc ml${m.l||2}">${n.c.map(c=>bbMmNode(c,d+1,o,pv)).join('')}</div>`}${bbMmExtra(n)}</div>`;
+  return `<div class="mmb"><div class="mmn mm${k}${n.e?' mme':''}${cx}"${m.w?` data-w="${m.w}"`:''}${m.x?` data-x="${m.x}"`:''}${m.g&&bbXmImg[m.g]?` data-g="${m.g}" data-gp="${/^[trlb]$/.test(m.a)?m.a:'t'}"`:''}${pv?` data-i="${n.i}"`:''}>${bbMmTxt(n.t,o2)}</div>${lf?'':`<div class="mmc ml${m.l||2}">${n.c.map(c=>bbMmNode(c,d+1,o,pv)).join('')}</div>`}${bbMmExtra(n)}</div>`;
 }
 function bbMmRun(){
   const inp=document.getElementById('bbMmIn'),pv=document.getElementById('bbMmPv'),st=document.getElementById('bbMmSt');if(!inp)return;
@@ -3808,7 +3830,7 @@ function bbMmRun(){
    else if(tb)tb.remove()}
   if(!tr.length){if(bbF&&bbF.edit){bbF.reup=false;const z=document.getElementById('bbEdSec'),tb=document.getElementById('bbTyB');if(z)z.style.display='';if(tb)tb.style.display=''}pv.innerHTML='';st.style.color='var(--text3)';st.textContent=tabs.length&&!sel.length?'가져올 탭을 하나 이상 골라 주세요.':'붙여넣거나 파일을 불러오면 미리보기가 나와요.';bbTmp=null;return}
   o.xm=(function f(a){return a.some(n=>(n.m&&n.m.f!=null)||f(n.c))})(tr);
-  const mk=(p,L)=>(L||sel).filter(t=>t.nodes.length).map(t=>`<div class="mm"${t.name?` data-tab="${bbEsc(t.name)}"`:''}>${t.nodes.map(n=>bbMmNode(n,0,o,p)).join('')}</div>`).join('');
+  const mk=(p,L)=>(L||sel).filter(t=>t.nodes.length).map(t=>`<div class="mm"${t.name?` data-tab="${bbEsc(t.name)}"`:''}>${t.nodes.map(n=>bbMmNode(n,0,o,p)).join('')}${bbMmGs(t.nodes)}</div>`).join('');
   pv.innerHTML=mk(true,[pvt]);   // 미리보기는 고른 탭 하나만 (저장 내용은 체크한 모든 탭)
   const t=bbParse(mk(false));bbTmp=t?{title:'',src:'',html:t.html,n:t.n,xm:bbXmSrc&&bbXmSrc.z||''}:null;
   if(bbF&&bbF.edit){bbF.reup=!!t;if(t&&bbMe.on)bbMeOff();const z=document.getElementById('bbEdSec'),tb=document.getElementById('bbTyB');if(z)z.style.display=t?'none':'';if(tb)tb.style.display=t?'none':''}
@@ -3858,6 +3880,7 @@ function bbXmMeta(t){
   const pf=String(p['fo:font-family']||''),af=(t.attributedTitle||[]).map(x=>x['fo:font-family']).filter(Boolean).join(' ');
   const kd=s=>/elice|neolli|\bdx\b|엘리스|디엑스/i.test(s)?2:/cocoa|코코아|ownglyph|온글잎/i.test(s)?1:0;   // 상자 전체 글꼴 우선, 없으면 일부 글자 글꼴. DX·온글잎 외(미지정·Droid Serif 등)는 기본 온글잎
   const kk=kd(pf)||kd(af);if(kk)o.push('k'+kk);
+  {const gk=t.image&&t.image.src?bbXmKey(t.image.src):'';if(gk&&bbXmImg[gk])o.push('g'+gk,'a'+({right:'r',left:'l',top:'t',bottom:'b'}[t.image.align]||'t'))}   // 노드 그림: g=그림 키, a=글씨 기준 그림 위치(align 없으면 위)
   if(/^[A-Za-z0-9_-]{1,48}$/.test(t.id||''))o.push('x'+t.id);   // Xmind 노드 id (다시 내려받기용 대응표)
   return o.length?'⟦'+o.join(' ')+'⟧':'';
 }
@@ -3886,6 +3909,27 @@ function bbXmLines(t,d,out,rel){
   ((rel&&rel[t.id])||[]).forEach(r=>out.push(ind+'⇢ '+(r.k==='s'?'s:':r.k==='c'?'c:'+(r.p?r.p+':':''):'')+r.to+' '+r.t));   // 종류 접두: 's:'(직선) / 'c:'(곡선) / 'c:제어점:' . 접두가 없으면(예전 문서) 종전 방식
   at.forEach(c=>bbXmLines(c,d+1,out,rel));
 }
+let bbXmImg={};   // 방금 불러온 Xmind 그림 {키: {u: data URL, w: 표시 너비, h: 표시 높이}}. 키 = 파일 이름(해시) 앞 10자라 같은 그림은 한 번만 저장
+function bbXmKey(s){return String(s||'').replace(/^.*\//,'').replace(/\.[^.]*$/,'').replace(/[^A-Za-z0-9]/g,'').slice(0,10)}
+async function bbXmLoadImgs(z,sheets){   // content.json에서 쓰인 그림만 zip(resources/)에서 읽음. 150KB 이하는 원본 그대로, 큰 그림은 표시 크기의 2배로 줄여 WebP로 저장
+  const L=[],w=t=>{if(t.image&&t.image.src)L.push(t.image);((t.children&&t.children.attached)||[]).forEach(w)};
+  sheets.forEach(s=>{if(s.rootTopic)w(s.rootTopic)});
+  const MT={png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',gif:'image/gif'},rd=b=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b)});
+  for(const im of L){
+    const k=bbXmKey(im.src);if(!k||bbXmImg[k])continue;
+    const p=String(im.src).replace(/^xap:/,''),f=z.file(p),mt=MT[(p.split('.').pop()||'').toLowerCase()];if(!f||!mt)continue;
+    try{
+      const buf=await f.async('arraybuffer'),bl=new Blob([buf],{type:mt}),bm=await createImageBitmap(bl);
+      let W=+im.width||bm.width,H=+im.height||Math.round(W*bm.height/bm.width);
+      if(W>400){H=Math.round(H*400/W);W=400}
+      let u;
+      if(buf.byteLength<=150000)u=await rd(bl);
+      else{const cv=document.createElement('canvas');cv.width=Math.min(bm.width,W*2);cv.height=Math.max(1,Math.round(cv.width*bm.height/bm.width));cv.getContext('2d').drawImage(bm,0,0,cv.width,cv.height);u=cv.toDataURL('image/webp',.85)}
+      if(u.length>900000)continue;
+      bbXmImg[k]={u,w:Math.max(1,W),h:Math.max(1,H)};
+    }catch(e){}
+  }
+}
 let bbXmSrc=null;   // 방금 불러온 Xmind 원본 {z: 압축 문자열}
 const BB_XM='\u241EXM\u241E';   // 서버로 보낼 때 html 뒤에 붙이는 구분 표식 (Code.gs 변경 없이 같은 조각 저장 방식 사용)
 async function bbXmPack(s){   // 원본 content.json → 'g:'+gzip(base64) (압축 못 하면 'r:'+원문)
@@ -3904,10 +3948,10 @@ async function bbMmFile(inp){
       if(!window.JSZip)throw new Error('압축 해제 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.');
       const z=await JSZip.loadAsync(await f.arrayBuffer()),c=z.file('content.json');
       if(!c)throw new Error('이 Xmind 파일 형식(content.json 없음)은 지원하지 않아요. 최신 Xmind에서 저장한 파일을 써 주세요.');
-      const raw=await c.async('string');bbXmSrc={z:await bbXmPack(raw)};   // 다시 내려받기용 원본 (등록·다시 올리기 때 문서에 같이 저장)
+      const raw=await c.async('string');bbXmSrc={z:await bbXmPack(raw)};bbXmImg={};await bbXmLoadImgs(z,JSON.parse(raw));   // 다시 내려받기용 원본 (등록·다시 올리기 때 문서에 같이 저장)
       JSON.parse(raw).forEach(sh=>{if(sh.rootTopic){lines.push('§§ '+String(sh.title||'').replace(/\s+/g,' ').trim());const rel=bbXmRels(sh);bbXmLines(sh.rootTopic,0,lines,rel)}});
     }else if(/\.opml$/i.test(f.name)){
-      bbXmSrc=null;
+      bbXmSrc=null;bbXmImg={};
       const x=new DOMParser().parseFromString(await f.text(),'text/xml');
       const w=(el,d)=>[...el.children].filter(e=>e.tagName==='outline').forEach(e=>{lines.push('  '.repeat(d)+'• '+(e.getAttribute('text')||'').replace(/\r?\n/g,'⏎'));w(e,d+1)});
       w(x.querySelector('body'),0);
@@ -4004,10 +4048,17 @@ async function bbXmExport(id){
     ((t.children&&t.children.attached)||[]).forEach(walk);
   };
   src.forEach(sh=>{if(sh.rootTopic)walk(sh.rootTopic)});
+  const gm={},rs={},EX={'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif'};   // 그림: 문서에 보관한 그림을 resources/에 다시 넣고 manifest에 등록 (원본과 같은 형식이면 같은 파일 이름)
+  {const bx=document.createElement('div');bx.innerHTML=d.html;bx.querySelectorAll('.mmqg[data-g]').forEach(e=>{gm[e.dataset.g]=e.dataset.u||''})}
+  const iw=t=>{const im=t.image;if(im&&im.src){const k=bbXmKey(im.src),u=gm[k],mm=u&&u.match(/^data:(image\/[a-z]+);base64,(.+)$/);
+    if(mm&&EX[mm[1]]){const ex=EX[mm[1]],p=String(im.src).replace(/^xap:/,''),oe=(p.split('.').pop()||'').toLowerCase().replace('jpeg','jpg'),nm=oe===ex?p:'resources/'+k+'.'+ex;im.src='xap:'+nm;rs[nm]=mm[2]}}
+    ((t.children&&t.children.attached)||[]).forEach(iw)};
+  src.forEach(sh=>{if(sh.rootTopic)iw(sh.rootTopic)});
   const z=new JSZip();
   z.file('content.json',JSON.stringify(src));
   z.file('metadata.json',JSON.stringify({dataStructureVersion:'3',creator:{name:'Vana',version:'26.05.01107'},layoutEngineVersion:'5'}));
-  z.file('manifest.json',JSON.stringify({'file-entries':{'content.json':{},'metadata.json':{}}}));
+  const fe={'content.json':{},'metadata.json':{}};Object.keys(rs).forEach(nm=>{z.file(nm,rs[nm],{base64:true});fe[nm]={}});
+  z.file('manifest.json',JSON.stringify({'file-entries':fe}));
   const blob=await z.generateAsync({type:'blob',compression:'DEFLATE',mimeType:'application/vnd.xmind.workbook'}),a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=(String(d.title||'뽀개기').replace(/[\\/:*?"<>|]+/g,'_').trim()||'뽀개기')+'.xmind';
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
@@ -4653,8 +4704,8 @@ function bbMmFonts(){
   if(bbMmFonts.d)return;bbMmFonts.d=1;
   [['EliceNeolli','fonts/neolli.woff2'],['OwnglyphCocoa','fonts/cocoa.woff2']].forEach(([n,u])=>{try{new FontFace(n,'url('+u+')').load().then(f=>{document.fonts.add(f);bbMmFix(document)}).catch(()=>{})}catch(e){}});
 }
-const bbMm=(()=>{const g=k=>{try{return localStorage.getItem(k)}catch(e){return null}};return{mode:g('bbMmMode')||(innerWidth<700?'list':'map'),z:+g('bbMmZ')||1,lf:+g('bbMmLF')||15,len:g('bbLen')==='1',line:g('bbLine')==='1',star:g('bbStar')!=='0',pick:false,path:null,tm:g('bbMmTM')==='all'?'all':'split',tab:0,td:null,cl:g('bbMmCL')!=='0',imp:(v=>v==='my'?'my':(v==='1'||v==='imp')?'imp':'all')(g('bbMmImp'))}})();
-function bbMmSave(){try{localStorage.setItem('bbMmMode',bbMm.mode);localStorage.setItem('bbMmZ',bbMm.z);localStorage.setItem('bbMmLF',bbMm.lf);localStorage.setItem('bbLen',bbMm.len?'1':'0');localStorage.setItem('bbLine',bbMm.line?'1':'0');localStorage.setItem('bbStar',bbMm.star?'1':'0');localStorage.setItem('bbMmTM',bbMm.tm);localStorage.setItem('bbMmCL',bbMm.cl?'1':'0');localStorage.setItem('bbMmImp',bbMm.imp)}catch(e){}}
+const bbMm=(()=>{const g=k=>{try{return localStorage.getItem(k)}catch(e){return null}};return{mode:g('bbMmMode')||(innerWidth<700?'list':'map'),z:+g('bbMmZ')||1,lf:+g('bbMmLF')||15,len:g('bbLen')==='1',line:g('bbLine')==='1',star:g('bbStar')!=='0',pick:false,path:null,tm:g('bbMmTM')==='all'?'all':'split',tab:0,td:null,cl:g('bbMmCL')!=='0',img:g('bbMmImg')!=='0',imp:(v=>v==='my'?'my':(v==='1'||v==='imp')?'imp':'all')(g('bbMmImp'))}})();
+function bbMmSave(){try{localStorage.setItem('bbMmMode',bbMm.mode);localStorage.setItem('bbMmZ',bbMm.z);localStorage.setItem('bbMmLF',bbMm.lf);localStorage.setItem('bbLen',bbMm.len?'1':'0');localStorage.setItem('bbLine',bbMm.line?'1':'0');localStorage.setItem('bbStar',bbMm.star?'1':'0');localStorage.setItem('bbMmTM',bbMm.tm);localStorage.setItem('bbMmCL',bbMm.cl?'1':'0');localStorage.setItem('bbMmImg',bbMm.img?'1':'0');localStorage.setItem('bbMmImp',bbMm.imp)}catch(e){}}
 function bbMmBar(doc,ms){const o=document.getElementById('bbMmHBar');if(o)o.remove();if(doc)doc.classList.toggle('mmdoc',!!ms.length)}
 function bbMmNum(m,on){   // 목록 모드: 상자에만 층위별 번호(I. 1. 가. 1) 가) (1) (가) •). 같은 부모 아래 상자끼리 순번, 번호 칸 폭은 그 묶음의 가장 긴 번호에 맞춤
   const KO='가나다라마바사아자차카타파하',RO=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV'];
@@ -4821,7 +4872,7 @@ function bbMmTabBar(doc,ms,split){
 }
 function bbMmUi(){
   document.body.classList.toggle('bblen',bbMm.len);
-  document.body.classList.toggle('bbnoline',!bbMm.line);document.body.classList.remove('bbnostar');document.body.classList.toggle('bbnocl',!bbMm.cl);
+  document.body.classList.toggle('bbnoline',!bbMm.line);document.body.classList.remove('bbnostar');document.body.classList.toggle('bbnocl',!bbMm.cl);document.body.classList.toggle('bbnoimg',!bbMm.img);
   const doc=document.getElementById('bbDoc');if(!doc){bbMmBar(null,[]);bbHS(null);return}
   const ms=[...doc.querySelectorAll('.mm')];
   ms.forEach(m=>{m.classList.toggle('lst',bbMm.mode==='list');m.style.zoom=bbMm.mode==='map'&&bbMm.z!==1?bbMm.z:'';m.style.setProperty('--lf',bbMm.lf+'px')});
@@ -4843,6 +4894,7 @@ function bbMmUi(){
   hd.push(bt('len','빈칸 길이: '+(bbMm.len?'고정':'원래'),bbMm.len));
   hd.push(bt('line','빈칸 테두리: '+(bbMm.line?'보이기':'숨기기'),bbMm.line));
   if(doc.querySelector('.mmqc,.bb-pen:not(.bb-b)'))hd.push(bt('cl','메모: '+(bbMm.cl?'보이기':'숨기기'),bbMm.cl));
+  if(doc.querySelector('.mmqg'))hd.push(bt('img','그림: '+(bbMm.img?'보이기':'숨기기'),bbMm.img));
   hd.push(bt('imp','내용 표시: '+(bbMm.imp==='my'?'내 중요만':bbMm.imp==='imp'?'중요만':'전체'),bbMm.imp!=='all'));
   d1.innerHTML=hd.join('');d1.dataset.b=1;
   if(ms.length){
@@ -4861,7 +4913,7 @@ function bbMmUi(){
       if(L)bbMm.lf=k==='sd'?15:Math.min(30,Math.max(10,bbMm.lf+(k==='sp'?1:-1)));
       else bbMm.z=k==='sd'?1:Math.min(2,Math.max(.4,Math.round((bbMm.z+(k==='sp'?.05:-.05))*100)/100));
       return ap()}
-    if(k==='len')bbMm.len=!bbMm.len;else if(k==='line')bbMm.line=!bbMm.line;else if(k==='imp')bbMm.imp=bbMm.imp==='all'?'imp':bbMm.imp==='imp'?'my':'all';else if(k==='cl')bbMm.cl=!bbMm.cl;else if(k==='tm'){bbMm.tm=bbMm.tm==='all'?'split':'all';bbMm.path=null}else if(k==='mode'){bbMm.mode=bbMm.mode==='list'?'map':'list';bbMm.pick=false}
+    if(k==='len')bbMm.len=!bbMm.len;else if(k==='line')bbMm.line=!bbMm.line;else if(k==='imp')bbMm.imp=bbMm.imp==='all'?'imp':bbMm.imp==='imp'?'my':'all';else if(k==='cl')bbMm.cl=!bbMm.cl;else if(k==='img')bbMm.img=!bbMm.img;else if(k==='tm'){bbMm.tm=bbMm.tm==='all'?'split':'all';bbMm.path=null}else if(k==='mode'){bbMm.mode=bbMm.mode==='list'?'map':'list';bbMm.pick=false}
     else if(k==='pick')bbMm.pick=!bbMm.pick;else if(k==='all'){bbMm.path=null;bbMm.pick=false}
     bbMmSave();bbOptClr();bbMmRun2()};
   d1.onclick=hnd;d2.onclick=hnd;
@@ -4935,7 +4987,7 @@ function bbMmFix(root){
   });
   try{bbMmQs(root)}catch(e){}
 }
-function bbMmRun2(){if(document.getElementById('bbDoc')||document.querySelector('.mm')){bbMmCl(document);bbMmUi();bbMmFocus();bbMmImp();if(document.querySelector('.mm')){bbMmFonts();bbMmFix(document)}const d=document.getElementById('bbDoc');if(d&&d.classList.contains('mmdoc'))bbHS(d)}else bbHS(null)}
+function bbMmRun2(){if(document.getElementById('bbDoc')||document.querySelector('.mm')){bbMmCl(document);bbMmImg(document);bbMmUi();bbMmFocus();bbMmImp();if(document.querySelector('.mm')){bbMmFonts();bbMmFix(document)}const d=document.getElementById('bbDoc');if(d&&d.classList.contains('mmdoc'))bbHS(d)}else bbHS(null)}
 (function(){let q=0;const run=()=>{q=0;bbMmRun2()};
   const go=()=>{if(!q)q=requestAnimationFrame(run)};
   new MutationObserver(go).observe(document.body,{childList:true,subtree:true});addEventListener('resize',go);})();
