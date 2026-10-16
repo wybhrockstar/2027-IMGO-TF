@@ -3132,8 +3132,8 @@ function bbHome(){
     if(v===1)return `<button class="apply-btn-sm bh-d" onclick="${oc}">✓ 완료</button>`;
     if(v===2)return `<button class="apply-btn-sm bh-p" onclick="${oc}" title="눌러서 취소">PASS</button>`;
     return `<button class="apply-btn-sm bh-o" onclick="${oc}">완료</button>`};
-  const cell=d=>{const v=dn[d.id];
-    return `<div class="bh-i ${v===2?'ps':v?'ok':''}" onclick="bbHomeOpen('${d.id}',${sel})"><div class="bh-t">${bbEsc(d.title)}</div>${btn(d,v)}</div>`};
+  const cell=d=>{const v=dn[d.id],tb=bbTabOfDay(d,sel),part=tb?bbTabPart(tb):'';
+    return `<div class="bh-i ${v===2?'ps':v?'ok':''}" onclick="bbHomeOpen('${d.id}',${sel})"><div class="bh-t">${bbEsc(d.title)}${part?' ('+bbEsc(part)+')':''}</div>${btn(d,v)}</div>`};
   const tabs=BB_DAYS.map((x,i)=>`<button class="pp-day${i===td?' today':''}${i===sel?' sel':''}" onclick="bbHPick(${i})">${x}</button>`).join('');
   el.style.display='';
   el.innerHTML=`<div class="bh-hd"><div class="sec-title">${sel===td?'오늘 뽀개기':'뽀개기'} · ${dt.getMonth()+1}/${dt.getDate()}(${BB_DAYS[sel]})<em>${nd}/${L.length}</em></div><button class="set-btn" onclick="bbHomeAll()">WEEKLY ›</button></div>`
