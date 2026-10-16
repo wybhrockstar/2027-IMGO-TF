@@ -3791,148 +3791,160 @@
       "essay": false
     },
     {
-      "count": "4",
-      "status": "완료",
-      "name": "뉴로직 리뉴얼 1~4회",
+      "count": "2",
+      "status": "풀이",
+      "name": "뉴로직 리뉴얼 1~2회",
+      "essay": false
+    },
+    {
+      "count": "2",
+      "status": "제외",
+      "name": "뉴로직 리뉴얼 3~4회",
       "essay": false
     },
     {
       "count": "1",
-      "status": "완료",
+      "status": "풀이",
       "name": "뉴로직 파이널 1회",
       "essay": false
     },
     {
       "count": "2",
-      "status": "완료",
+      "status": "풀이",
       "name": "늘봄 1~2회",
       "essay": false
     },
     {
       "count": "3",
-      "status": "완료",
+      "status": "제외",
       "name": "백구 전년도 1~3회",
       "essay": true
     },
     {
       "count": "3",
-      "status": "완료",
+      "status": "풀이",
       "name": "백구 파이널 1~3회",
       "essay": true
     },
     {
       "count": "1",
-      "status": "완료",
+      "status": "풀이",
       "name": "암요 파이널 1회",
       "essay": false
     },
     {
       "count": "3",
-      "status": "완료",
+      "status": "풀이",
       "name": "엑시트 1~3회",
       "essay": false
     },
     {
       "count": "1",
-      "status": "완료",
+      "status": "제외",
       "name": "위더스 리패키지 1회",
       "essay": false
     },
     {
-      "count": "2",
-      "status": "완료",
-      "name": "위더스 실전 1~2회",
+      "count": "3",
+      "status": "풀이",
+      "name": "위더스 실전 1~3회",
       "essay": true
     },
     {
       "count": "1",
-      "status": "완료",
+      "status": "제외",
       "name": "임고슈타인 1회",
       "essay": false
     },
     {
       "count": "2",
-      "status": "완료",
+      "status": "풀이",
       "name": "임고온 1~2회",
       "essay": false
     },
     {
       "count": "6",
-      "status": "완료",
+      "status": "제외",
       "name": "임고원포인트 리패키지 1~6회",
       "essay": false
     },
     {
       "count": "3",
-      "status": "완료",
+      "status": "풀이",
       "name": "임고원포인트 신규 1~3회",
       "essay": false
     },
     {
       "count": "4",
-      "status": "완료",
+      "status": "제외",
       "name": "임고트립 리마스터 1~4회",
       "essay": false
     },
     {
       "count": "4",
-      "status": "완료",
+      "status": "풀이",
       "name": "임고트립 신규 1~4회",
       "essay": false
     },
     {
       "count": "1",
-      "status": "완료",
+      "status": "제외",
       "name": "임고하이웨이 리마스터 1회",
       "essay": false
     },
     {
       "count": "1",
-      "status": "완료",
+      "status": "풀이",
       "name": "임고하이웨이 신규 1회",
       "essay": false
     },
     {
-      "count": "6",
-      "status": "완료",
-      "name": "초임공 1~6회",
+      "count": "4",
+      "status": "제외",
+      "name": "초임공 1~4회",
+      "essay": true
+    },
+    {
+      "count": "2",
+      "status": "풀이",
+      "name": "초임공 5~6회",
       "essay": true
     },
     {
       "count": "3",
-      "status": "완료",
+      "status": "제외",
       "name": "쿠키넷 2,4,6월",
       "essay": false
     },
     {
       "count": "3",
-      "status": "완료",
+      "status": "풀이",
       "name": "쿠키넷 파이널 1~3회",
       "essay": false
     },
     {
       "count": "3",
-      "status": "완료",
+      "status": "제외",
       "name": "테크니컬 리마스터 1~3회",
       "essay": false
     },
     {
       "count": "5",
-      "status": "완료",
+      "status": "풀이",
       "name": "테크니컬 신규 1~5회",
       "essay": false
     },
     {
-      "count": "3",
-      "status": "완료",
-      "name": "튼실튼실 1~3회",
+      "count": "1",
+      "status": "풀이",
+      "name": "튼실튼실 1회",
       "essay": false
     },
     {
-      "count": "1",
-      "status": "예정",
-      "name": "위더스 실전 3회",
-      "essay": true
+      "count": "2",
+      "status": "제외",
+      "name": "튼실튼실 2~3회",
+      "essay": false
     }
   ],
   "examsUpdated": "2026.10.19.",
