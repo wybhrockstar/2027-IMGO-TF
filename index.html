@@ -288,6 +288,26 @@ body.bbsolve #page-bbogae.main{max-width:none;padding:10px 20px 80px}
   .bb-g1 b{flex:1;max-width:none}
   .bb-row2{flex:1 1 100%}
 }
+.bb-tbar.nar .bb-mt{display:none}
+.bb-tbar.nar .bb-msel{display:inline-block}
+.bb-tbar.nar .bb-row2{gap:6px}
+.bb-tbar.nar .bb-row2 .bb-cap{padding:3px 4px;gap:3px}
+.bb-tbar.nar .bb-row2 .bb-btn,.bb-tbar.nar .bb-row2 .ttab{padding:5px 8px}
+.bb-tbar.nar .bb-msel{width:64px;max-width:64px;padding:5px 18px 5px 8px;background-position:right 7px center}
+.bb-tbar.nar .bb-g1{flex:1 1 100%}
+.bb-tbar.nar .bb-g1 b{flex:1;max-width:none}
+.bb-tbar.nar .bb-row2{flex:1 1 100%}
+@media(min-width:768px){   /* 태블릿·가로: 1열 = [목록~삭제(남는 폭 전부)] + [모드] + [열기·옵션], 맵 칩은 같은 줄에 들어가면 1줄, 아니면 2열(가로 스크롤) */
+  .bb-tbar:not(.nar){flex-wrap:wrap;align-items:center;gap:8px 10px}
+  .bb-tbar:not(.nar) .bb-row2{display:contents}
+  .bb-tbar:not(.nar) .bb-g1{order:1;flex:1 1 0;min-width:0;max-width:none}
+  .bb-tbar:not(.nar) .bb-g1 b{flex:1 1 0;max-width:none}
+  .bb-tbar:not(.nar) .bb-modes{order:2;flex:0 0 auto}
+  .bb-tbar:not(.nar) .bb-g3{order:4;margin-left:0;flex:0 0 auto}
+  .bb-tbar:not(.nar) .bb-maps{order:5;flex:0 0 100%;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .bb-tbar:not(.nar) .bb-maps::-webkit-scrollbar{display:none}
+  .bb-tbar.one:not(.nar) .bb-maps{order:3;flex:0 0 auto;overflow:visible}
+}
 .bb-opt{flex-direction:column;gap:8px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg3);padding:9px 10px;margin-bottom:8px}
 .bb-orow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .bb-orow>.bb-orow{flex:1;min-width:0}
@@ -323,7 +343,7 @@ body.bbnoline .bb-b.open:not(.ok):not(.ng),body.bbnoline .bb-doc.study .bb-b:hov
 .bb-ov.full .bb-md>.bb-top:last-child{position:sticky;bottom:0;background:var(--bg);padding:10px 0;margin:14px 0 0;border-top:1px solid var(--border2)}
 .bb-md{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:16px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
 
-.bb-sj{padding:5px 11px;font-size:12px;border-radius:20px;border:1px solid var(--c);color:var(--c);background:none;transition:.15s}
+.bb-sj{padding:4px 9px;font-size:11px;border-radius:20px;border:1px solid var(--c);color:var(--c);background:none;transition:.15s}
 .bb-sj.on{background:var(--c);color:#111;font-weight:700}
 .bb-lb{display:inline-block;font-size:10px;padding:0 7px;border-radius:10px;border:1px solid var(--c);color:var(--c);margin-right:4px;white-space:nowrap;line-height:16px}
 .bb-bar{height:8px;border-radius:4px;background:var(--bg5);overflow:hidden;flex:1}
@@ -3251,8 +3271,23 @@ function bbLeave(){const hb=document.getElementById('bbMmHBar');if(hb)hb.classLi
 function bbEditTog(){if(bbS){bbS.edit=!bbS.edit;bbRender()}}
 function bbAll(v){document.querySelectorAll('#bbDoc .bb-b').forEach(e=>e.classList.toggle('open',!!v));bbPopX()}
 function bbAllTog(){if(!bbS)return;bbS.allOpen=!bbS.allOpen;bbAll(bbS.allOpen?1:0);const b=document.getElementById('bbAllB');if(b)b.textContent=bbS.allOpen?'전체 가리기':'전체 열기';bbBarFit()}
-function bbBarFit(){   // 학습·맵·옵션 줄: 한 줄에 다 들어가면 그대로, 모자라면 [모드 … 옵션] 아래에 맵 캡슐을 내린다
-  const r=document.getElementById('bbRow2');if(!r)return;
+function bbBarFit(){   // 태블릿: 1열(목록~삭제)이 남는 폭을 다 쓰고, 맵 칩은 같은 줄에 들어가면 1줄 / 아니면 2열. 모바일·좁은 폭은 기존(nar) 방식
+  const b=document.getElementById('bbBar'),r=document.getElementById('bbRow2');if(!b||!r)return;
+  b.classList.remove('one');r.classList.remove('two');
+  if(innerWidth<768){b.classList.add('nar');return bbBarFitNar(r)}
+  b.classList.remove('nar');
+  const g1=b.querySelector('.bb-g1'),md=r.querySelector('.bb-modes'),g3=r.querySelector('.bb-g3');if(!g1||!md||!g3)return;
+  const gap=10,W=b.clientWidth,bt=[...g1.children].filter(k=>k.tagName==='BUTTON');
+  const g1m=bt.reduce((n,k)=>n+k.offsetWidth+3,0)+14+110;   // 제목은 최소 110px 이상 보이게
+  const base=g1m+md.offsetWidth+g3.offsetWidth+gap*2;
+  if(base>W){b.classList.add('nar');return bbBarFitNar(r)}   // 너무 좁으면(분할 화면 등) 모바일 구조
+  const mp=[...r.querySelectorAll('.bb-maps')].filter(k=>getComputedStyle(k).display!=='none');
+  const mw=mp.reduce((n,k)=>{const ch=[...k.querySelectorAll('.bb-mt > *')];return n+ch.reduce((m,c)=>m+c.offsetWidth+3,0)+10+gap},0);
+  if(mp.length&&base+mw<=W)b.classList.add('one');
+}
+function bbBarFitNar(r){
+  r.classList.remove('two');
+mentById('bbRow2');if(!r)return;
   r.classList.remove('two');
   const sel0=r.querySelector('.bb-msel');if(sel0){sel0.style.width='';sel0.style.maxWidth=''}   // 늘려 둔 폭을 먼저 풀고 판정(안 풀면 라벨이 길어질 때 two로 오판)
   const kids=[...r.children].filter(k=>getComputedStyle(k).display!=='none');
