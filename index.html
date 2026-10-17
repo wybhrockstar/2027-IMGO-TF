@@ -3092,8 +3092,8 @@ function bbDocTabBar(TB){
   if(!c.dataset.h){c.dataset.h='1';c.onclick=e=>{const a=e.target.closest('[data-tab]');if(a)pick(a.dataset.tab)};c.onchange=e=>{if(e.target.classList.contains('bb-msel'))pick(e.target.value)}}
   const active=bbS&&bbS.tab||'all',sig=active+'|'+TB.map(t=>t.id+'|'+bbTabName(t)).join('\u0001');
   if(c.dataset.sig!==sig){c.dataset.sig=sig;
-    c.innerHTML=`<span class="bb-mt">`+TB.map(t=>`<button class="bb-btn${active===t.id?' pri':''}" data-tab="${t.id}">${bbEsc(bbTabName(t))}</button>`).join('')+`<button class="bb-btn${active==='all'?' pri':''}" data-tab="all">통합</button></span>`
-      +`<select class="bb-msel" aria-label="요일 탭 선택">`+TB.map(t=>`<option value="${t.id}"${active===t.id?' selected':''}>${bbEsc(bbTabName(t))}</option>`).join('')+`<option value="all"${active==='all'?' selected':''}>통합</option></select>`;
+    c.innerHTML=`<span class="bb-mt"><button class="bb-btn${active==='all'?' pri':''}" data-tab="all">통합</button>`+TB.map(t=>`<button class="bb-btn${active===t.id?' pri':''}" data-tab="${t.id}">${bbEsc(bbTabName(t))}</button>`).join('')+`</span>`
+      +`<select class="bb-msel" aria-label="요일 탭 선택"><option value="all"${active==='all'?' selected':''}>통합</option>`+TB.map(t=>`<option value="${t.id}"${active===t.id?' selected':''}>${bbEsc(bbTabName(t))}</option>`).join('')+`</select>`;
   }
   c.style.display='flex';bbBarFit();
 }
@@ -5076,8 +5076,8 @@ function bbMmTabBar(doc,ms,split){   // 맵 탭 캡슐(상단바 안): 맵 1·�
     c.onchange=e=>{if(e.target.classList.contains('bb-msel'))pick(e.target.value)}}
   const all=bbMm.tm==='all',sig=(all?'a':bbMm.tab)+'|'+ms.map(m=>m.dataset.tab||'').join('\u0001'),nm=(m,i)=>bbEsc(m.dataset.tab||'맵 '+(i+1));
   if(c.dataset.sig!==sig){c.dataset.sig=sig;
-    c.innerHTML=`<span class="bb-mt">`+ms.map((m,i)=>`<button class="bb-btn${!all&&i===bbMm.tab?' pri':''}" data-tab="${i}">${nm(m,i)}</button>`).join('')+`<button class="bb-btn${all?' pri':''}" data-tab="all">통합</button></span>`
-      +`<select class="bb-msel" aria-label="맵 선택">`+ms.map((m,i)=>`<option value="${i}"${!all&&i===bbMm.tab?' selected':''}>${nm(m,i)}</option>`).join('')+`<option value="all"${all?' selected':''}>통합</option></select>`}
+    c.innerHTML=`<span class="bb-mt"><button class="bb-btn${all?' pri':''}" data-tab="all">통합</button>`+ms.map((m,i)=>`<button class="bb-btn${!all&&i===bbMm.tab?' pri':''}" data-tab="${i}">${nm(m,i)}</button>`).join('')+`</span>`
+      +`<select class="bb-msel" aria-label="맵 선택"><option value="all"${all?' selected':''}>통합</option>`+ms.map((m,i)=>`<option value="${i}"${!all&&i===bbMm.tab?' selected':''}>${nm(m,i)}</option>`).join('')+`</select>`}
   c.style.display='flex';bbBarFit();
 }
 function bbMmUi(){
