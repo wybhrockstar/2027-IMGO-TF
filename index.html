@@ -3287,8 +3287,6 @@ function bbBarFit(){   // 태블릿: 1열(목록~삭제)이 남는 폭을 다 �
 }
 function bbBarFitNar(r){
   r.classList.remove('two');
-mentById('bbRow2');if(!r)return;
-  r.classList.remove('two');
   const sel0=r.querySelector('.bb-msel');if(sel0){sel0.style.width='';sel0.style.maxWidth=''}   // 늘려 둔 폭을 먼저 풀고 판정(안 풀면 라벨이 길어질 때 two로 오판)
   const kids=[...r.children].filter(k=>getComputedStyle(k).display!=='none');
   const gap=parseFloat(getComputedStyle(r).columnGap)||0;
@@ -3308,7 +3306,7 @@ mentById('bbRow2');if(!r)return;
   let used=0;
   if(!r.classList.contains('two')){used=gap*kids2.length;kids2.forEach(k=>{used+=k.offsetWidth})}
   const avail=Math.floor(r.clientWidth-used-capRest-1);
-  const wd=Math.max(base,Math.min(nat,avail));
+  const wd=Math.max(base,avail);   // 맵 선택 때마다 계산: 모드 탭과 옵션 사이 남는 폭을 꽉 채움
   sel.style.maxWidth='none';sel.style.width=wd+'px';
 }
 addEventListener('resize',()=>{cancelAnimationFrame(bbBarFit.q);bbBarFit.q=requestAnimationFrame(bbBarFit)});
