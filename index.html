@@ -467,9 +467,9 @@ body.light .set-sec{color:var(--text3)}
 #bbDoc .mmn[data-hc]::after{content:' ▸ ' attr(data-hc);font-size:.78em;font-weight:400;color:var(--text3);font-family:'Noto Sans KR',sans-serif;white-space:nowrap}
 .mm.lst .mmn[data-num]::before{content:attr(data-num);display:inline-block;box-sizing:border-box;width:var(--nw,24px);margin:0 var(--nb,13px) 0 calc(-1*(var(--nw,24px) + var(--nb,13px)));padding-right:4px;text-align:right;font-size:.82em;font-weight:400;font-style:normal;color:var(--text3);white-space:nowrap;font-family:'Noto Sans KR',sans-serif;pointer-events:none}
 .bb-dw{position:relative;box-sizing:border-box;padding-right:16px;max-width:100%}
-.bb-dh{position:absolute;right:0;top:0;bottom:0;width:16px;cursor:ew-resize;touch-action:none;display:flex;align-items:center;justify-content:center}
-.bb-dh::before{content:'';width:4px;height:48px;max-height:60%;border-radius:2px;background:var(--border3);transition:.15s}
-.bb-dh:hover::before,.bb-dh.on::before{background:var(--accent);height:64px}
+.bb-dh{position:absolute;right:0;top:0;bottom:0;width:16px;cursor:ew-resize;touch-action:none;display:flex;align-items:flex-start;justify-content:center}
+.bb-dh::before{content:'';flex:none;position:sticky;top:calc(50vh - 24px);top:calc(50dvh - 24px);width:4px;height:48px;border-radius:2px;background:var(--border3);transition:background .15s}   /* 카드가 화면보다 길어도(가로 모드 등) 핸들 막대가 화면 가운데에 따라와서 항상 보임 */
+.bb-dh:hover::before,.bb-dh.on::before{background:var(--accent)}
 @media(max-width:699px){.bb-dw{padding-right:0}.bb-dh{display:none}}
 .mm i.d{font-style:normal;margin:0 .32em}
 .mm.tabx{display:none}
@@ -1639,7 +1639,7 @@ function splitExamLabel(examName){
 
 async function fetchExamData(){
   try{
-    const res = await fetch(MOCK_EXAM_API_URL+'?target=all');
+    const res = await fetch(MOCK_EXAM_API_URL+'?target=all&_='+Date.now(),{cache:'no-store'});
     const json = await res.json();
     if(json.ok){
       examData = { scores: json.scores||[], averages: json.averages||[], wrongAnswers: json.wrongAnswers||[], goals: json.goals||[] };
@@ -1660,7 +1660,7 @@ let examPersonSeq = 0;
 async function fetchExamDataSafe(ms){
   try{
     const res = await Promise.race([
-      fetch(MOCK_EXAM_API_URL+'?target=all').then(r=>r.json()),
+      fetch(MOCK_EXAM_API_URL+'?target=all&_='+Date.now(),{cache:'no-store'}).then(r=>r.json()),
       new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms||15000))
     ]);
     if(res && res.ok) return { scores: res.scores||[], averages: res.averages||[], wrongAnswers: res.wrongAnswers||[], goals: res.goals||[] };
@@ -2547,7 +2547,7 @@ async function swxEnsure(){
   let ok = false;
   try{
     const res = await Promise.race([
-      fetch(MOCK_EXAM_API_URL+'?target=all').then(r=>r.json()),
+      fetch(MOCK_EXAM_API_URL+'?target=all&_='+Date.now(),{cache:'no-store'}).then(r=>r.json()),
       new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),15000))
     ]);
     if(res && res.ok){
@@ -2875,6 +2875,17 @@ function prefillRecordFields(){
     });
   }
 }
+async function examDel(table, where){   // 서버(Apps Script)에 해당 행 삭제 요청. 결과를 읽어 실패하면 예외
+  const r = await (await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({ target:'del', table, where }) })).json();
+  if(!r || !r.ok) throw new Error((r && r.error) || '삭제 실패');
+  return r.deleted||0;
+}
+async function examApplyDels(dels, statusEl){   // 비운 칸 → 삭제 목록을 확인받고 실행. 취소하면 false
+  if(!dels.length) return true;
+  if(!confirm('비워둔 칸의 기록을 시트에서 삭제할게요.\n\n'+dels.map(d=>'· '+d.label).join('\n')+'\n\n삭제한 행은 시트의 examTrash 탭에 남아요. 계속할까요?')){ statusEl.textContent=''; return false; }
+  for(const d of dels) await examDel(d.table, d.where);
+  return true;
+}
 async function submitRecord(){
   const statusEl = document.getElementById('record-status');
   const examName = currentRecExamName();
@@ -2897,6 +2908,15 @@ async function submitRecord(){
       const anyScore = Object.values(curScores).some(v=>v!=='');
       const scoreChanged = !prefillSnapshot || Object.keys(curScores).some(k=>String(curScores[k])!==String(prefillSnapshot[k]??''));
       const prevDate = (()=>{ const r = personScores().filter(r=>r.examName===examName).slice(-1)[0]; return r ? toDateInput(r.examDate) : ''; })();
+      // 비운 칸 삭제: 점수 칸을 전부 비웠거나, 평균 칸을 비웠으면 (기존 기록이 있을 때만) 해당 기록을 시트에서 지운다
+      const dels = [];
+      if(!anyScore && prefillSnapshot && Object.values(prefillSnapshot).some(v=>v!=='')) dels.push({ table:'scores', where:{ author:examPerson, examName }, label:'점수 기록 전체' });
+      if(examPerson==='재언'){
+        [['A','rec-avgScoreA','A 평균'],['B','rec-avgScoreB','B 평균'],['total','rec-avgScoreT','총점 평균']].forEach(([type,id,label])=>{
+          if(document.getElementById(id).value==='' && examData.averages.some(a=>a.examName===examName && a.type===type)) dels.push({ table:'averages', where:{ examName, type }, label });
+        });
+      }
+      if(!(await examApplyDels(dels, statusEl))) return;
       if(anyScore && (scoreChanged || (prevDate && prevDate!==examDate))){
         await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({ target:'scores', author:examPerson, examName, type:'A', examDate, items:itemsA })});
         await fetch(MOCK_EXAM_API_URL,{ method:'POST', body:JSON.stringify({ target:'scores', author:examPerson, examName, type:'B', examDate, items:itemsB })});
@@ -2918,6 +2938,12 @@ async function submitRecord(){
         await sendAvg('total', avgValT);
       }
     } else {
+      const dels = [];
+      SUBJECT_META.forEach((s,i)=>{
+        const v = document.getElementById('rec-wrong-'+i).value;
+        if(!(v && v.trim()) && examData.wrongAnswers.some(r=>r.author===examPerson && r.examName===examName && r.subject===s.name && String(r.note||'').trim())) dels.push({ table:'wrongAnswers', where:{ author:examPerson, examName, subject:s.name }, label:s.name+' 오답 기록' });
+      });
+      if(!(await examApplyDels(dels, statusEl))) return;
       const itemsA = SUBJECT_META.filter(s=>s.type==='A').map((s)=>{
         const i = SUBJECT_META.indexOf(s);
         return { subject:s.name, note:document.getElementById('rec-wrong-'+i).value };
