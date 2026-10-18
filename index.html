@@ -3047,6 +3047,7 @@ function bbEff(){  // 통계 = 기존(통합) 기록 + 확정된 풀이(세션)�
 }
 const bbLab=(t,c)=>`<span class="bb-lb" style="--c:${c}">${bbEsc(t)}</span>`;
 function bbLoadP(){
+  if(bbSvD)bbSaveNow();   // 사람을 바꾸기 직전의 변경분을 먼저 저장
   if(!bbPerson){bbRec={};bbSet={min:60,max:80,term:1};bbDone={};bbRuns={};bbSes=[];bbStar={};bbPens={};bbEC=null;return}
   const g=k=>{try{return JSON.parse(localStorage.getItem(k+bbPerson)||'null')}catch(e){return null}};
   bbRec=g(BB.R)||{};bbSet=Object.assign({min:60,max:80,term:1},g(BB.S));bbDone=g(BB.N)||{};bbRuns=g('imgo_bb_runs_')||{};bbSes=g('imgo_bb_ses_')||[];bbStar=g('imgo_bb_star_')||{};bbPens=g('imgo_bb_pens_')||{};bbEC=null;
@@ -3056,7 +3057,20 @@ function bbLoadP(){
   Object.keys(localStorage).filter(k=>k.indexOf('imgo_bb_')===0&&k!=='imgo_bb_fs'&&k!=='imgo_bb_person').forEach(k=>localStorage.removeItem(k));
   localStorage.setItem('imgo_bb_v2','1')}catch(e){}})();
 (function(){try{bbDocs=JSON.parse(localStorage.getItem(BB.D)||'[]')}catch(e){bbDocs=[]}bbPerson=me;bbLoadP()})();   // 항상 "나"로 시작 (다른 사람 화면은 임시로만 봄)
-function bbSave(){try{const w=(k,v)=>localStorage.setItem(k,JSON.stringify(v));w(BB.D,bbDocs);if(!bbPerson){bbEC=null;return}w(BB.R+bbPerson,bbRec);w(BB.S+bbPerson,bbSet);w(BB.N+bbPerson,bbDone);w('imgo_bb_runs_'+bbPerson,bbRuns);w('imgo_bb_ses_'+bbPerson,bbSes);w('imgo_bb_star_'+bbPerson,bbStar);w('imgo_bb_pens_'+bbPerson,bbPens);bbEC=null;localStorage.setItem(BB.P,bbPerson)}catch(e){alert('저장 실패 (용량 초과?)')}}
+// ── 렉 진단 기록: 0.05초 넘게 걸린 작업만 최근 20건 보관 (설정 > 진단에서 확인) ──
+const BB_DG='imgo_diag';
+function bbDiag(k,ms,info){try{const a=JSON.parse(localStorage.getItem(BB_DG)||'[]');a.push({t:Date.now(),k,ms:Math.round(ms),v:bbView?'doc':'list',h:document.hidden?1:0,i:info||''});while(a.length>20)a.shift();localStorage.setItem(BB_DG,JSON.stringify(a))}catch(e){}}
+try{if('PerformanceObserver' in window&&PerformanceObserver.supportedEntryTypes&&PerformanceObserver.supportedEntryTypes.includes('longtask'))new PerformanceObserver(l=>l.getEntries().forEach(e=>{if(e.duration>=120&&!document.hidden)bbDiag('longtask',e.duration)})).observe({entryTypes:['longtask']})}catch(e){}
+// ── 저장: 짧은 시간 모아서 한 번에, 바뀐 항목만 기록 (매 터치마다 모든 문서를 통째로 저장하면 태블릿이 멈춤) ──
+let bbSvT=null,bbSvD=false,bbSvP='',bbSvC={},bbSvAl=0;
+function bbSave(){bbEC=null;bbSvD=true;bbSvP=bbPerson;clearTimeout(bbSvT);bbSvT=setTimeout(bbSaveNow,500)}
+function bbSaveNow(){clearTimeout(bbSvT);bbSvT=null;if(!bbSvD)return;bbSvD=false;const P=bbSvP,t0=performance.now();   // P = 저장을 요청했던 시점의 사람 (사람을 바꾸기 전 변경분이 엉뚱한 사람 칸에 쓰이지 않게)
+  try{const w=(k,v)=>{const j=JSON.stringify(v);if(bbSvC[k]!==j){localStorage.setItem(k,j);bbSvC[k]=j}};
+    w(BB.D,bbDocs);if(!P)return;
+    w(BB.R+P,bbRec);w(BB.S+P,bbSet);w(BB.N+P,bbDone);w('imgo_bb_runs_'+P,bbRuns);w('imgo_bb_ses_'+P,bbSes);w('imgo_bb_star_'+P,bbStar);w('imgo_bb_pens_'+P,bbPens);localStorage.setItem(BB.P,P)}
+  catch(e){bbSvC={};bbSvD=true;if(Date.now()-bbSvAl>30000){bbSvAl=Date.now();alert('저장 실패 (용량 초과?)')}}
+  finally{const d=performance.now()-t0;if(d>=50)bbDiag('save',d)}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)bbSaveNow()});addEventListener('pagehide',bbSaveNow);addEventListener('beforeunload',bbSaveNow);
 
 // ── 파서 ──
 const BB_OK=new Set(['P','DIV','B','STRONG','I','EM','U','BR','TABLE','TBODY','THEAD','TR','H2','H3','H4','UL','OL','LI','SUB','SUP','MARK']);
@@ -4631,6 +4645,11 @@ function bbSyUI(){const e=document.getElementById('bbSy');if(e)e.textContent=bbS
 function bbSched(){clearTimeout(bbSchT);bbSchT=setTimeout(()=>bbPush(),50);bbSyUI()}
 function bbEnq(kind,key,item){const au=bbPerson||'재언';const q=bbQRead(au);if(item.ts===undefined)item.ts=bbNow();if(kind==='docs'&&q[key]&&q[key].item.h)item.h=1;q[key]={kind,item};bbQWrite(au,q);bbSched()}
 function bbEnqDoc(d,h){const ts=bbNow();d.ts=ts;bbEnq('docs','docs|'+d.id,{id:d.id,ts,h:h?1:0})}
+// 동기화 요청 제한 시간(30초): 서버가 멈추거나 연결이 끊겨도 '동기화 중' 상태에 영영 갇히지 않게
+async function bbFetch(url,opt){const c=new AbortController(),t=setTimeout(()=>c.abort(),30000),t0=performance.now();
+  try{return await(await fetch(url,Object.assign({signal:c.signal},opt||{}))).json()}
+  catch(e){if(c.signal.aborted){bbDiag('fetch-timeout',performance.now()-t0);throw new Error('timeout')}throw e}
+  finally{clearTimeout(t)}}
 async function bbPush(who){
   who=who||bbPerson||'재언';if(bbBusy[who])return;bbBusy[who]=1;
   try{
@@ -4648,7 +4667,7 @@ async function bbPush(who){
         sent.push(k);
       }
       if(!sent.length)break;
-      const t0=Date.now(),r=await(await fetch(MOCK_EXAM_API_URL,{method:'POST',body:JSON.stringify(b)})).json();bbSetOff(r.now,t0,Date.now());
+      const t0=Date.now(),r=await bbFetch(MOCK_EXAM_API_URL,{method:'POST',body:JSON.stringify(b)});bbSetOff(r.now,t0,Date.now());
       if(!r.ok)throw new Error(r.error||'sync');
       // 서버가 구버전이면 모르는 항목을 무시하고도 ok를 돌려줌 → 항목별 saved 확인
       if(!r.saved||['docs','records','runs','done','ses','stars','pens'].some(k=>b[k].length&&typeof r.saved[k]!=='number')||(b.settings&&typeof r.saved.settings!=='number'))throw new Error('server outdated');
@@ -4660,7 +4679,7 @@ async function bbPush(who){
 }
 async function bbPull(who,full){
   const st=bbStGet(who);
-  const t0=Date.now(),r=await(await fetch(`${MOCK_EXAM_API_URL}?target=bb&author=${encodeURIComponent(who)}&since=${full?0:(st.since||0)}`)).json();bbSetOff(r.now||(r.serverTime?r.serverTime+5000:0),t0,Date.now());
+  const t0=Date.now(),r=await bbFetch(`${MOCK_EXAM_API_URL}?target=bb&author=${encodeURIComponent(who)}&since=${full?0:(st.since||0)}`);bbSetOff(r.now||(r.serverTime?r.serverTime+5000:0),t0,Date.now());
   if(!r.ok)throw new Error(r.error||'pull');
   if(who!==bbPerson)return;
   const q=bbQRead(who),pd=k=>!!q[k];let ch=false;   // 전송 대기 중인 항목은 로컬 우선
@@ -4731,8 +4750,14 @@ async function bbSync(){
     const d=new Date();bbSyT=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
     bbSyOk=true;bbSyErr=false;try{localStorage.setItem('imgo_last_sync',Date.now())}catch(e){}
   }catch(e){bbSyErr=true}
-  finally{bbSyncing=false;bbSyUI();if(!bbSyErr&&!bbView&&document.getElementById('bbRoot'))bbRender()}
+  finally{bbSyncing=false;bbSyUI();bbRenderIdle(0)}
 }
+// 동기화가 끝난 뒤 목록을 다시 그리되, 방금 터치했거나 입력 중이면 잠잠해질 때까지(최대 8초) 미룸 → 누르던 버튼이 사라지지 않게
+let bbLastIn=0;['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{bbLastIn=Date.now()},true));
+function bbRenderIdle(n){if(bbSyErr||bbView||!document.getElementById('bbRoot'))return;
+  const a=document.activeElement,typing=a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.closest&&a.closest('#bbRoot');
+  if(Date.now()-bbLastIn<1500||typing){if(n<8)setTimeout(()=>bbRenderIdle(n+1),1000);return}
+  const t0=performance.now();bbRender();const d=performance.now()-t0;if(d>=50)bbDiag('render',d)}
 function bbManual(){bbFullDone[bbPerson]=false;bbSync()}
 document.addEventListener('visibilitychange',()=>{const e=document.getElementById('bbRoot');if(!document.hidden&&e&&e.offsetParent)bbSync()});
 window.addEventListener('online',()=>bbPush());
@@ -4804,7 +4829,8 @@ window.addEventListener('pagehide',uiSave);
 // ==================== SETTINGS (⚙️) ====================
 // 업데이트 기록: 새 수정을 할 때마다 맨 위에 한 줄씩 추가 (화면에는 최근 5개만 표시)
 const APP_LOG=[
-  ['10/16','모의고사 및 뽀개기 탭 UI 개선, admin 페이지 개선'],
+    ['10/18','뽀개기 렉 완화(저장·동기화·다시 그리기) + 설정에 진단 기록 추가'],
+['10/16','모의고사 및 뽀개기 탭 UI 개선, admin 페이지 개선'],
   ['10/15','★·메모 디자인 통합, 마인드맵 관계·요약·탭 추가, 편집 모드 개선, Xmind 다운로드 추가 및 다시 올리기 연동'],
   ['10/14','통합된 설정 버튼 추가, 홈 화면 뽀개기 추가, 사용자 지정 기능 추가, 마지막 보던 화면 복원']
 ];
@@ -4877,6 +4903,7 @@ function setSyncInfo(){
 async function refreshApp(){
   if(!confirm('저장돼 있던 앱 파일을 지우고 최신 버전을 다시 받아올게요.\n(기록·설정 데이터는 그대로 남아요)'))return;
   try{uiSave()}catch(e){}
+  try{bbSaveNow()}catch(e){}
   try{const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}catch(e){}
   try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}
   location.reload();
@@ -4898,7 +4925,12 @@ function renderSettings(){
   }
   // 3. 동기화
   h+=sec('동기화')+`<div class="set-info">마지막 동기화: <b>${sy.t||'아직 없음'}</b><br>서버에 못 보낸 변경: <b style="color:${sy.pend?'var(--amber)':'var(--text)'}">${sy.pend}개</b>${bbSyErr?'<br><span style="color:var(--red)">⚠ 최근 동기화에 실패했어요. 연결되면 자동으로 다시 시도해요.</span>':''}</div>`;
-  // 4. 업데이트 (새로고침 포함)
+  // 4. 진단
+  let dg=[];try{dg=JSON.parse(localStorage.getItem('imgo_diag')||'[]')}catch(e){}
+  const KN={save:'저장',mmrun:'맵 다시 그리기','observer-storm':'다시 그리기 폭주',longtask:'화면 멈춤','fetch-timeout':'동기화 시간 초과',render:'목록 그리기'},z2=n=>String(n).padStart(2,'0');
+  h+=sec('진단')+hint('0.05초 넘게 걸린 작업을 최근 20건까지 기록해요. 렉이 났을 때 여기를 보면 원인을 알 수 있어요.');
+  h+=dg.length?`<div class="set-log">${dg.slice().reverse().map(x=>{const d=new Date(x.t);return `<div><span>${d.getMonth()+1}/${d.getDate()} ${z2(d.getHours())}:${z2(d.getMinutes())}:${z2(d.getSeconds())}</span><em>${KN[x.k]||x.k} ${x.ms}ms · ${x.v==='doc'?'문서':'목록'}${x.h?' · 백그라운드':''}${x.i?' · '+x.i:''}</em></div>`}).join('')}</div><div style="margin-top:8px"><button class="set-btn" onclick="localStorage.removeItem('imgo_diag');renderSettings()">기록 지우기</button></div>`:`<div class="set-info">아직 기록이 없어요</div>`;
+  // 5. 업데이트 (새로고침 포함)
   h+=sec('업데이트')+`<div class="set-log">${APP_LOG.slice(0,5).map(([d,t])=>`<div><span>${d}</span><em>${t}</em></div>`).join('')}</div>`;
   h+=`<div style="margin-top:12px"><button class="apply-btn-sm" onclick="refreshApp()">최신 버전으로 새로고침</button></div>`;
   el.innerHTML=h;
@@ -5227,10 +5259,15 @@ function bbMmFix(root){
   try{bbMmQs(root)}catch(e){}
 }
 function bbMmRun2(){if(document.getElementById('bbDoc')||document.querySelector('.mm')){bbMmCl(document);bbMmImg(document);bbMmUi();bbMmFocus();bbMmImp();if(document.querySelector('.mm')){bbMmFonts();bbMmFix(document)}const d=document.getElementById('bbDoc');if(d&&d.classList.contains('mmdoc'))bbHS(d)}else bbHS(null)}
-(function(){let q=0;const mo=new MutationObserver(()=>go()),on=()=>mo.observe(document.body,{childList:true,subtree:true});
+(function(){let q=0;const T=[],NZ='#bbSy,#bbStarT',   // 동기화 글자·토스트 같은 상관없는 변화는 무시
+  mo=new MutationObserver(rs=>{if(rs.some(r=>!(r.target.nodeType===1&&r.target.closest(NZ))))go()}),on=()=>mo.observe(document.body,{childList:true,subtree:true}),
+  rel=()=>!!(document.getElementById('bbDoc')||document.querySelector('.mm')||document.getElementById('bbHS'));   // 뽀개기 문서가 없으면 할 일이 없음
   // 다시 그리는 동안 생기는 DOM 변경(요약·관계 줄 지웠다 다시 그리기 등)은 관찰하지 않는다. 안 그러면 매 프레임 무한 반복돼 화면이 버벅이고 옵션 버튼이 먹통이 된다
-  const run=()=>{q=0;mo.disconnect();try{bbMmRun2()}finally{on()}};
-  const go=()=>{if(!q)q=requestAnimationFrame(run)};
+  const run=()=>{q=0;if(!rel())return;T.push(Date.now());mo.disconnect();const t0=performance.now();try{bbMmRun2()}finally{on();const d=performance.now()-t0;if(d>=50)bbDiag('mmrun',d)}};
+  // 그래도 늦게 생기는 변화(글꼴·그림 로드 등)로 1초에 30번 넘게 돌면 0.5초씩 간격을 두고 기록을 남김
+  const go=()=>{if(q)return;const n=Date.now();while(T.length&&n-T[0]>1000)T.shift();
+    if(T.length>=30){q=1;setTimeout(()=>{q=requestAnimationFrame(run)},500);if(!go.w||n-go.w>10000){go.w=n;bbDiag('observer-storm',0,T.length+'회/초')}return}
+    q=requestAnimationFrame(run)};
   on();addEventListener('resize',go);})();
 
 function bbStarRemap(id,map,now){   // 빈칸 수정 저장 시 중요 표시도 새 번호로 옮김 (바뀐 빈칸의 별은 삭제)
