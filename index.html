@@ -3046,6 +3046,7 @@ function bbEff(){  // 통계 = 기존(통합) 기록 + 확정된 풀이(세션)�
   return bbEC=E;
 }
 const bbLab=(t,c)=>`<span class="bb-lb" style="--c:${c}">${bbEsc(t)}</span>`;
+var bbSvT=null,bbSvD=false,bbSvP='',bbSvC={},bbSvAl=0;   // 저장 대기 상태 (시작할 때 bbLoadP가 바로 읽으므로 먼저 선언)
 function bbLoadP(){
   if(bbSvD)bbSaveNow();   // 사람을 바꾸기 직전의 변경분을 먼저 저장
   if(!bbPerson){bbRec={};bbSet={min:60,max:80,term:1};bbDone={};bbRuns={};bbSes=[];bbStar={};bbPens={};bbEC=null;return}
@@ -3062,7 +3063,7 @@ const BB_DG='imgo_diag';
 function bbDiag(k,ms,info){try{const a=JSON.parse(localStorage.getItem(BB_DG)||'[]');a.push({t:Date.now(),k,ms:Math.round(ms),v:bbView?'doc':'list',h:document.hidden?1:0,i:info||''});while(a.length>20)a.shift();localStorage.setItem(BB_DG,JSON.stringify(a))}catch(e){}}
 try{if('PerformanceObserver' in window&&PerformanceObserver.supportedEntryTypes&&PerformanceObserver.supportedEntryTypes.includes('longtask'))new PerformanceObserver(l=>l.getEntries().forEach(e=>{if(e.duration>=120&&!document.hidden)bbDiag('longtask',e.duration)})).observe({entryTypes:['longtask']})}catch(e){}
 // ── 저장: 짧은 시간 모아서 한 번에, 바뀐 항목만 기록 (매 터치마다 모든 문서를 통째로 저장하면 태블릿이 멈춤) ──
-let bbSvT=null,bbSvD=false,bbSvP='',bbSvC={},bbSvAl=0;
+/* bbSvT,bbSvD,bbSvP,bbSvC,bbSvAl 은 bbLoadP 앞에서 선언 */
 function bbSave(){bbEC=null;bbSvD=true;bbSvP=bbPerson;clearTimeout(bbSvT);bbSvT=setTimeout(bbSaveNow,500)}
 function bbSaveNow(){clearTimeout(bbSvT);bbSvT=null;if(!bbSvD)return;bbSvD=false;const P=bbSvP,t0=performance.now();   // P = 저장을 요청했던 시점의 사람 (사람을 바꾸기 전 변경분이 엉뚱한 사람 칸에 쓰이지 않게)
   try{const w=(k,v)=>{const j=JSON.stringify(v);if(bbSvC[k]!==j){localStorage.setItem(k,j);bbSvC[k]=j}};
