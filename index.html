@@ -4684,7 +4684,7 @@ async function bbPull(who,full){
   if(!r.ok)throw new Error(r.error||'pull');
   if(who!==bbPerson)return;
   const q=bbQRead(who),pd=k=>!!q[k];let ch=false;   // 전송 대기 중인 항목은 로컬 우선
-  if(full&&!Object.keys(q).length){bbDocs=[];bbRec={};bbRuns={};bbDone={};bbSes=[];bbStar={};bbPens={};bbSet={min:60,max:80,term:1};bbS=null;ch=true}   // 전체 받기: 서버 내용으로 통째로 교체
+  if(full&&!Object.keys(q).length){bbDocs=[];bbRec={};bbRuns={};bbDone={};bbSes=[];bbStar={};bbPens={};bbSet={min:60,max:80,term:1};if(!bbView)bbS=null;ch=true}   // 전체 받기: 서버 내용으로 통째로 교체 (문서를 보는 중이면 풀이 상태는 유지)
   (r.docs||[]).forEach(sd=>{
     if(pd('docs|'+sd.id))return;
     const i=bbDocs.findIndex(d=>d.id===sd.id),l=bbDocs[i];
@@ -4695,7 +4695,7 @@ async function bbPull(who,full){
     else bbDocs.push(nd);
     ch=true;
   });
-  if(bbView&&!bbDocs.some(d=>d.id===bbView))bbView=null;
+  if(bbView&&!bbDocs.some(d=>d.id===bbView)){bbView=null;bbS=null}
   (r.records||[]).forEach(x=>{
     if(pd(`records|${x.docId}|${x.blankKey}|${x.term}`))return;
     const d=bbRec[x.docId]||{},b=d[x.blankKey],l=b&&b.T&&b.T[x.term];
