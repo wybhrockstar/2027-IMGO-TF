@@ -3850,6 +3850,12 @@
       "essay": false
     },
     {
+      "count": "5",
+      "status": "제외",
+      "name": "원트랩 1~5회",
+      "essay": false
+    },
+    {
       "count": "1",
       "status": "제외",
       "name": "위더스 리패키지 1회",
@@ -3958,7 +3964,7 @@
       "essay": false
     }
   ],
-  "examsUpdated": "2026.10.19.",
+  "examsUpdated": "2026.10.22.",
   "studyWrongAnswers": [
     {
       "id": "sw_1786884615226_xpnxq",
