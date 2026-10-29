@@ -3846,6 +3846,12 @@
       "essay": true
     },
     {
+      "count": "3",
+      "status": "제외",
+      "name": "서울교대 1~3회 (2회만 논술有)",
+      "essay": true
+    },
+    {
       "count": "1",
       "status": "풀이",
       "name": "암요 파이널 1회",
@@ -3972,7 +3978,7 @@
       "essay": false
     }
   ],
-  "examsUpdated": "2026.10.22.",
+  "examsUpdated": "2026.10.29.",
   "studyWrongAnswers": [
     {
       "id": "sw_1786884615226_xpnxq",
